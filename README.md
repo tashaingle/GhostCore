@@ -265,3 +265,16 @@ Use the temporary `whsec_...` printed by that command only in local `.env.local`
 PaymentIntent is the canonical successful/failed/cancelled payment lifecycle source. `charge.succeeded` and `charge.failed` are deliberately ignored. Checkout, invoice and subscription events remain lifecycle facts and do not add revenue. Monetary values remain integer minor units, include ISO currency, are grouped by currency by consumers, and are never converted. Customer IDs are one-way pseudonyms; emails, addresses, metadata, descriptions, payment methods, card/bank details, and raw Stripe objects are not persisted.
 
 Apply `supabase/migrations/202607280006_stripe_integration.sql` before connecting Stripe. Owners/admins connect and disconnect; roles with `integration.sync` may reconcile. Disconnect clears local credentials while preserving historical events and receipts. Webhook processing is bounded and synchronous because Ghost does not yet have a durable job queue.
+# Phase 10: Google Search Console
+
+Search Console is a read-only connector in the shared provider registry. It reuses Google OAuth with PKCE, encrypted access/refresh tokens, organisation-bound callback cookies, provider-independent locks, the sync runner, logs and universal events. Required scope: `openid email https://www.googleapis.com/auth/webmasters.readonly`; no write scope is requested.
+
+Enable **Google Search Console API** in the existing Google Cloud project, add the readonly scope to the OAuth consent screen, and register the exact redirect URI `http://localhost:3000/api/integrations/google-search-console/callback`. Set `GOOGLE_SEARCH_CONSOLE_REDIRECT_URI` server-side alongside the existing `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`.
+
+After connecting, `/app/integrations/google-search-console/properties` discovers Domain (`sc-domain:`) and URL-prefix properties, records their permission level, and lets an Owner/Admin select up to ten per Google account. Multiple Google accounts can create independent integrations. Managers can sync through the existing permission framework; Members/Viewers remain read-only.
+
+Initial sync compares two bounded 45-day halves covering 90 days; later syncs compare complete seven-day periods after Search Console's three-day data delay. Limits are 10 selected properties, 250 final Search Analytics rows/property/period, 50 API requests, 10 URL inspections/property, 25 seconds and 500 translated events/property. Search data groups page, bounded query, country and device. Queries and URL paths are sanitised/length-limited; OAuth credentials are never logged.
+
+Deterministic thresholds default to 25% and 10 previous clicks. Summary, click change, ranking change, new-query, sitemap and URL Inspection events use period/property/integration-bound external IDs. Dashboard cards show latest clicks, impressions, CTR and impression-weighted position. The supported Search Console APIs do not expose the Core Web Vitals report, so Ghost does not invent it. Index inspection is limited to top returned pages and can partially fail due to quota/permissions.
+
+Troubleshooting: verify the API is enabled, the callback matches exactly, the account owns/has access to the property, and reconnect with `prompt=consent` if Google does not return a refresh token.

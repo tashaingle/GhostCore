@@ -125,3 +125,12 @@ Stripe now uses the existing registry, connector SDK, sync runner, locks, encryp
 Manual steps: apply migration `202607280006_stripe_integration.sql`; provide the five server-only environment values from `.env.example`; enable Connect OAuth for existing Standard accounts; register the exact callback URL; configure a connected-account webhook with only `STRIPE_SUPPORTED_EVENTS`; test in Stripe test mode and verify account/mode labels. A production Connect platform may require Stripe approval/configuration before live OAuth is available.
 
 Remaining manual validation requires real Stripe/Supabase credentials: OAuth consent, two-account isolation, representative Connect webhook delivery, disconnect/reconnect, test/live mapping, and production HTTPS redirect/webhook configuration.
+# Phase 10 — Search Console handover
+
+New provider `google_search_console` implements the existing connector SDK. Its server-only client handles refresh, 15-second request timeouts, safe 401/403/429/provider errors, site discovery, Search Analytics, sitemaps and bounded URL Inspection. The translator inserts privacy-limited normalised events only; it does not insert directly.
+
+OAuth routes live under `/api/integrations/google-search-console`. State, PKCE verifier and active organisation are HttpOnly, SameSite=Lax, 10-minute cookies and are consumed at callback. The callback revalidates the authenticated member and `integration.manage`, identifies the Google account through OIDC, encrypts tokens, and preserves selections when reconnecting the same account.
+
+No migration was required: safe property metadata, thresholds and cursors fit the existing `integrations.settings`; events/logs and RLS remain organisation-scoped. API routes expose safe property/settings/sync/disconnect operations with existing permissions.
+
+Manual validation remains: real Google consent, Domain and URL-prefix discovery, multiple account/property selection, Search Analytics availability delay, URL Inspection quota/ownership, sitemap variations, duplicate sync, token revocation, and cross-organisation switching. Apply existing migrations, enable Google Search Console API, configure the consent scope and exact local/production callback URLs.

@@ -1,0 +1,8 @@
+import "server-only";
+import {createHash,randomBytes,timingSafeEqual} from "node:crypto";
+import {gscOAuthEnv,GSC_SCOPE} from "./config";
+export const oauthSecret=()=>randomBytes(32).toString("base64url");
+const challenge=(value:string)=>createHash("sha256").update(value).digest("base64url");
+export function stateMatches(expected:string|undefined,actual:string|null){if(!expected||!actual)return false;const a=Buffer.from(expected),b=Buffer.from(actual);return a.length===b.length&&timingSafeEqual(a,b)}
+export function authorisationUrl(state:string,verifier:string){const{clientId,redirectUri}=gscOAuthEnv(),url=new URL("https://accounts.google.com/o/oauth2/v2/auth");url.search=new URLSearchParams({client_id:clientId,redirect_uri:redirectUri,response_type:"code",scope:GSC_SCOPE,state,code_challenge:challenge(verifier),code_challenge_method:"S256",access_type:"offline",prompt:"consent",include_granted_scopes:"true"}).toString();return url.toString()}
+export async function exchangeCode(code:string,verifier:string){const env=gscOAuthEnv(),response=await fetch("https://oauth2.googleapis.com/token",{method:"POST",headers:{"content-type":"application/x-www-form-urlencoded"},body:new URLSearchParams({client_id:env.clientId,client_secret:env.clientSecret,redirect_uri:env.redirectUri,grant_type:"authorization_code",code,code_verifier:verifier}),signal:AbortSignal.timeout(15_000)}),body=await response.json() as{access_token?:string;refresh_token?:string;expires_in?:number;scope?:string;error_description?:string};if(!response.ok||!body.access_token)throw new Error(body.error_description||"Google authorization code exchange failed.");return body}

@@ -134,3 +134,12 @@ OAuth routes live under `/api/integrations/google-search-console`. State, PKCE v
 No migration was required: safe property metadata, thresholds and cursors fit the existing `integrations.settings`; events/logs and RLS remain organisation-scoped. API routes expose safe property/settings/sync/disconnect operations with existing permissions.
 
 Manual validation remains: real Google consent, Domain and URL-prefix discovery, multiple account/property selection, Search Analytics availability delay, URL Inspection quota/ownership, sitemap variations, duplicate sync, token revocation, and cross-organisation switching. Apply existing migrations, enable Google Search Console API, configure the consent scope and exact local/production callback URLs.
+# Phase 11 — Shopify handover
+
+`shopify` implements the shared connector SDK and loader. Server-only client construction targets GraphQL Admin API `2026-07`, uses `X-Shopify-Access-Token`, refreshes expiring offline tokens, caps requests/time, and categorises authorization, permission, rate-limit, provider and timeout failures. Translation is isolated and the generic sync runner performs insertion/logging/locking.
+
+OAuth routes: `/api/integrations/shopify/connect` and `/callback`; safe settings, sync and disconnect routes are also present. Owners/Admins install/configure/disconnect, roles with `integration.sync` can manually sync, and read-only roles see existing events. Disconnect removes encrypted credentials but preserves historical events.
+
+No migration was required. Store metadata, thresholds and bounded fingerprints use `integrations.settings`; universal events, integration logs and existing RLS remain organisation-scoped.
+
+Manual work: create/configure the Shopify app, set the exact local and production callbacks, add only the five documented read scopes, install on a development store, test expiring offline token refresh, multiple-store isolation, orders/refunds/fulfilment/inventory/products/collections/discounts, duplicate sync, revocation and reconnect. Shopify's default Orders API access is 60 days; a 90-day import requires approval plus `read_all_orders` and is intentionally not enabled.

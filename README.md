@@ -278,3 +278,14 @@ Initial sync compares two bounded 45-day halves covering 90 days; later syncs co
 Deterministic thresholds default to 25% and 10 previous clicks. Summary, click change, ranking change, new-query, sitemap and URL Inspection events use period/property/integration-bound external IDs. Dashboard cards show latest clicks, impressions, CTR and impression-weighted position. The supported Search Console APIs do not expose the Core Web Vitals report, so Ghost does not invent it. Index inspection is limited to top returned pages and can partially fail due to quota/permissions.
 
 Troubleshooting: verify the API is enabled, the callback matches exactly, the account owns/has access to the property, and reconnect with `prompt=consent` if Google does not return a refresh token.
+# Phase 11: read-only Shopify
+
+Shopify is a first-class connector using the versioned GraphQL Admin API `2026-07` (the REST Admin API is legacy). It requests only `read_orders,read_products,read_inventory,read_discounts,read_locations`. OAuth uses an organisation-bound, HttpOnly, one-use nonce, validates the exact `*.myshopify.com` host and verifies Shopify's callback HMAC before exchanging the code. Omitting `access_mode=per-user` requests an offline token; expiring offline access and refresh-token rotation are supported.
+
+Configure a Shopify app in the Dev Dashboard with `SHOPIFY_CLIENT_ID`, `SHOPIFY_CLIENT_SECRET`, and exact allowed redirect `http://localhost:3000/api/integrations/shopify/callback`. Add the five read scopes. No write operation or write scope exists in Ghost.
+
+The connector discovers store name, canonical myshopify domain, currency, IANA timezone and plan. Each store is a separate organisation-scoped integration. Initial order access is bounded to Shopify's standard 60-day order window (90 days requires separately approved `read_all_orders`, which Ghost deliberately does not request); reconciliation overlaps 72 hours. One GraphQL snapshot is capped at 100 orders/products/collections/discounts, 20 API requests, 25 seconds and 500 events. Existing locks, logs, encrypted credentials and duplicate protection are reused.
+
+Events cover created/paid/cancelled/refunded/fulfilled orders, product state, zero/low inventory, collections and discounts. Dashboard/timeline consume normalised events without provider-specific storage. Customer references are salted hashes; only order count and country are retained. Ghost excludes names, emails, phones, addresses, notes, marketing preferences, payment/card data and raw Shopify payloads.
+
+Troubleshooting: confirm the exact callback URL, read scopes, app installation on the development store, API version support, and store domain. Reinstall/reconnect after scope changes.

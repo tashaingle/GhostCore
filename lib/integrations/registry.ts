@@ -3,7 +3,7 @@ export type ProviderId="github"|"google_analytics"|"google_search_console"|"gmai
 export type ProviderDefinition={
   id:ProviderId;displayName:string;icon:string;colour:string;category:string;
   oauth:boolean;sync:boolean;capabilities:readonly IntegrationCapability[];
-  schedule:SyncSchedule;recommendedFrequency:string;connector:"github"|"google_analytics"|"google_search_console"|"gmail"|"google_calendar"|"stripe"|null;
+  schedule:SyncSchedule;recommendedFrequency:string;connector:"github"|"google_analytics"|"google_search_console"|"gmail"|"google_calendar"|"stripe"|"shopify"|null;
   description?:string;healthSupport?:boolean;propertySelection?:boolean;
   oauthProvider?:string;oauthScopes?:string;callbackPath?:string;connectPath?:string;configurationPath?:string;
 };
@@ -14,7 +14,7 @@ export const providerRegistry={
   gmail:{id:"gmail",displayName:"Gmail",icon:"GM",colour:"#ea4335",category:"Communication",description:"Bring privacy-limited email activity into your organisation timeline.",oauth:true,sync:true,capabilities:["oauth","polling","read_only"],schedule:"hourly",recommendedFrequency:"Hourly",connector:"gmail",connectPath:"/api/integrations/gmail/connect",configurationPath:"/app/integrations/gmail/settings"},
   google_calendar:{id:"google_calendar",displayName:"Google Calendar",icon:"GC",colour:"#4285f4",category:"Productivity",description:"Bring reliable calendar activity into the organisation timeline.",oauth:true,sync:true,capabilities:["oauth","polling","read_only"],schedule:"hourly",recommendedFrequency:"Hourly",connector:"google_calendar",connectPath:"/api/integrations/google-calendar/connect",configurationPath:"/app/integrations/google-calendar/settings"},
   stripe:{id:"stripe",displayName:"Stripe",icon:"ST",colour:"#635bff",category:"Finance",description:"Bring read-only payments, invoices, subscriptions, refunds and payouts into your organisation timeline.",oauth:true,sync:true,capabilities:["oauth","polling","webhooks","read_only"],schedule:"webhook",recommendedFrequency:"Webhooks + 72-hour reconciliation",connector:"stripe",connectPath:"/api/integrations/stripe/connect",configurationPath:"/app/integrations/stripe/settings"},
-  shopify:{id:"shopify",displayName:"Shopify",icon:"SH",colour:"#95bf47",category:"Commerce",oauth:true,sync:true,capabilities:["oauth","polling","webhooks","read_only"],schedule:"hourly",recommendedFrequency:"Hourly",connector:null},
+  shopify:{id:"shopify",displayName:"Shopify",icon:"SH",colour:"#95bf47",category:"Commerce",description:"Read-only orders, products, inventory, collections and discounts.",oauth:true,sync:true,capabilities:["oauth","polling","read_only"],schedule:"hourly",recommendedFrequency:"Hourly",connector:"shopify",connectPath:"/api/integrations/shopify/connect",configurationPath:"/app/integrations/shopify/settings"},
   meta_ads:{id:"meta_ads",displayName:"Meta Ads",icon:"MA",colour:"#0866ff",category:"Marketing",oauth:true,sync:true,capabilities:["oauth","polling","read_only"],schedule:"daily",recommendedFrequency:"Daily",connector:null},
   linkedin:{id:"linkedin",displayName:"LinkedIn",icon:"LI",colour:"#0a66c2",category:"Marketing",oauth:true,sync:true,capabilities:["oauth","polling","read_only"],schedule:"daily",recommendedFrequency:"Daily",connector:null},
   manual:{id:"manual",displayName:"Manual",icon:"MN",colour:"#52525b",category:"Other",oauth:false,sync:false,capabilities:["manual","read_write"],schedule:"manual",recommendedFrequency:"Manual only",connector:null},

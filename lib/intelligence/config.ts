@@ -1,0 +1,1 @@
+export const INTELLIGENCE_CONFIG={rollingWindowDays:30,deploymentCorrelationHours:24,failedDeploymentCorrelationHours:48,workflowFailureWindowHours:72,workflowFailureCount:3,stableConversionTolerancePercent:10,recoveryWindowDays:14,maxEvents:5000} as const;

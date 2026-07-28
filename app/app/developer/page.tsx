@@ -1,0 +1,13 @@
+import { createTestEvent,seedDemoEvents } from "@/app/actions"; import { getActiveOrganisation } from "@/lib/organisations/active"; import { EVENT_CATEGORIES,EVENT_SEVERITIES } from "@/types/events"; import { Notice } from "@/components/notice";
+export default async function Developer({searchParams}:{searchParams:Promise<Record<string,string|string[]|undefined>>}) {
+ const ctx=await getActiveOrganisation();if(!ctx)return null;const {data:integrations}=await ctx.supabase.from("integrations").select("id,provider,provider_account_name").eq("organisation_id",ctx.organisation.id);
+ return <section className="space-y-6"><div><h2 className="text-2xl font-bold">Developer tools</h2><p className="text-zinc-600">Generate normalised test events for this organisation.</p></div><Notice searchParams={await searchParams}/><form action={seedDemoEvents}><button className="button button-secondary">Seed demonstration dataset</button></form>
+ <form action={createTestEvent} className="card grid gap-4 md:grid-cols-2">
+ <label className="label">Source<input className="field" name="source" required placeholder="manual"/></label><label className="label">Event type<input className="field" name="eventType" required placeholder="order.created"/></label>
+ <label className="label">Category<select className="field" name="category">{EVENT_CATEGORIES.map(x=><option key={x}>{x}</option>)}</select></label><label className="label">Severity<select className="field" name="severity">{EVENT_SEVERITIES.map(x=><option key={x}>{x}</option>)}</select></label>
+ <label className="label md:col-span-2">Title<input className="field" name="title" required maxLength={200}/></label><label className="label md:col-span-2">Description<textarea className="field" name="description" rows={3}/></label>
+ <label className="label">Occurred at<input className="field" name="occurredAt" type="datetime-local" required defaultValue={new Date().toISOString().slice(0,16)}/></label><label className="label">External ID<input className="field" name="externalId" maxLength={255}/></label>
+ <label className="label md:col-span-2">Optional integration<select className="field" name="integrationId"><option value="">None</option>{integrations?.map(x=><option value={x.id} key={x.id}>{x.provider} — {x.provider_account_name||"unnamed"}</option>)}</select></label>
+ <label className="label">Metadata JSON<textarea className="field font-mono" name="metadata" rows={5} defaultValue="{}"/></label><label className="label">Raw payload JSON<textarea className="field font-mono" name="rawPayload" rows={5} defaultValue="{}"/></label>
+ <button className="button md:col-span-2 md:justify-self-start">Create event</button></form></section>;
+}

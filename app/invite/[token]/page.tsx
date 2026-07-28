@@ -1,0 +1,5 @@
+import Link from "next/link";
+import {createClient} from "@/lib/supabase/server";
+import {acceptInvitation} from "@/app/organisation-actions";
+import {Notice} from "@/components/notice";
+export default async function Invitation({params,searchParams}:{params:Promise<{token:string}>;searchParams:Promise<Record<string,string|string[]|undefined>>}){const{token}=await params,supabase=await createClient(),{data:{user}}=await supabase.auth.getUser();return <main className="mx-auto grid min-h-screen max-w-lg place-items-center p-6"><section className="card w-full space-y-5"><h1 className="text-2xl font-bold">Organisation invitation</h1><Notice searchParams={await searchParams}/>{user?<><p>You are signed in as <strong>{user.email}</strong>. Accepting adds this organisation to your workspace switcher.</p><form action={acceptInvitation}><input type="hidden" name="token" value={token}/><button className="button">Accept invitation</button></form></>:<><p>Sign in using the invited email address to accept this invitation.</p><Link className="button" href="/login">Sign in</Link></>}</section></main>}

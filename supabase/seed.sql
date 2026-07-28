@@ -1,0 +1,2 @@
+-- Demo events are intentionally seeded through Developer Tools after authentication,
+-- so organisation ownership and RLS are always enforced.

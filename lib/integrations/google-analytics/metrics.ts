@@ -1,0 +1,4 @@
+import type {DimensionRow,MetricTotals} from "./schemas";
+export type MetricComparison={metric:string;currentValue:number;previousValue:number;absoluteChange:number;percentageChange:number|null};
+export function compareMetric(metric:keyof MetricTotals,current:MetricTotals,previous:MetricTotals):MetricComparison{const currentValue=current[metric],previousValue=previous[metric],absoluteChange=currentValue-previousValue;return{metric,currentValue,previousValue,absoluteChange,percentageChange:previousValue===0?null:absoluteChange/previousValue*100}}
+export function aggregateDimensions(rows:DimensionRow[],key:keyof Pick<DimensionRow,"channel"|"sourceMedium"|"landingPage">){const values=new Map<string,{sessions:number;keyEvents:number}>();for(const row of rows){const current=values.get(row[key])??{sessions:0,keyEvents:0};current.sessions+=row.sessions;current.keyEvents+=row.keyEvents;values.set(row[key],current)}return values}

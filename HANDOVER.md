@@ -1,0 +1,127 @@
+# Ghost Core MVP handover
+
+## Completed
+
+Implemented Supabase SSR clients and Next.js 16 proxy session refresh; authentication and callback; transactional organisation onboarding; protected application shell; live overview; event timeline filters/pagination; test integration CRUD; developer event creation and idempotent demo seed; reusable normalisation/ingestion; connector interfaces/manual translator; authenticated APIs; validation, tests, migration, and documentation.
+
+Phase 2 adds the first production connector: GitHub identity linking through Supabase Auth, a dedicated server callback, AES-256-GCM credential storage, account validation, manual sync/disconnect actions, bounded GitHub REST calls, activity/workflow translators, status/error reporting, and tests. Timeline and overview remain provider-agnostic and required no changes.
+
+OAuth initiation was subsequently moved from a server action to a client component. This lets the authenticated browser client own the PKCE verifier cookie and explicitly follow the returned provider URL. The component verifies the exact callback origin, checks session/identity state and the public provider setting, and classifies Supabase errors. The server callback still exclusively handles code exchange, provider tokens, encryption, and database writes.
+
+Phase 3 turns this into a reusable integration platform. A single provider registry drives eleven dashboard cards and declares capabilities and future schedules. The connector SDK standardises connect, disconnect, refresh, sync, health, and translation. GitHub now returns normalised events without inserting them. The shared sync runner owns connector loading, health/auth checks, event insertion, duplicate accounting, status updates, and logging.
+
+Phase 4 implements Google Analytics 4 as the second production connector. It uses direct Google OAuth with HttpOnly state/PKCE cookies and offline access, encrypted refreshable credentials, Admin API property discovery, one-property configuration, aggregate Data API reporting, property-time-zone complete periods, deterministic threshold translation, generic runner insertion/logging, reauthorisation, property changes, and revocation/credential clearing.
+
+## Architecture and security
+
+The active organisation is selected server-side from the authenticated user's first membership. Queries add the organisation predicate even though RLS is the final enforcement boundary. Organisation creation calls an authenticated, tightly scoped `SECURITY DEFINER` function so organisation and owner membership are atomic. No service role or integration credentials are used.
+
+Important areas: `app/app`, `app/actions.ts`, `app/api`, `lib/supabase`, `lib/events`, `lib/integrations`, `lib/organisations`, `types`, `tests`, and `supabase/migrations`.
+
+GitHub-specific areas: `app/github-actions.ts`, `app/auth/github/callback/route.ts`, `lib/integrations/github`, `lib/security/token-crypto.ts`, and the GitHub integration card in `app/app/integrations/page.tsx`.
+
+Platform areas: `lib/integrations/registry.ts`, `connector.ts`, `loader.ts`, `health.ts`, `sync-runner.ts`, `app/integration-actions.ts`, the registry-driven integration dashboard, and `tests/integration-platform.test.ts`.
+
+GA4 areas: `lib/integrations/google-analytics`, the protected connect and callback routes, `app/google-analytics-actions.ts`, the property-selection route, `.env.example`, and `tests/google-analytics.test.ts`. The generic dashboard consumes `connectPath`, `configurationPath`, and registry capabilities; it contains no Google-specific branch.
+
+## Database changes
+
+Apply `202607280001_mvp_support.sql`. It creates the onboarding function, a partial unique index for event idempotency, and explicitly preserves RLS. It does not recreate or drop the existing remote core tables.
+
+Phase 2 adds no migration and uses the existing integration credential and sync-state columns. `types/database.ts` was expanded to represent those existing columns accurately.
+
+Phase 3 adds `202607280002_integration_logs.sql`. It creates a separate RLS-protected operational log with indexes and member-scoped select/insert/update policies. Apply it before using Sync now.
+
+Phase 4 adds no database migration. Existing encrypted credential, expiry, account, status, and `settings` columns safely hold the GA4 configuration. Required environment variables are `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and `GOOGLE_ANALYTICS_REDIRECT_URI`.
+
+## Verification and remaining manual work
+
+See the final delivery report for exact command results. Because supplied `.env.local` was empty, registration, email confirmation, remote writes, and two-user RLS isolation require manual execution after environment configuration. Add the callback URL in Supabase Auth, apply the migration, then follow the two-user isolation procedure in README.
+
+GitHub manual verification additionally requires enabling the GitHub provider and manual identity linking in Supabase, registering the Supabase provider callback in the GitHub OAuth App, adding Ghost's `/auth/github/callback` to the Supabase redirect allow list, and configuring `GITHUB_TOKEN_ENCRYPTION_KEY`. Verify connect, sync, repeat sync (zero duplicates), timeline/overview changes, disconnect, and reconnect.
+
+Recommended next phase: add a background worker that evaluates registry schedules and invokes the same runner, then implement webhook dispatch and the second production connector. Move GitHub from the broad classic OAuth `repo` scope to a fine-grained GitHub App.
+
+Recommended next phase after GA4: schedule registry-driven incremental sync, improve operational health codes beyond the existing status/error message pair, and add a third connector to validate shared OAuth abstractions without weakening provider-specific security.
+# Phase 5 handover — Intelligence Engine
+
+Phase 5 adds a deterministic intelligence layer on top of the existing universal event model. It does not alter connector responsibilities: GitHub and GA4 still emit normalised events, and `lib/intelligence/runner.ts` alone persists insight candidates.
+
+## Components
+
+- `supabase/migrations/202607280003_insights.sql`: RLS insight persistence, lifecycle checks, evidence IDs, deterministic uniqueness.
+- `lib/intelligence/rules`: pure, modular analytics, GitHub, and cross-provider rules.
+- `lib/intelligence/runner.ts`: rolling-window evaluation, confidence normalization, duplicate-safe update/insert, and recovery resolution.
+- `app/api/insights`: authenticated list/detail/lifecycle endpoints.
+- `app/app/insights/[id]`: explanation, recommendation, confidence, evidence, and lifecycle controls.
+- Overview: insight counts, confidence, top recommendation, today’s insights, and manual runner.
+- Timeline: provider-agnostic Events / Insights / Everything view.
+
+Integration sync invokes intelligence after event insertion. The manual Overview action is useful after importing historical data or changing rule thresholds. There is no new secret or environment variable.
+
+## Deployment/manual steps
+
+1. Apply all Supabase migrations through `202607280003_insights.sql`.
+2. Deploy the application normally; existing GitHub/GA4 OAuth configuration is unchanged.
+3. Sync an integration or click **Run intelligence**.
+4. Confirm organisation members can see only their organisation’s insights and supporting evidence.
+
+## Extension contract
+
+New rules must be pure and return candidates only. Use normalised event types, central thresholds, stable fingerprints, and evidence event IDs. Do not insert insights from connectors. Lifecycle states are `active`, `acknowledged`, `dismissed`, and `resolved`; recovery rules can specify rule IDs to resolve.
+# Phase 6 handover — Multi-Organisation Workspace
+
+Phase 6 turns the existing organisation model into a server-resolved multi-tenant workspace system without changing connectors, events or intelligence architecture.
+
+## Architecture
+
+- `lib/organisations/active.ts`: validates cookie/profile preference against current active memberships and safely falls back.
+- `lib/organisations/api-context.ts`: equivalent non-redirecting context for APIs.
+- `lib/auth/permissions.ts`: documented five-role capability matrix.
+- `app/organisation-actions.ts`: workspace switching/creation/settings, invitations, acceptance and team management.
+- `organisation_invitations`: hashed tokens, roles, lifecycle and seven-day expiry.
+- Sidebar: logo/name, persistent switcher, creation, Team and Settings links.
+
+All provider credentials and generated records remain attached to `organisation_id`. GitHub OAuth now uses the active workspace after callback. GA4 already uses the shared active context. Intelligence loads and writes only the active organisation.
+
+## Invitation delivery
+
+Supabase Auth `signInWithOtp` sends the invitation email. Configure the project’s SMTP/email templates and allow `${NEXT_PUBLIC_SITE_URL}/auth/callback` plus the application origin in Supabase redirect URLs. The callback permits only relative `next` paths to prevent open redirects. Resend rotates the secret; cancel invalidates it. Only hashes are stored.
+
+## Manual deployment and verification
+
+1. Apply migrations through `202607280004_multi_organisation.sql`.
+2. Confirm Supabase Auth email delivery and redirect URLs.
+3. Create two workspaces and switch/refresh/sign out/sign in.
+4. Connect GitHub in one and GA4 in the other; confirm integrations, events, logs and insights remain separate.
+5. Invite a second account, accept it from email, test each role and the sole-owner safeguard.
+
+No new environment variables were introduced.
+# Phase 7 handover — Gmail
+
+Gmail uses the existing registry → connector → sync runner → universal events path. OAuth routes are `/api/integrations/gmail/connect` and `/api/integrations/gmail/callback`; mailbox settings are at `/app/integrations/gmail/settings`. Credentials remain encrypted in `integrations`, while safe mailbox metadata and the history cursor live in the existing JSON settings.
+
+Apply `202607280005_integration_sync_lock.sql`. It adds a reusable expiring integration lock and last-attempt timestamp. No Gmail message table was added. The connector uses a seven-day/250-message initial bound, five-page cap, Gmail history increments with safe fallback, per-message failure tolerance, automatic token refresh, Spam/Trash exclusion and metadata-only retrieval.
+
+Required scope: `https://www.googleapis.com/auth/gmail.readonly` plus `openid email`. Required configuration: existing `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and optional `GMAIL_REDIRECT_URI`. Configure the Gmail API, consent scope/test users, callback URI and any Workspace admin approval before live testing.
+
+Manual testing remains required with real Google accounts: connect/sync twice, receive/send, verify incremental behavior and duplicates, test two mailboxes and two organisations, disconnect/reconnect, and inspect RLS/log isolation. No sending, drafts, modification, bodies, attachment downloads or AI interpretation are implemented.
+# Phase 8 handover — Google Calendar
+
+Calendar uses `lib/integrations/google-calendar` and the existing provider-independent sync lock; no migration or calendar mirror table is added. Integration JSON holds safe discovered calendars, selections, per-calendar sync tokens and a bounded relevant-state fingerprint map. Separate integration records support multiple accounts and preserve organisation isolation.
+
+Initial sync is past 30/upcoming 90 days; incremental sync uses per-calendar tokens with 410 fallback. Limits are 50 discovered, 20 selected, five pages and 1,000 events per calendar. Cancelled events are preserved as cancellation events; recurring instances use actual instance IDs; date-only values remain all-day metadata. Apply all existing migrations through Phase 7, configure `GOOGLE_CALENDAR_REDIRECT_URI`, enable Calendar API/read-only scopes, and complete the real-account manual test checklist from the Phase 8 brief.
+# Phase 9 — Stripe integration
+
+Stripe now uses the existing registry, connector SDK, sync runner, locks, encrypted credential fields, health states, logs, universal events, organisation resolver, and permissions. There is no parallel financial data store.
+
+- OAuth: `/api/integrations/stripe/connect` → Stripe Connect Standard OAuth (`read_only`) → `/api/integrations/stripe/callback`. State is cryptographically random, hashed in an HttpOnly 10-minute cookie, organisation-bound, consumed once, and membership/role are rechecked.
+- Credentials: platform and webhook secrets are server-only. Returned access/refresh values (when Stripe returns them) use the existing AES-GCM encryption. Current Stripe guidance deprecates connected access tokens in favour of the platform key plus `Stripe-Account`; sync follows that model.
+- Sync: first 30 days, then a 72-hour overlap, maximum 100/page, 10 pages, 1,000 events, 25 seconds. State advances only after connector processing succeeds. Truncation remains visible in settings/log metadata.
+- Webhook: `/api/webhooks/stripe` reads the raw body, enforces 256 KiB, verifies `Stripe-Signature`, resolves the active integration by verified account and mode, records a unique event receipt, and writes the privacy-limited normalised event. Duplicate delivery and reconciliation overlap are harmless.
+- Privacy: raw payload storage is reduced to event/type/object IDs. Provider metadata, customer email/name/address, descriptions, payment method, card, bank and tax data are excluded. Customer references are salted one-way hashes.
+- Mapping: PaymentIntent is canonical for payment lifecycle. Refund, Checkout, invoice, subscription, dispute and payout mappings are deterministic. No revenue prediction, cross-currency sum, or Stripe write method exists.
+
+Manual steps: apply migration `202607280006_stripe_integration.sql`; provide the five server-only environment values from `.env.example`; enable Connect OAuth for existing Standard accounts; register the exact callback URL; configure a connected-account webhook with only `STRIPE_SUPPORTED_EVENTS`; test in Stripe test mode and verify account/mode labels. A production Connect platform may require Stripe approval/configuration before live OAuth is available.
+
+Remaining manual validation requires real Stripe/Supabase credentials: OAuth consent, two-account isolation, representative Connect webhook delivery, disconnect/reconnect, test/live mapping, and production HTTPS redirect/webhook configuration.

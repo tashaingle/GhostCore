@@ -1,0 +1,4 @@
+"use client";
+import {useState} from "react";
+import {switchOrganisation} from "@/app/organisation-actions";
+export function OrganisationSwitcher({activeId,organisations}:{activeId:string;organisations:{id:string;name:string;role:string}[]}){const[loading,setLoading]=useState(false);return <form action={switchOrganisation} onSubmit={()=>setLoading(true)}><label className="sr-only" htmlFor="organisation-switcher">Active organisation</label><select id="organisation-switcher" name="organisationId" className="field text-sm font-medium" value={activeId} disabled={loading} onChange={event=>event.currentTarget.form?.requestSubmit()}>{organisations.map(org=><option value={org.id} key={org.id}>{org.name} · {org.role}</option>)}</select>{loading&&<p className="mt-1 text-xs text-zinc-500">Switching workspace…</p>}</form>}

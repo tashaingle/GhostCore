@@ -1,0 +1,10 @@
+import type{SupabaseClient}from"@supabase/supabase-js";import type{Database,Json}from"@/types/database";
+export const notificationCategories=["background_job","integration","credential","correlation","financial","task","deployment","import","organisation","security","system"]as const;
+export const notificationSeverities=["info","warning","critical"]as const;
+export const notificationStatuses=["open","acknowledged","snoozed","resolved","dismissed"]as const;
+export type NotificationCategory=typeof notificationCategories[number];export type NotificationSeverity=typeof notificationSeverities[number];export type NotificationStatus=typeof notificationStatuses[number];
+export type NotificationEvidenceInput={evidenceType:string;sourceTable:string;sourceId:string;eventId?:string;correlationId?:string;jobRunId?:string;label:string;description:string;observed:Json;expected?:Json;occurredAt:string};
+export type NotificationCandidate={organisationId:string;ruleKey:string;ruleVersion:number;category:NotificationCategory;severity:NotificationSeverity;title:string;summary:string;explanation:string;recommendedAction:string;sourceType:string;sourceId:string;condition:string;fingerprintParts:string[];evidence:NotificationEvidenceInput[];metadata?:Record<string,Json>};
+export type NotificationRuleContext={client:SupabaseClient<Database>;organisationId:string;now:Date;limit:number;configuration:Record<string,unknown>};
+export type NotificationRuleDefinition={key:string;version:number;name:string;description:string;category:NotificationCategory;defaultSeverity:NotificationSeverity;evaluate:(context:NotificationRuleContext)=>Promise<NotificationCandidate[]>};
+export type GenerationMetrics={rulesEvaluated:number;created:number;updated:number;reopened:number;resolved:number;skipped:number;errors:number};

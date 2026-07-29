@@ -1,0 +1,5 @@
+import type{NotificationCategory,NotificationSeverity}from"./types";import{severityRank}from"./status";
+export type Preference={user_id:string|null;category:string|null;minimum_severity:string;in_app_enabled:boolean;email_enabled:boolean;webhook_enabled:boolean;assignment_enabled:boolean;digest_mode:string};
+const fallback:Preference={user_id:null,category:null,minimum_severity:"info",in_app_enabled:true,email_enabled:false,webhook_enabled:false,assignment_enabled:true,digest_mode:"immediate"};
+export function resolvePreference(rows:Preference[],userId:string,category:NotificationCategory,mandatory=false){const user=rows.find(x=>x.user_id===userId&&x.category===category)??rows.find(x=>x.user_id===userId&&!x.category),organisation=rows.find(x=>!x.user_id&&x.category===category)??rows.find(x=>!x.user_id&&!x.category),selected=user??organisation??fallback;return mandatory?{...selected,in_app_enabled:true,minimum_severity:"info"}:selected}
+export const preferenceAllows=(preference:Preference,severity:NotificationSeverity)=>preference.in_app_enabled&&severityRank(severity)<=severityRank(preference.minimum_severity);

@@ -267,3 +267,20 @@ Operational setup:
 5. Open `/app/jobs`; run the first due batch or use Run now, which queues the job for the next dispatcher invocation.
 
 Cancellation is cooperative: a queued job is cancelled before execution, while an in-flight provider request completes within its connector timeout and the job timeout records a timed-out run. The Phase 19 worker is HTTP-invoked and intentionally does not ship a cron deployment so hosting remains provider-neutral. Job history cleanup retains failures/retries for audit; only old successful, skipped, and cancelled runs are removed.
+# Phase 20 handover — deterministic notifications and Action Centre
+
+Migration `202607290011_notifications_action_centre.sql` adds notification rules, durable notifications, structured evidence, immutable revisions, assignment history, preferences and generation runs with organisation RLS and bounded indexes. Apply it after `202607290010_background_jobs.sql`; it is additive and preserves existing data.
+
+The engine lives under `lib/notifications`. Rule evaluators only inspect bounded organisation rows. Stable fingerprints exclude timestamps, while evidence has its own uniqueness key. Automatic resolution follows a successful rule evaluation only. Cleared conditions carry `conditionClearedAt`, allowing a later recurrence to create the next lifecycle generation. Critical escalation clears snooze and reopens attention. Errors are credential-sanitised.
+
+Routes:
+
+- `/app/action-centre` — summary, deterministic filters, bulk actions and manual evaluation
+- `/app/action-centre/[id]` — explanation, source, evidence, history, assignment and lifecycle actions
+- `/app/action-centre/preferences` — user and organisation preference storage
+
+Permissions are centralised in `lib/auth/permissions.ts`. Owners/admins manage all notification state; managers have operational lifecycle access; members may view/acknowledge; viewers are read-only. RLS scopes every table to organisation membership, keeps revisions immutable, and reserves generation/evidence writes for the service worker. Server actions re-read the active organisation and source notification instead of trusting browser organisation IDs.
+
+The background registry adds `notification.generate` on a 15-minute schedule. The existing dispatcher, lock, retry, timeout and run-log framework executes it. `SUPABASE_SERVICE_ROLE_KEY` and `BACKGROUND_JOB_SECRET` remain server-only. Optional notification environment settings have safe defaults and do not block startup.
+
+In-app notifications are implemented. Email and webhook preferences are stored for future delivery support. No AI is used to generate or prioritise notifications. Outbound email/webhook delivery, push/SMS and external delivery providers are intentionally deferred.

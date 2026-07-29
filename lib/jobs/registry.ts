@@ -4,6 +4,7 @@ export function providerJob(provider:string,integrationId:string,schedule:string
 export const maintenanceJobs:JobRegistration[]=[
  {key:"correlation.reconcile",type:"correlation.reconcile",scheduleType:"recurring",scheduleValue:"1h",timeout:300},
  {key:"integration.health",type:"integration.health",scheduleType:"recurring",scheduleValue:"15m"},
+ {key:"notification.generate",type:"notification.generate",scheduleType:"recurring",scheduleValue:"15m",timeout:300},
  {key:"manual.refresh",type:"manual.refresh",provider:"manual",scheduleType:"manual"},
  {key:"maintenance.expired-locks",type:"maintenance.expired-locks",scheduleType:"recurring",scheduleValue:"15m"},
  {key:"maintenance.job-cleanup",type:"maintenance.job-cleanup",scheduleType:"recurring",scheduleValue:"1d",configuration:{retentionDays:90}},

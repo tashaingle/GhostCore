@@ -467,3 +467,22 @@ Apply `supabase/migrations/202607290010_background_jobs.sql`, set `SUPABASE_SERV
 Schedules support `manual`, `immediate`, `recurring`, `cron`, `one_time` and `disabled`. Recurring values use `5m`, `1h`, `1d` or `1w` syntax. Cron uses five fields and IANA timezone names. Retries default to three with deterministic exponential backoff; authentication, permission and configuration failures are never retried. Locks expire after timeout plus a recovery margin. Completed/skipped/cancelled run history is retained for 90 days by default. Owners/admins manage schedules, managers may run/cancel/retry, and viewers have read-only access at `/app/jobs`.
 
 To add future work, register one stable organisation job key and a generic job type in `lib/jobs/registry.ts`, implement its bounded handler in `lib/jobs/runner.ts`, return record metrics, and add deterministic tests. Provider sync jobs require no custom scheduler code.
+# Phase 20: deterministic notifications and Action Centre
+
+The Action Centre at `/app/action-centre` converts supported stored operational conditions into durable, organisation-scoped notifications. It uses a versioned rule registry in `lib/notifications`, stable SHA-256 fingerprints, structured evidence, append-only revisions, assignment history and explicit lifecycle transitions. No AI, embeddings, semantic ranking or provider calls are used.
+
+Lifecycle states are open, acknowledged, snoozed, resolved and dismissed. Acknowledgement records awareness without claiming the condition is fixed. Critical escalation reopens a dismissed or snoozed item and clears its snooze. Identical evidence is idempotent. Automatic resolution occurs only when a successfully evaluated rule proves its condition no longer matches; the evidence and revisions remain. A condition that clears and later recurs creates a new lifecycle generation. A manually resolved item remains resolved while the exact condition continues; a dismissed continuing condition remains dismissed unless it becomes critical.
+
+Built-in rules cover failed/retrying/stale background jobs, stored integration error states, explicit provider credential expiry, explicit rate limiting, high-score active deterministic correlations, rejected manual CSV rows, and missing fields already required by the organisation model. `notification.generate` runs every 15 minutes through the provider-neutral Phase 19 job runner with the same locks, retry and audit behavior.
+
+Preferences follow: mandatory rule → user override → organisation default → system default. In-app notifications are implemented. Email and webhook preferences are stored for future delivery support. No outbound email or webhook delivery occurs in this phase.
+
+Apply `supabase/migrations/202607290011_notifications_action_centre.sql` after the Phase 19 migration. Optional controls are `NOTIFICATION_BATCH_SIZE` (default 100, bounded 10–500), `NOTIFICATION_CRITICAL_FAILURE_THRESHOLD` (default 3), and `NOTIFICATION_STALE_INTERVAL_MULTIPLIER` (default 2). Existing server-role and background-job configuration remains required for scheduled evaluation.
+
+Manual verification:
+
+1. Apply the migration and open `/app/action-centre`.
+2. Run **Evaluate notifications now** as an owner/admin.
+3. Open an item to inspect rule/version, evidence and immutable history.
+4. Acknowledge, assign, snooze, resolve and dismiss with a reason; confirm timeline lifecycle events.
+5. Review `/app/action-centre/preferences`, `/app/command-centre`, `/app/jobs`, and `/app/timeline`.

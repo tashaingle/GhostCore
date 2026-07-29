@@ -431,3 +431,30 @@ npm run build
 ```
 
 Known limitations: processing is manually triggered until a background scheduler calls the same runner; historical backfills are bounded to 90 days per request; provider metadata quality limits which rules can match; temporal deployment/analytics edges are deliberately weak and hidden from the timeline by default.
+# Phase 18: Organisation Command Centre
+
+`/app/command-centre` is the primary post-login operational dashboard. It composes bounded, organisation-scoped reads from universal events, correlations, integrations, integration logs, deterministic insights, correlation runs and memberships. It does not copy provider data into a parallel dashboard model and does not use AI or semantic search.
+
+The command-centre modules in `lib/command-centre` provide:
+
+- exact period metrics and currency-safe revenue totals;
+- deterministic alerts with evidence labels and source links;
+- provider-neutral integration health;
+- connected-component activity chains made only from stored correlation edges;
+- validated widget ordering, visibility, collapsed state and pinned providers.
+
+Dashboard reads are bounded to 500 period events, 50 strong/moderate correlations, 30 alerts and small health/run summaries. Date ranges are Today, 7 days and 30 days. Search uses ordinary database `ILIKE` matching against imported organisation events. No remote provider search or semantic matching is performed.
+
+Apply the additive saved-view migration:
+
+```bash
+npx supabase db push
+```
+
+The migration creates `command_centre_views`, enables RLS and allows all active organisation members to read the shared layout while only Owners and Administrators can create, change or delete it. No new environment variables are required.
+
+Owners and Administrators can reorder, show, hide or collapse widgets, pin providers and choose the default range. Managers can run sync and reconciliation using existing permissions. Other workspace members receive read-only evidence views.
+
+Alert rules are explicit: disconnected/expired integrations, failed syncs, tokens expiring within seven days, integrations without a successful sync for seven days, critical or named failure events, active warning/critical deterministic insights and failed correlation runs. Alert order is severity-based, not AI prioritisation.
+
+The command centre never claims that a correlation is causation. Cross-platform activity shows only source/target edges already stored by Phase 17 and never inserts a missing intermediate step.

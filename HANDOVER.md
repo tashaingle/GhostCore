@@ -233,3 +233,24 @@ UI routes: `/app/correlations`, `/app/correlations/[id]`, and `/app/correlations
 Privacy/security: evidence values are SHA-256 hashes rather than raw customer identifiers; RLS is enabled on all five new tables; every query and mutation includes `organisation_id`; rule management is Owner/Admin only; routine runs also permit Manager; no arbitrary rule code, tokens, LLMs, or cross-organisation matching exists.
 
 Future work: call `runCorrelations` from a scheduled worker, add cursor-based long backfill orchestration, enrich connectors with more consistent explicit entity keys, and add explicit UI controls for invalidation/backfill history.
+# Phase 18 handover — Organisation Command Centre
+
+The default password and email-confirmation landing route is now `/app/command-centre`. The legacy `/app` overview remains linked and unchanged.
+
+Architecture:
+
+- `lib/command-centre/metrics.ts`: evidence-backed period totals.
+- `alerts.ts`: fixed alert rules and evidence labels.
+- `health.ts`: integration health derived from stored status and sync data.
+- `chains.ts`: groups only connected Phase 17 edges; weak edges are excluded.
+- `layout.ts`: allowlisted widget validation and deterministic ordering.
+- `app/app/command-centre/page.tsx`: bounded server-rendered composition.
+- `app/command-centre-actions.ts`: Owner/Admin saved-layout mutation.
+
+Migration `202607290009_command_centre.sql` adds only `command_centre_views`. Apply using `npx supabase db push` or run it once in the Supabase SQL Editor. RLS provides tenant reads and Owner/Admin writes. Rollback can drop this table without affecting events, integrations, insights or correlations; export saved layouts first if they need to be retained.
+
+Every dashboard query includes the active organisation ID. The page loads at most 500 events and 50 correlations, and provider search remains local and deterministic. Cards link to events, integration state, insight detail or correlation evidence wherever applicable.
+
+No environment variables were added. No live refresh loop was introduced; navigating, filtering, syncing or reconciling server-renders current persisted state. A future refresh enhancement should use a conservative interval or explicit refresh action rather than aggressive polling.
+
+Known limitations: custom arbitrary date inputs are not persisted yet; saved layouts are shared per organisation rather than per individual; database migration status is inferred from availability of the Phase 18 table; full audit-log counts use the existing integration log because Ghost Core has no separate generic audit table.

@@ -2,7 +2,7 @@ import Link from "next/link";
 import {getActiveOrganisation} from "@/lib/organisations/active";
 import {signOut} from "@/app/actions";
 import {OrganisationSwitcher} from "@/components/organisation-switcher";
-const links=[["Overview","/app"],["Timeline","/app/timeline"],["Correlations","/app/correlations"],["Integrations","/app/integrations"],["Team","/app/team"],["Developer Tools","/app/developer"],["Organisation Settings","/app/settings"]];
+const links=[["Command Centre","/app/command-centre"],["Overview","/app"],["Timeline","/app/timeline"],["Correlations","/app/correlations"],["Integrations","/app/integrations"],["Team","/app/team"],["Developer Tools","/app/developer"],["Organisation Settings","/app/settings"]];
 export default async function AppLayout({children}:{children:React.ReactNode}){
   const ctx=await getActiveOrganisation(true);
   return <div className="min-h-screen md:grid md:grid-cols-[260px_1fr]"><aside className="border-b bg-white p-5 md:border-b-0 md:border-r"><h1 className="font-bold">Ghost Core</h1>

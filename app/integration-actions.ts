@@ -15,7 +15,7 @@ export async function syncIntegration(form:FormData){
   try{
     const summary=await runIntegrationSync({supabase:ctx.supabase,userId:ctx.user.id,organisationId:ctx.organisation.id,integrationId});
     await runIntelligence(ctx.supabase,ctx.organisation.id);
-    revalidatePath("/app");revalidatePath("/app/timeline");revalidatePath("/app/integrations");
+    revalidatePath("/app");revalidatePath("/app/command-centre");revalidatePath("/app/timeline");revalidatePath("/app/integrations");
     redirect(destination(summary.errors?"error":"success",`${getProvider(summary.provider)?.displayName??summary.provider} sync: ${summary.imported} imported, ${summary.skipped} skipped, ${summary.errors} errors in ${summary.durationMs}ms.`));
   }catch(error){if(error&&typeof error==="object"&&"digest"in error)throw error;redirect(destination("error",error instanceof Error?error.message:"Integration sync failed."))}
 }

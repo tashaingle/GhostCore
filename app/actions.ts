@@ -19,7 +19,7 @@ export async function signIn(form:FormData) {
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword(parsed.data);
   if (error) redirect(messageUrl("/login","error","Sign-in failed. Check your credentials."));
-  redirect("/app");
+  redirect("/app/command-centre");
 }
 export async function signUp(form:FormData) {
   const parsed = z.object({ email:z.email(), password:z.string().min(8), fullName:z.string().trim().min(2).max(100) }).safeParse(Object.fromEntries(form));
@@ -29,7 +29,7 @@ export async function signUp(form:FormData) {
     options:{ data:{ full_name:parsed.data.fullName }, emailRedirectTo:`${process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"}/auth/callback` } });
   if (error) redirect(messageUrl("/register","error","Registration failed. The account may already exist."));
   if (!data.session) redirect(messageUrl("/login","success","Check your email to confirm your account, then sign in."));
-  redirect("/app");
+  redirect("/app/command-centre");
 }
 export async function signOut() { const supabase=await createClient(); await supabase.auth.signOut(); redirect("/login"); }
 export async function createOrganisation(form:FormData) {
@@ -38,7 +38,7 @@ export async function createOrganisation(form:FormData) {
   const { supabase } = await requireUser();
   const { error } = await supabase.rpc("create_organisation_with_owner", { organisation_name:name.data, organisation_slug:uniqueSlug(name.data) });
   if (error) redirect(messageUrl("/app/onboarding","error","Could not create the organisation. Apply the Supabase migration and try again."));
-  redirect("/app");
+  redirect("/app/command-centre");
 }
 export async function addIntegration(form:FormData) {
   const schema=z.object({ provider:z.enum(SUPPORTED_PROVIDERS), accountName:z.string().trim().max(120), status:z.enum(INTEGRATION_STATUSES) });

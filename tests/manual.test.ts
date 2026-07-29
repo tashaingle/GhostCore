@@ -1,0 +1,21 @@
+import{describe,expect,it}from"vitest";
+import{readFileSync}from"node:fs";
+import{parseCsv,mapCsvRows,manualFingerprint,validateMapping}from"@/lib/integrations/manual/csv";
+import{manualRecordSchema,validateCustomValue}from"@/lib/integrations/manual/schema";
+import{translateManualRecord}from"@/lib/integrations/manual/translator";
+import{manualDashboardTotals}from"@/lib/integrations/manual/dashboard";
+import{manualTemplate}from"@/lib/integrations/manual/templates";
+const record={title:"Invoice 1",recordType:"revenue"as const,occurredAt:"2026-07-29T10:00:00.000Z",amount:125,currency:"GBP",status:"recorded"as const,category:"finance"as const,externalReference:"INV-1",tags:["offline"]};
+describe("manual data",()=>{
+it("validates required type fields and attachment references",()=>{expect(manualRecordSchema.parse({...record,attachments:[{storagePath:"org/receipts/one.pdf",filename:"one.pdf",mimeType:"application/pdf",byteSize:100}]}).amount).toBe(125);expect(()=>manualRecordSchema.parse({...record,amount:null})).toThrow();expect(()=>manualRecordSchema.parse({...record,attachments:[{storagePath:"../secret",filename:"x.exe",mimeType:"application/x-msdownload",byteSize:100}]})).toThrow()});
+it("parses UTF-8, quoted commas, escaped quotes and CRLF",()=>{const parsed=parseCsv('title,recordType,occurredAt,amount,currency,status,category\r\n"Acme, ""North""",revenue,2026-07-29,12.50,GBP,recorded,finance\r\n');expect(parsed.headers).toHaveLength(7);expect(parsed.rows[0].title).toBe('Acme, "North"')});
+it("rejects malformed CSV",()=>{expect(()=>parseCsv('a,b\n"open,x')).toThrow(/unclosed/);expect(()=>parseCsv("a,b\n1")).toThrow(/width/)});
+it("maps rows, reports invalid rows and suppresses duplicates",()=>{const csv=parseCsv("Title,Type,Date,Amount,Currency,Status,Category,Ref\nSale,revenue,2026-07-29,10,GBP,recorded,finance,X1\nSale,revenue,2026-07-29,10,GBP,recorded,finance,X1\nBad,revenue,nope,x,GBP,recorded,finance,X2"),mapping={Title:"title",Type:"recordType",Date:"occurredAt",Amount:"amount",Currency:"currency",Status:"status",Category:"category",Ref:"externalReference"},rows=mapCsvRows(csv,mapping);expect(rows.map(r=>[r.valid,r.duplicate])).toEqual([[true,false],[false,true],[false,false]]);expect(rows[2].issues.length).toBeGreaterThan(0)});
+it("requires deterministic core mappings",()=>{expect(()=>validateMapping(["A"],{A:"title"})).toThrow(/occurredAt/)});
+it("fingerprints deterministically",()=>{expect(manualFingerprint(record)).toBe(manualFingerprint({...record}));expect(manualFingerprint({...record,externalReference:"INV-2"})).not.toBe(manualFingerprint(record))});
+it("validates every custom field type",()=>{expect(validateCustomValue({fieldType:"number",required:true},"2.5")).toBe(2.5);expect(validateCustomValue({fieldType:"checkbox",required:true},"false")).toBe(false);expect(validateCustomValue({fieldType:"dropdown",required:true,options:["A"]},"A")).toBe("A");expect(()=>validateCustomValue({fieldType:"dropdown",required:true,options:["A"]},"B")).toThrow()});
+it("generates revision-specific universal events without attachment contents",()=>{const event=translateManualRecord(record,{organisationId:"org",integrationId:"int",recordId:"rec",revision:2,fingerprint:"fp",operation:"updated"});expect(event.source).toBe("manual");expect(event.externalId).toBe("manual:rec:revision:2");expect(JSON.stringify(event)).not.toContain("file contents")});
+it("calculates dashboard totals without archived rows",()=>{expect(manualDashboardTotals([{record_type:"revenue",amount:12,currency:"GBP",archived_at:null},{record_type:"expense",amount:3,currency:"GBP",archived_at:"2026-01-01"}])).toMatchObject({totalRecords:1,revenue:12,expenses:0})});
+it("produces downloadable CSV templates",()=>{expect(manualTemplate("revenue")).toContain("recordType");expect(()=>manualTemplate("unknown")).toThrow()});
+it("migration enforces organisation RLS, revisions and editor roles",()=>{const sql=readFileSync("supabase/migrations/202607290007_manual_data.sql","utf8");for(const table of["manual_records","manual_record_revisions","manual_custom_fields","manual_attachments","manual_imports"])expect(sql).toContain(table);expect(sql).toContain("enable row level security");expect(sql).toContain("array['owner','admin','manager']");expect(sql).toContain("archived_at")});
+});

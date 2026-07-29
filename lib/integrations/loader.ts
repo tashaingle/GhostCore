@@ -15,6 +15,7 @@ import {GoogleSearchConsoleConnector} from "./google-search-console/connector";i
 import{ShopifyConnector}from"./shopify/connector";import{ShopifyClient}from"./shopify/client";import type{ShopifySettings}from"./shopify/types";
 import{MetaAdsConnector}from"./meta-ads/connector";import{MetaAdsClient}from"./meta-ads/client";import type{MetaAdsSettings}from"./meta-ads/types";
 import{LinkedInConnector}from"./linkedin/connector";import{LinkedInClient}from"./linkedin/client";import type{LinkedInSettings}from"./linkedin/types";
+import{ManualConnector}from"./manual/connector";
 export type ConnectorCredentials={accessToken?:string;refreshToken?:string;expiresAt?:string;settings?:Record<string,unknown>};
 export function loadConnector(providerId:string,input?:string|ConnectorCredentials):IntegrationConnector{
   const provider=getProvider(providerId);if(!provider)throw new Error(`Unknown integration provider: ${providerId}`);
@@ -28,5 +29,6 @@ export function loadConnector(providerId:string,input?:string|ConnectorCredentia
   if(provider.connector==="shopify"){const settings=credentials.settings as ShopifySettings;if(!credentials.accessToken||!settings?.shop)throw new Error("Shopify credentials are missing.");return new ShopifyConnector(new ShopifyClient({shop:settings.shop,accessToken:credentials.accessToken,refreshToken:credentials.refreshToken,expiresAt:credentials.expiresAt}),settings)}
   if(provider.connector==="meta_ads"){const settings=credentials.settings as MetaAdsSettings;if(!credentials.accessToken)throw new Error("Meta Ads credentials are missing.");return new MetaAdsConnector(new MetaAdsClient(credentials.accessToken),settings)}
   if(provider.connector==="linkedin"){const settings=credentials.settings as LinkedInSettings;if(!credentials.accessToken)throw new Error("LinkedIn credentials are missing.");return new LinkedInConnector(new LinkedInClient(credentials.accessToken),settings)}
+  if(provider.connector==="manual")return new ManualConnector()
   return new PlaceholderConnector(provider.id);
 }

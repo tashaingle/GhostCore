@@ -10,7 +10,7 @@ const healthStyles={healthy:"bg-green-100 text-green-800",syncing:"bg-blue-100 t
 type Integration={id:string;provider:string;provider_account_name:string|null;status:string;last_sync_at:string|null;last_sync_status:string|null;last_sync_error:string|null;settings:Json};
 function Controls({provider,integration,siteUrl}:{provider:ProviderDefinition;integration?:Integration;siteUrl:string}){
   const connected=integration&&!["disconnected","expired"].includes(integration.status),settings=(integration?.settings??{}) as Record<string,unknown>,configurationRequired=settings.configurationStatus==="property_required";
-  if(hasCapability(provider,"manual"))return <Link className="button button-secondary" href="/app/developer">Create event</Link>;
+  if(hasCapability(provider,"manual"))return integration?<Link className="button" href="/app/integrations/manual">Open Manual</Link>:<Link className="button" href="/api/integrations/manual/connect">Enable Manual</Link>;
   if(provider.connector===null)return <button className="button button-secondary" disabled>Coming soon</button>;
   if(!connected){
     if(provider.connectPath)return <Link className="button" href={provider.connectPath}>Connect {provider.displayName}</Link>;

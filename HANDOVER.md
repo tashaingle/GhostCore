@@ -177,3 +177,22 @@ LinkedIn dashboard work still required outside Ghost:
 6. Connect in a credentialed environment and confirm the recorded granted scopes and capability probes. No live scopes were granted during repository-only validation.
 
 No Phase 13 migration is required: generic integration settings, logs, locks, universal events, encrypted credentials, organisation filters, permissions, and RLS remain in use.
+# Phase 14 handover — Manual data and CSV import
+
+Phase 14 adds the first-party `manual` connector without credentials or OAuth. A new migration creates organisation-scoped manual records, immutable revisions, custom-field definitions/values, safe attachment references, CSV imports and remembered mappings. Each table has RLS, foreign keys, indexes and role-aware write policies. Records soft-archive; no default destructive delete exists.
+
+The pure CSV engine handles UTF-8 text, RFC-style quoted fields, escaped quotes, CRLF/LF, width validation, preview limits, column mapping, typed row validation and intra-file/database duplicate fingerprints. Valid rows proceed independently. Import history and the generic integration log store deterministic counts and bounded error reports.
+
+The authenticated API surface is:
+
+- `GET/POST /api/integrations/manual/records`
+- `PATCH /api/integrations/manual/records/[id]`
+- `POST /api/integrations/manual/records/[id]/archive`
+- `POST /api/integrations/manual/csv/preview`
+- `POST /api/integrations/manual/csv/import`
+- `GET/POST /api/integrations/manual/custom-fields`
+- `GET /api/integrations/manual/templates/[name]`
+
+Manual records translate into revision-specific universal events with `source=manual`. Event payloads contain safe structured evidence metadata and attachment counts, never file bodies or public storage URLs.
+
+Deployment requires `supabase db push` (or applying `202607290007_manual_data.sql`). No new environment variables are required. A private object-storage upload UI is intentionally not part of this phase; API inputs accept validated references only after the application has placed a permitted file in private storage. Live RLS and browser smoke tests require the target Supabase project, authenticated users for each role and the migration applied.

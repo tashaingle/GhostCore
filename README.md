@@ -322,3 +322,24 @@ Ghost requests exactly `openid profile r_ads r_ads_reporting r_organization_admi
 After connecting, choose eligible ad accounts and Company Pages under LinkedIn settings, then use the generic **Sync now** action. One eligible asset is selected automatically; multiple assets require explicit selection. Existing generic `integrations.settings` safely holds capability evidence, assets, selections, checkpoints, and fingerprints, so Phase 13 adds no database migration.
 
 To add or update LinkedIn endpoints, keep them in the strict allowlist in `lib/integrations/linkedin/client.ts`, add Zod validation and bounded pagination, return only normalised records from the connector, and translate them in the isolated translator. Preserve aggregate-only privacy and currency separation.
+# Phase 14: Manual data and CSV import
+
+Manual is a built-in, credential-free provider for structured first-party evidence that cannot be retrieved through an API. Enable it from Integrations, then create records or use the preview → mapping → validation → duplicate detection → import workflow at `/app/integrations/manual`. It feeds the same universal event stream as every connector; it is not a notes or spreadsheet system.
+
+Supported record types are revenue, expense, lead, opportunity, customer, contract, quote, refund, stock adjustment, KPI snapshot, marketing spend, offline sale, phone enquiry, event attendance, donation and custom. Amount-bearing financial types require an amount and ISO three-letter currency. Records support status, category, tags, references, business-party/context fields and evidence attachment references.
+
+CSV files must be UTF-8-compatible CSV, at most 2 MB and 5,000 rows. Quoted commas, escaped quotes, CRLF/LF and empty values are supported. Map at least `title`, `recordType` and `occurredAt`; unused columns are ignored. Valid rows import even when other rows fail. A validation report and import summary record successes, failures, duplicates and duration. Mappings are remembered by a deterministic header hash. Downloadable templates are provided for revenue, expenses, leads, marketing spend and KPI snapshots.
+
+Duplicates use a SHA-256 fingerprint over type, occurred time, amount, currency, external reference and normalised title. Active-record uniqueness is also enforced in PostgreSQL, while every created, updated or archived revision generates a unique universal-event external ID. Archive is a soft operation and historical revisions remain readable.
+
+Custom-field definitions are stored separately from typed values and support text, number, currency, date, checkbox and dropdown. Attachment rows store only private storage references, filename, approved MIME type and size; no file contents enter events. The current phase does not provide a storage uploader, OCR, formula engine, arbitrary spreadsheet editing or public attachment URLs.
+
+Permissions: owner/admin can create, edit, import, archive and manage fields; manager can create, edit and import; viewer is read-only. The legacy `member` role is intentionally excluded from Manual writes. Every API derives the organisation from the authenticated active workspace and RLS repeats the tenant and role boundary.
+
+Apply the migration before enabling Manual:
+
+```bash
+supabase db push
+```
+
+Or run `supabase/migrations/202607290007_manual_data.sql` through the Supabase SQL editor for the configured project.

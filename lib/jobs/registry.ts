@@ -1,0 +1,11 @@
+import type{SupabaseClient}from"@supabase/supabase-js";import type{Database,Json}from"@/types/database";import{providers}from"@/lib/integrations/registry";
+export type JobRegistration={key:string;type:string;provider?:string;integrationId?:string;scheduleType:string;scheduleValue?:string;timeout?:number;configuration?:Json};
+export function providerJob(provider:string,integrationId:string,schedule:string):JobRegistration{const recurring=schedule==="hourly"?"1h":schedule==="daily"?"1d":schedule==="webhook"?"1d":null;return{key:`integration.sync:${integrationId}`,type:"integration.sync",provider,integrationId,scheduleType:recurring?"recurring":"manual",scheduleValue:recurring??undefined,timeout:300}}
+export const maintenanceJobs:JobRegistration[]=[
+ {key:"correlation.reconcile",type:"correlation.reconcile",scheduleType:"recurring",scheduleValue:"1h",timeout:300},
+ {key:"integration.health",type:"integration.health",scheduleType:"recurring",scheduleValue:"15m"},
+ {key:"manual.refresh",type:"manual.refresh",provider:"manual",scheduleType:"manual"},
+ {key:"maintenance.expired-locks",type:"maintenance.expired-locks",scheduleType:"recurring",scheduleValue:"15m"},
+ {key:"maintenance.job-cleanup",type:"maintenance.job-cleanup",scheduleType:"recurring",scheduleValue:"1d",configuration:{retentionDays:90}},
+];
+export async function ensureRegisteredJobs(client:SupabaseClient<Database>,organisationId:string,createdBy?:string){const{data:integrations}=await client.from("integrations").select("id,provider").eq("organisation_id",organisationId),definitions=[...maintenanceJobs,...(integrations??[]).flatMap(i=>{const p=providers.find(x=>x.id===i.provider);return p?.sync?[providerJob(i.provider,i.id,p.schedule)]:[]})],now=new Date().toISOString();for(const d of definitions)await client.from("background_jobs").upsert({organisation_id:organisationId,integration_id:d.integrationId??null,job_key:d.key,job_type:d.type,provider:d.provider??null,schedule_type:d.scheduleType,schedule_value:d.scheduleValue??null,next_run_at:d.scheduleType==="manual"?null:now,timeout_seconds:d.timeout??120,configuration:d.configuration??{},created_by:createdBy??null},{onConflict:"organisation_id,job_key",ignoreDuplicates:true});return definitions.length}

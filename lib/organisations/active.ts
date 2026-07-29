@@ -4,7 +4,10 @@ import {redirect} from "next/navigation";
 import {requireUser} from "@/lib/auth/user";
 import {selectActiveMembership} from "./selection";
 export const ACTIVE_ORGANISATION_COOKIE="ghost_active_organisation";
-export async function getActiveOrganisation(optional=false){
+export function getActiveOrganisation(optional?:false):Promise<NonNullable<Awaited<ReturnType<typeof loadActiveOrganisation>>>>;
+export function getActiveOrganisation(optional:true):Promise<Awaited<ReturnType<typeof loadActiveOrganisation>>>;
+export async function getActiveOrganisation(optional=false){return loadActiveOrganisation(optional)}
+async function loadActiveOrganisation(optional=false){
   const{supabase,user}=await requireUser();
   const{data:memberships,error}=await supabase.from("organisation_members").select("id,organisation_id,role,status,created_at,organisations(id,name,slug,logo_url,website,industry,timezone,default_currency)").eq("user_id",user.id).eq("status","active").order("created_at");
   if(error)throw new Error("Unable to load your organisations.");

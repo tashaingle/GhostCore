@@ -254,3 +254,16 @@ Every dashboard query includes the active organisation ID. The page loads at mos
 No environment variables were added. No live refresh loop was introduced; navigating, filtering, syncing or reconciling server-renders current persisted state. A future refresh enhancement should use a conservative interval or explicit refresh action rather than aggressive polling.
 
 Known limitations: custom arbitrary date inputs are not persisted yet; saved layouts are shared per organisation rather than per individual; database migration status is inferred from availability of the Phase 18 table; full audit-log counts use the existing integration log because Ghost Core has no separate generic audit table.
+# Phase 19 handover — automated sync and background jobs
+
+Phase 19 adds the additive `background_jobs`, `background_job_runs`, and `background_job_locks` schema with organisation RLS and service-worker compatible connector lock RPCs. The provider registry seeds all sync-capable integrations into the generic scheduler. The executor provides distributed locking, safe stale-lock recovery, persisted start/finish/failure/retry metadata, deterministic error classification/backoff, bounded batches and failure isolation. Correlation reconciliation, integration health, manual refresh, lock cleanup, and 90-day successful-run cleanup are built in.
+
+Operational setup:
+
+1. Apply `202607290010_background_jobs.sql`.
+2. Configure `SUPABASE_SERVICE_ROLE_KEY` and `BACKGROUND_JOB_SECRET` only in the server/worker environment.
+3. Schedule `POST /api/jobs/dispatch` with `Authorization: Bearer $BACKGROUND_JOB_SECRET` every five minutes in Vercel Cron, Supabase Scheduled Functions, or another scheduler.
+4. Optionally set `BACKGROUND_JOB_BATCH_SIZE` from 1–20 (default 5).
+5. Open `/app/jobs`; run the first due batch or use Run now, which queues the job for the next dispatcher invocation.
+
+Cancellation is cooperative: a queued job is cancelled before execution, while an in-flight provider request completes within its connector timeout and the job timeout records a timed-out run. The Phase 19 worker is HTTP-invoked and intentionally does not ship a cron deployment so hosting remains provider-neutral. Job history cleanup retains failures/retries for audit; only old successful, skipped, and cancelled runs are removed.

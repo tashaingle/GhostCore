@@ -458,3 +458,12 @@ Owners and Administrators can reorder, show, hide or collapse widgets, pin provi
 Alert rules are explicit: disconnected/expired integrations, failed syncs, tokens expiring within seven days, integrations without a successful sync for seven days, critical or named failure events, active warning/critical deterministic insights and failed correlation runs. Alert order is severity-based, not AI prioritisation.
 
 The command centre never claims that a correlation is causation. Cross-platform activity shows only source/target edges already stored by Phase 17 and never inserts a missing intermediate step.
+# Phase 19: automated sync and background jobs
+
+Ghost Core has a provider-neutral, organisation-scoped scheduler in `lib/jobs`. Connected providers register an `integration.sync` job from the provider registry; correlations, health, manual refresh and maintenance use the same execution path. The scheduler discovers due work while the executor owns distributed locking, timeout enforcement, deterministic retry, metrics and durable run logs. Connectors remain responsible for fetching and translation, and the existing sync runner remains responsible for event insertion and duplicate protection.
+
+Apply `supabase/migrations/202607290010_background_jobs.sql`, set `SUPABASE_SERVICE_ROLE_KEY` and a long random `BACKGROUND_JOB_SECRET`, then invoke `GET` or `POST /api/jobs/dispatch` with `Authorization: Bearer <secret>`. Vercel Cron, Supabase Scheduled Functions or a future worker may call the same endpoint. `BACKGROUND_JOB_BATCH_SIZE` is optional (default 5, maximum 20). Invoke frequently (for example every five minutes); individual job schedules determine whether work is due.
+
+Schedules support `manual`, `immediate`, `recurring`, `cron`, `one_time` and `disabled`. Recurring values use `5m`, `1h`, `1d` or `1w` syntax. Cron uses five fields and IANA timezone names. Retries default to three with deterministic exponential backoff; authentication, permission and configuration failures are never retried. Locks expire after timeout plus a recovery margin. Completed/skipped/cancelled run history is retained for 90 days by default. Owners/admins manage schedules, managers may run/cancel/retry, and viewers have read-only access at `/app/jobs`.
+
+To add future work, register one stable organisation job key and a generic job type in `lib/jobs/registry.ts`, implement its bounded handler in `lib/jobs/runner.ts`, return record metrics, and add deterministic tests. Provider sync jobs require no custom scheduler code.

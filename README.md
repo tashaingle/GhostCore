@@ -289,3 +289,25 @@ The connector discovers store name, canonical myshopify domain, currency, IANA t
 Events cover created/paid/cancelled/refunded/fulfilled orders, product state, zero/low inventory, collections and discounts. Dashboard/timeline consume normalised events without provider-specific storage. Customer references are salted hashes; only order count and country are retained. Ghost excludes names, emails, phones, addresses, notes, marketing preferences, payment/card data and raw Shopify payloads.
 
 Troubleshooting: confirm the exact callback URL, read scopes, app installation on the development store, API version support, and store domain. Reinstall/reconnect after scope changes.
+# Phase 12: Meta Ads reporting
+
+Provider ID `meta_ads` is a read-only connector built on the shared connector SDK. It uses a focused Zod-validated Graph API client, encrypted credentials, organisation-bound OAuth, generic locks/logs/health, isolated translation and universal event insertion. The default Graph/Marketing API is `v25.0`; override only with a validated `META_GRAPH_API_VERSION`.
+
+## Natasha's Meta setup
+
+1. In Meta for Developers create/select a Business app and add Facebook Login for Business/Marketing API.
+2. Add the exact valid OAuth redirect `http://localhost:3000/api/integrations/meta-ads/callback`; production generally needs a public HTTPS equivalent.
+3. Configure server-only `META_APP_ID`, `META_APP_SECRET`, `META_REDIRECT_URI` and `META_GRAPH_API_VERSION=v25.0`.
+4. Request only `ads_read` and `business_management`. The latter is used only for accessible business/ad-account discovery. No write permission or mutation exists.
+5. Developers/app testers can connect while the app is in Development mode. External public users normally require App Review and Advanced Access for these permissions.
+6. Add test users with explicit access to development ad accounts; connecting Meta does not grant access to every account.
+
+OAuth state is cryptographically random, HttpOnly, ten-minute, one-use, and bound to user, organisation, provider and return path. Callback exchanges short-lived access for a long-lived user token when supported, encrypts it, discovers identity/permissions/accounts and selects a sole eligible account only.
+
+Initial sync retrieves 90 days. Normal sync reconciles seven days; settings retain revision fingerprints so unchanged rows create no event and changed attributed history creates a deterministic revision. A future scheduler can invoke the same runner for 28-day extended reconciliation. Daily reporting preserves account calendar date, timezone and currency. Spend/cost/value remain decimal strings plus six-place fixed micros; different currencies are never combined.
+
+Hierarchy sync covers campaigns, ad sets and ads without audiences/targeting. Insights cover account and campaign daily reporting with explicit unified `7d_click` and `1d_view` windows. Meta-attributed purchases/leads use documented precedence (`omni_purchase`, pixel purchase, purchase) instead of summing aliases. They must not be described as Shopify orders, Stripe payments or proof of incremental impact.
+
+Allowed breakdowns are `publisher_platform`, `device_platform`, and `country`, one at a time, though the default sync requests none. The client caps ten selected accounts, ten pages, 5,000 rows, 45 seconds and two retry slots. Errors distinguish authentication, permission, rate limit, invalid parameter and service failure. No leads, people, messages, comments, audiences, payment details, raw tokens or unfiltered Graph payloads are stored.
+
+Disconnect uses the generic Owner/Admin action: credentials are erased and history is retained. Managers with `integration.sync` may manually sync; read-only roles may only view.

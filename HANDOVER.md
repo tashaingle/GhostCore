@@ -143,3 +143,12 @@ OAuth routes: `/api/integrations/shopify/connect` and `/callback`; safe settings
 No migration was required. Store metadata, thresholds and bounded fingerprints use `integrations.settings`; universal events, integration logs and existing RLS remain organisation-scoped.
 
 Manual work: create/configure the Shopify app, set the exact local and production callbacks, add only the five documented read scopes, install on a development store, test expiring offline token refresh, multiple-store isolation, orders/refunds/fulfilment/inventory/products/collections/discounts, duplicate sync, revocation and reconnect. Shopify's default Orders API access is 60 days; a 90-day import requires approval plus `read_all_orders` and is intentionally not enabled.
+# Phase 12 — Meta Ads handover
+
+Added registry entry, typed client, OAuth, connector, translator, metrics/action normaliser, account-selection UI, reporting dashboard and tests under the existing architecture. No database migration was necessary: selected child accounts, safe token metadata and checkpoints fit bounded `integrations.settings`; existing events/logs/RLS provide organisation isolation.
+
+Environment: `META_APP_ID`, `META_APP_SECRET`, `META_REDIRECT_URI`, `META_GRAPH_API_VERSION`. Default/version tested: `v25.0`. Permissions: `ads_read,business_management`; no advertising write permission/API is exposed.
+
+Manual validation remains with real Meta credentials: Development-mode tester OAuth, App Review/Advanced Access, multi-identity/account discovery, disabled accounts, permission removal, long-lived token expiry/revocation, paginated hierarchy/Insights, API usage headers/rate limits, attribution revisions, multi-currency dashboard filtering, organisation switching, reconnect and disconnect. Confirm v25.0 remains supported in Meta's Versioning page before production deployment.
+
+No security/RLS/smoke scripts exist in `package.json`; do not claim those separate scripts ran. Security invariants are covered by unit/regression tests plus existing RLS migrations, but live Supabase RLS and authenticated browser smoke tests remain manual.

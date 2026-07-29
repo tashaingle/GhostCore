@@ -1,0 +1,3 @@
+import{z}from"zod";import{workflowStepTypes,workflowTriggers}from"./types";
+export const stepSchema=z.object({name:z.string().trim().min(1).max(120),type:z.enum(workflowStepTypes),configuration:z.record(z.string(),z.unknown()).default({}),timeoutSeconds:z.number().int().min(10).max(86400).default(300),maxRetries:z.number().int().min(0).max(10).default(3),failurePolicy:z.enum(["fail","continue","pause"]).default("fail"),assignedRole:z.string().max(30).nullable().optional()});
+export const workflowSchema=z.object({name:z.string().trim().min(2).max(120),description:z.string().trim().max(1000).default(""),triggerType:z.enum(workflowTriggers),steps:z.array(stepSchema).min(1).max(50).refine(x=>x.some(s=>s.type==="complete"),"A workflow requires a complete step.")});

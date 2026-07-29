@@ -284,3 +284,23 @@ Permissions are centralised in `lib/auth/permissions.ts`. Owners/admins manage a
 The background registry adds `notification.generate` on a 15-minute schedule. The existing dispatcher, lock, retry, timeout and run-log framework executes it. `SUPABASE_SERVICE_ROLE_KEY` and `BACKGROUND_JOB_SECRET` remain server-only. Optional notification environment settings have safe defaults and do not block startup.
 
 In-app notifications are implemented. Email and webhook preferences are stored for future delivery support. No AI is used to generate or prioritise notifications. Outbound email/webhook delivery, push/SMS and external delivery providers are intentionally deferred.
+# Phase 21 handover — deterministic workflow and approval engine
+
+Migration `202607290012_workflows.sql` adds workflow definitions, immutable versions and steps, durable runs and run steps, execution logs, templates, approvals, task assignments, trigger history and immutable workflow audit events. It is additive and must be applied after Phase 20.
+
+The engine under `lib/workflows` pins a version at run creation, uses canonical deterministic trigger fingerprints, persists every wait/retry/failure boundary, and processes at most 25 steps per invocation. Duplicate triggers do not run twice. Conditions are explicit comparisons; delay and approval state is resumable. Automatic retries use 30-second exponential backoff capped at one hour.
+
+Owners/admins manage definitions. Managers can run, retry and cancel. Members can view and decide approvals assigned to them or their role. Viewers are read-only. Server actions re-resolve the active organisation and use the service client only after central permission checks. All workflow tables have organisation RLS; immutable version, step, log, trigger and audit tables cannot be updated or deleted by authenticated users.
+
+Provider adapters intentionally expose only `sync`, because the existing connector SDK is read-oriented. Future provider write actions must be reviewed and added to the adapter registry rather than embedded in workflows. Webhook steps allow public HTTPS destinations only and never include credentials.
+
+Background jobs:
+
+- `workflow.dispatch` — discovers stored triggers and resumes due runs
+- `workflow.timeout` — expires overdue approvals
+- `approval.reminders` — records bounded pending-approval metrics
+- `workflow.cleanup` — removes execution logs older than 365 days by default
+
+No new environment variables are required. The webhook trigger route reuses `BACKGROUND_JOB_SECRET`. No AI is used.
+
+Known limitations: outbound approval email is not delivered; reminders are persisted job metrics only. Drag ordering is pointer-based HTML drag and drop. Provider mutations beyond existing sync jobs are deliberately unavailable. Workflow webhooks are one-way POST operations without response-body storage.

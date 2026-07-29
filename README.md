@@ -486,3 +486,28 @@ Manual verification:
 3. Open an item to inspect rule/version, evidence and immutable history.
 4. Acknowledge, assign, snooze, resolve and dismiss with a reason; confirm timeline lifecycle events.
 5. Review `/app/action-centre/preferences`, `/app/command-centre`, `/app/jobs`, and `/app/timeline`.
+# Phase 21: deterministic workflow and approval engine
+
+Ghost Core now includes versioned, provider-neutral operational workflows at `/app/workflows`, execution history at `/app/workflow-runs`, and a human approval inbox at `/app/approvals`. No AI, autonomous decisions, semantic matching or probabilistic branching is used.
+
+Definitions are mutable only by creating a new immutable `workflow_versions` snapshot with immutable ordered steps. Every run pins that version and has a stable SHA-256 fingerprint derived from organisation, workflow, version, trigger, source and canonical payload. Replaying the same trigger returns the existing run.
+
+Supported steps are task, approval, condition, delay, background job, notification, integration action, webhook, manual confirmation and complete. Conditions use explicit operators and fields. Retries use bounded exponential backoff. Runs pause durably for tasks, approvals and delays and resume through the Phase 19 dispatcher. Failure policies are fail, continue or pause.
+
+Provider adapters expose only the action already supported consistently by connected Ghost providers: queueing their registered read-only sync job. No unsupported provider write operation is fabricated. Webhooks require a public HTTPS URL, have a 30-second maximum request timeout, and send only configured workflow data.
+
+Built-in templates cover deployment failure review, integration reconnect, CSV import review, correlation review and background-job recovery. The builder supports drag ordering, JSON configuration validation, enable/disable/archive, duplication through templates, and immutable version history.
+
+The background framework registers `workflow.dispatch`, `workflow.timeout`, `approval.reminders` and `workflow.cleanup`. Dispatch discovers bounded stored triggers for notification lifecycle events, correlation creation, failed jobs, integration state changes, CSV imports and hourly schedules. `POST /api/workflows/trigger` supports authenticated webhook triggers using the existing `BACKGROUND_JOB_SECRET`.
+
+Apply `supabase/migrations/202607290012_workflows.sql` after Phase 20. No new environment variables are required.
+
+Manual verification:
+
+1. Apply the migration and visit `/app/workflows`.
+2. Create a manual workflow or use a template, drag its steps, save and enable it.
+3. Run it and inspect `/app/workflow-runs/[id]`.
+4. Complete a task or decide an approval through `/app/approvals/[id]`.
+5. Confirm workflow and approval events in `/app/timeline`.
+6. Confirm failures link to `/app/action-centre` and workflow metrics appear in `/app/command-centre`.
+7. Confirm all four workflow jobs appear in `/app/jobs`.

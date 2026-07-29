@@ -401,3 +401,33 @@ Initial sync defaults to 30 days (bounded to 90). Each invocation makes at most 
 Thread parent metadata and reaction names/counts are stored. Full thread-body backfill is not enabled because Slack bot-token access varies and restrictive `conversations.replies` limits could starve recent messages. Files are counted but not downloaded; reacting-user lists, emails, phone numbers and full profiles are discarded.
 
 No database migration is required. Existing integration/event/log RLS enforces organisation isolation.
+# Phase 17: deterministic correlations
+
+Ghost Core can connect universal events across providers using reviewed, versioned rules. Correlations are evidence-backed associations, not causation claims. No LLM, embedding, fuzzy semantic match, or database-supplied executable rule is used.
+
+The engine is split across `lib/correlations`: the registry discovers allowlisted rules, candidate selection bounds provider/event/time comparisons to 500 pairs per rule, scoring records every deterministic contribution, fingerprints suppress duplicates, the runner processes a maximum of 1,000 recent events by default, and the repository preserves evidence, revisions and invalidations. A failed rule is isolated from other rules.
+
+Initial rules cover Shopify/Stripe payments and refunds, Meta Ads/Analytics, LinkedIn/Analytics, Search Console/organic Analytics, Gmail/Calendar, Gmail/Shopify, Notion/GitHub, Slack/Notion, Slack/GitHub, GitHub deployment/Analytics windows, and allowlisted manual transaction references. Temporal evidence contributes at most 20 points. Conflicting currencies or comparable unique identifiers reject a match. Public email domains do not establish a company identity.
+
+Apply the additive schema:
+
+```bash
+npx supabase db push
+```
+
+Alternatively paste `supabase/migrations/202607290008_correlations.sql` into the Supabase SQL Editor. The migration creates rule settings, correlations, hashed evidence, immutable revisions, and run history with organisation indexes and RLS. It does not alter or delete existing events.
+
+Owners and administrators can configure bounded thresholds and windows at `/app/correlations/rules`. Managers can run routine reconciliation. All organisation members with workspace access can inspect permitted evidence. A seven-day reconciliation is the default; the action bounds requests to 1–90 days and database reads to 5,000 events.
+
+To add a rule, define a typed `RuleSpec` in `lib/correlations/rules/index.ts`, use explicit identifiers/URLs/amounts/attribution fields, assign a new immutable version, add false-positive tests, and keep prose in deterministic evidence templates. Database settings may only enable, disable, or parameterise that source-code rule.
+
+Testing:
+
+```bash
+npm run lint
+npm run typecheck
+npm test
+npm run build
+```
+
+Known limitations: processing is manually triggered until a background scheduler calls the same runner; historical backfills are bounded to 90 days per request; provider metadata quality limits which rules can match; temporal deployment/analytics edges are deliberately weak and hidden from the timeline by default.

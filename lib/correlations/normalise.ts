@@ -1,0 +1,9 @@
+import {createHash} from "node:crypto";
+const PUBLIC_EMAIL_DOMAINS=new Set(["gmail.com","googlemail.com","outlook.com","hotmail.com","live.com","yahoo.com","icloud.com","aol.com","proton.me","protonmail.com"]);
+export const stableHash=(value:unknown)=>createHash("sha256").update(String(value??"").trim().toLowerCase()).digest("hex");
+export const normaliseIdentifier=(value:unknown)=>String(value??"").normalize("NFKC").trim().toLowerCase().replace(/\s+/g," ");
+export function normaliseUrl(value:unknown){try{const url=new URL(String(value));url.protocol=url.protocol.toLowerCase();url.hostname=url.hostname.toLowerCase();url.hash="";for(const key of[...url.searchParams.keys()])if(/^utm_(source|medium|campaign|content|term)$|^(gclid|fbclid)$/i.test(key))url.searchParams.delete(key);url.searchParams.sort();url.pathname=url.pathname.replace(/\/+$/,"")||"/";return url.toString()}catch{return null}}
+export function emailDomain(value:unknown){const raw=normaliseIdentifier(value),domain=raw.includes("@")?raw.split("@").pop()!:raw;if(!domain.includes(".")||PUBLIC_EMAIL_DOMAINS.has(domain))return null;return domain}
+function collect(input:unknown,depth=0):[string,unknown][]{if(!input||typeof input!=="object"||depth>3)return[];return Object.entries(input as Record<string,unknown>).flatMap(([key,value])=>[[key,value]as[string,unknown],...collect(value,depth+1)])}
+export const values=(event:{metadata:Record<string,unknown>;raw_payload:Record<string,unknown>},keys:readonly string[])=>{const wanted=new Set(keys.map(key=>key.replace(/[_-]/g,"").toLowerCase()));return collect({...event.raw_payload,...event.metadata}).filter(([key,value])=>wanted.has(key.replace(/[_-]/g,"").toLowerCase())&&value!==undefined&&value!==null&&typeof value!=="object"&&String(value)!=="").map(([,value])=>value)}
+export const first=(event:{metadata:Record<string,unknown>;raw_payload:Record<string,unknown>},keys:readonly string[])=>values(event,keys)[0];

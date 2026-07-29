@@ -220,3 +220,16 @@ Restrictive non-Marketplace behavior is the baseline: 15 history results, one bo
 Configure the four requested environment variables plus optional `SLACK_ENABLE_PRIVATE_CHANNELS`. Register the exact callback, install the app, add it to desired channels, reconnect, explicitly select channels, and invoke sync repeatedly as continuation eligibility allows.
 
 No migration is required. Live OAuth, token rotation, Enterprise Grid, private-channel access and rate-tier verification require real Slack credentials/workspaces and were not claimed during repository validation.
+# Phase 17 handover — Deterministic Correlation Engine
+
+Phase 17 adds a provider-neutral correlation layer over `events`. It stores only accepted deterministic relationships and hashed comparison values. The exact source event IDs, rule key/version, score contributions, timestamps, direction, fingerprint and revisions make each result auditable.
+
+Database migration: `supabase/migrations/202607290008_correlations.sql`. Apply with `npx supabase db push` or the Supabase SQL Editor. Rollback should first export correlation audit data, then drop Phase 17 policies/tables in dependency order; existing events are unaffected. No new environment variables are required.
+
+Runtime flow: load an organisation-bounded recent event batch → discover enabled source-code rules → select provider/type/time-bounded candidates → evaluate explicit signals → reject contradictions → persist a fingerprinted correlation and evidence → record the bounded run. Re-evaluation updates `last_confirmed_at`; changed state creates `correlation_revisions`; invalidation is represented by inactive state and a reason, never silent deletion.
+
+UI routes: `/app/correlations`, `/app/correlations/[id]`, and `/app/correlations/rules`. The ordinary timeline includes active moderate-or-strong correlation edges and never invents unsupported intermediate steps.
+
+Privacy/security: evidence values are SHA-256 hashes rather than raw customer identifiers; RLS is enabled on all five new tables; every query and mutation includes `organisation_id`; rule management is Owner/Admin only; routine runs also permit Manager; no arbitrary rule code, tokens, LLMs, or cross-organisation matching exists.
+
+Future work: call `runCorrelations` from a scheduled worker, add cursor-based long backfill orchestration, enrich connectors with more consistent explicit entity keys, and add explicit UI controls for invalidation/backfill history.

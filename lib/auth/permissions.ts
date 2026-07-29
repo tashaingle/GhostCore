@@ -1,11 +1,11 @@
 export const ORGANISATION_ROLES=["owner","admin","manager","member","viewer"] as const;
 export type OrganisationRole=typeof ORGANISATION_ROLES[number];
-export const PERMISSIONS=["organisation.edit","team.view","team.invite","team.manage","integration.manage","integration.sync","event.create","insight.manage","workspace.read"] as const;
+export const PERMISSIONS=["organisation.edit","team.view","team.invite","team.manage","integration.manage","integration.sync","event.create","insight.manage","correlation.manage","correlation.run","workspace.read"] as const;
 export type Permission=typeof PERMISSIONS[number];
 const grants:Record<OrganisationRole,readonly Permission[]>={
   owner:PERMISSIONS,
-  admin:["organisation.edit","team.view","team.invite","team.manage","integration.manage","integration.sync","event.create","insight.manage","workspace.read"],
-  manager:["team.view","integration.sync","event.create","insight.manage","workspace.read"],
+  admin:["organisation.edit","team.view","team.invite","team.manage","integration.manage","integration.sync","event.create","insight.manage","correlation.manage","correlation.run","workspace.read"],
+  manager:["team.view","integration.sync","event.create","insight.manage","correlation.run","workspace.read"],
   member:["event.create","insight.manage","workspace.read"],
   viewer:["workspace.read"],
 };

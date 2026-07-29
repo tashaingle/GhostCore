@@ -152,3 +152,28 @@ Environment: `META_APP_ID`, `META_APP_SECRET`, `META_REDIRECT_URI`, `META_GRAPH_
 Manual validation remains with real Meta credentials: Development-mode tester OAuth, App Review/Advanced Access, multi-identity/account discovery, disabled accounts, permission removal, long-lived token expiry/revocation, paginated hierarchy/Insights, API usage headers/rate limits, attribution revisions, multi-currency dashboard filtering, organisation switching, reconnect and disconnect. Confirm v25.0 remains supported in Meta's Versioning page before production deployment.
 
 No security/RLS/smoke scripts exist in `package.json`; do not claim those separate scripts ran. Security invariants are covered by unit/regression tests plus existing RLS migrations, but live Supabase RLS and authenticated browser smoke tests remain manual.
+# Phase 13 handover — LinkedIn connector
+
+LinkedIn is now a production-oriented, server-only, read-only connector within the existing integration platform. OAuth state is bound to user, organisation, provider, return path, and creation time in a short-lived HttpOnly SameSite cookie; callback state is compared safely and consumed once. Tokens are exchanged server-side and encrypted with the existing credential system. The stable member `sub` is the provider identity key.
+
+The central client uses the versioned `/rest` API, `Linkedin-Version: 202607` by default, Rest.li 2.0, bearer headers, an endpoint allowlist, Zod response validation, start/count pagination, timeouts, bounded retries, correlation IDs, and safe typed errors. URN helpers canonicalise numeric IDs and prevent duplicated prefixes or `%25` double encoding.
+
+Capability discovery records scope plus endpoint-probe evidence independently for advertising account discovery/reporting and organisation administration/page/content analytics. Partial approval or an empty asset list is not presented as full access. Sync processes selected assets independently and records safe partial failures. Events are aggregate and deterministic; revisions use source fingerprints. No member, follower, visitor, reactor, commenter, lead-form, targeting, billing, or write data is collected.
+
+Environment:
+
+- `LINKEDIN_CLIENT_ID`
+- `LINKEDIN_CLIENT_SECRET`
+- `LINKEDIN_REDIRECT_URI` — exact local value `http://localhost:3000/api/integrations/linkedin/callback`
+- `LINKEDIN_API_VERSION` — optional `YYYYMM`, default `202607`
+
+LinkedIn dashboard work still required outside Ghost:
+
+1. Create/select the LinkedIn developer app and register the exact redirect URI.
+2. Enable Sign In with LinkedIn using OpenID Connect.
+3. Apply for and obtain Advertising API approval for `r_ads` and `r_ads_reporting`.
+4. Apply for and obtain Community Management API approval for `r_organization_admin` and `r_organization_social`.
+5. Ensure the authorising member has the required ad-account and Page roles.
+6. Connect in a credentialed environment and confirm the recorded granted scopes and capability probes. No live scopes were granted during repository-only validation.
+
+No Phase 13 migration is required: generic integration settings, logs, locks, universal events, encrypted credentials, organisation filters, permissions, and RLS remain in use.

@@ -16,6 +16,8 @@ import{ShopifyConnector}from"./shopify/connector";import{ShopifyClient}from"./sh
 import{MetaAdsConnector}from"./meta-ads/connector";import{MetaAdsClient}from"./meta-ads/client";import type{MetaAdsSettings}from"./meta-ads/types";
 import{LinkedInConnector}from"./linkedin/connector";import{LinkedInClient}from"./linkedin/client";import type{LinkedInSettings}from"./linkedin/types";
 import{ManualConnector}from"./manual/connector";
+import{NotionConnector}from"./notion/connector";import{NotionClient}from"./notion/client";import type{NotionSettings}from"./notion/types";
+import{SlackConnector}from"./slack/connector";import{SlackClient}from"./slack/client";import type{SlackSettings}from"./slack/types";
 export type ConnectorCredentials={accessToken?:string;refreshToken?:string;expiresAt?:string;settings?:Record<string,unknown>};
 export function loadConnector(providerId:string,input?:string|ConnectorCredentials):IntegrationConnector{
   const provider=getProvider(providerId);if(!provider)throw new Error(`Unknown integration provider: ${providerId}`);
@@ -30,5 +32,7 @@ export function loadConnector(providerId:string,input?:string|ConnectorCredentia
   if(provider.connector==="meta_ads"){const settings=credentials.settings as MetaAdsSettings;if(!credentials.accessToken)throw new Error("Meta Ads credentials are missing.");return new MetaAdsConnector(new MetaAdsClient(credentials.accessToken),settings)}
   if(provider.connector==="linkedin"){const settings=credentials.settings as LinkedInSettings;if(!credentials.accessToken)throw new Error("LinkedIn credentials are missing.");return new LinkedInConnector(new LinkedInClient(credentials.accessToken),settings)}
   if(provider.connector==="manual")return new ManualConnector()
+  if(provider.connector==="notion"){if(!credentials.accessToken)throw new Error("Notion credentials are missing.");return new NotionConnector(new NotionClient(credentials.accessToken),credentials.settings as NotionSettings,credentials.refreshToken)}
+  if(provider.connector==="slack"){if(!credentials.accessToken)throw new Error("Slack credentials are missing.");return new SlackConnector(new SlackClient(credentials.accessToken),credentials.settings as SlackSettings,credentials.refreshToken)}
   return new PlaceholderConnector(provider.id);
 }

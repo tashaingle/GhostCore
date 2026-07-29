@@ -343,3 +343,61 @@ supabase db push
 ```
 
 Or run `supabase/migrations/202607290007_manual_data.sql` through the Supabase SQL editor for the configured project.
+# Phase 15: Notion connector
+
+Notion is a read-only connector that imports structured operational changes from explicitly shared data sources into universal events. It uses Notion OAuth, encrypted credentials, organisation-bound expiring state, generic integration logs/locks, child-resource selection and deterministic page snapshots. It never creates, updates or deletes Notion content and never fetches page bodies.
+
+Configure a public Notion integration and set:
+
+```env
+NOTION_CLIENT_ID=
+NOTION_CLIENT_SECRET=
+NOTION_REDIRECT_URI=http://localhost:3000/api/integrations/notion/callback
+```
+
+Register the redirect URI exactly in Notion. Give the integration **Read content** capability only. During authorization, choose the pages/databases to share. Notion exposes only content explicitly shared with the connection. Connect separately for each workspace; each authorization is stored as a distinct provider account where the workspace differs.
+
+Ghost uses `Notion-Version: 2026-03-11`, the current official version at implementation time. Since modern Notion databases are containers, discovery and page queries use data sources. Select databases under `/app/integrations/notion/settings`; none are selected automatically.
+
+The client supports title, rich text, status, select, multi-select, checkbox, date, people, number, URL, email, phone, relation, evaluated formula, created/edited time and created/edited by values. Unsupported properties are ignored safely. File contents and page blocks are never downloaded.
+
+Initial sync imports pages edited within 90 days. Routine runs filter by the last completed edit checkpoint and compare deterministic snapshots. Only changed pages produce `notion.page.*`, `notion.status.changed`, `notion.due_date.changed` or `notion.assignment.changed` events. Existing events survive disconnect.
+
+Owner/admin can connect, select data sources and disconnect; managers can sync/view; viewers are read-only. Existing integration and event RLS provides organisation isolation, so Phase 15 adds no migration.
+# Phase 16: Slack connector
+
+Slack is a strictly read-only, polling connector for explicitly selected channels. OAuth v2 credentials are encrypted; workspace/channel/checkpoint/snapshot state uses generic organisation-scoped integration settings. Ghost does not request DMs, send messages, join channels, download files, fetch unfurls, score employees, infer sentiment or use Slack remote search.
+
+Set `SLACK_CLIENT_ID`, `SLACK_CLIENT_SECRET`, `SLACK_SIGNING_SECRET`, and exact `SLACK_REDIRECT_URI`. `SLACK_ENABLE_PRIVATE_CHANNELS=false` is the safe default. Signing secret is reserved for a future signed Events API; Phase 16 intentionally uses polling and defines no event subscription.
+
+Requested public bot scopes: `channels:read`, `channels:history`, `users:read`, `reactions:read`, `team:read`. Only when private access is explicitly enabled are `groups:read` and `groups:history` requested. No user scopes or write/DM/search scopes are requested.
+
+Create a Slack app with this manifest:
+
+```yaml
+display_information:
+  name: Ghost Core
+  description: Read-only Slack activity integration for Ghost Core
+  background_color: "#111111"
+features:
+  bot_user:
+    display_name: Ghost Core
+    always_online: false
+oauth_config:
+  redirect_urls:
+    - http://localhost:3000/api/integrations/slack/callback
+  scopes:
+    bot: [channels:read, channels:history, users:read, reactions:read, team:read]
+settings:
+  org_deploy_enabled: false
+  socket_mode_enabled: false
+  token_rotation_enabled: true
+```
+
+Install the app, add it manually to each channel Ghost may read, reconnect to refresh discovery, then explicitly select channels in Ghost. Discovery is never treated as selection.
+
+Initial sync defaults to 30 days (bounded to 90). Each invocation makes at most one 15-message history request and rotates fairly across selected channels. Cursors and timestamps persist. More work or a 429 response records a continuation at least 60 seconds later and returns a resumable partial result instead of holding a request open. Routine sync overlaps five minutes; deterministic snapshots suppress duplicates.
+
+Thread parent metadata and reaction names/counts are stored. Full thread-body backfill is not enabled because Slack bot-token access varies and restrictive `conversations.replies` limits could starve recent messages. Files are counted but not downloaded; reacting-user lists, emails, phone numbers and full profiles are discarded.
+
+No database migration is required. Existing integration/event/log RLS enforces organisation isolation.

@@ -3,7 +3,7 @@ export type ProviderId="github"|"google_analytics"|"google_search_console"|"gmai
 export type ProviderDefinition={
   id:ProviderId;displayName:string;icon:string;colour:string;category:string;
   oauth:boolean;sync:boolean;capabilities:readonly IntegrationCapability[];
-  schedule:SyncSchedule;recommendedFrequency:string;connector:"github"|"google_analytics"|"google_search_console"|"gmail"|"google_calendar"|"stripe"|"shopify"|"meta_ads"|"linkedin"|"manual"|null;
+  schedule:SyncSchedule;recommendedFrequency:string;connector:"github"|"google_analytics"|"google_search_console"|"gmail"|"google_calendar"|"stripe"|"shopify"|"meta_ads"|"linkedin"|"manual"|"notion"|"slack"|null;
   description?:string;healthSupport?:boolean;propertySelection?:boolean;
   oauthProvider?:string;oauthScopes?:string;callbackPath?:string;connectPath?:string;configurationPath?:string;
 };
@@ -18,8 +18,8 @@ export const providerRegistry={
   meta_ads:{id:"meta_ads",displayName:"Meta Ads",icon:"MA",colour:"#0866ff",category:"Advertising",description:"Read-only campaign structure and deterministic daily advertising reporting.",oauth:true,sync:true,capabilities:["oauth","polling","read_only"],schedule:"daily",recommendedFrequency:"Daily with 7-day reconciliation",connector:"meta_ads",connectPath:"/api/integrations/meta-ads/connect",configurationPath:"/app/integrations/meta-ads/settings",healthSupport:true,propertySelection:true},
   linkedin:{id:"linkedin",displayName:"LinkedIn",icon:"LI",colour:"#0a66c2",category:"Marketing",description:"Read-only LinkedIn advertising and Company Page aggregate reporting.",oauth:true,sync:true,capabilities:["oauth","polling","read_only"],schedule:"daily",recommendedFrequency:"Daily with 7-day reconciliation",connector:"linkedin",connectPath:"/api/integrations/linkedin/connect",configurationPath:"/app/integrations/linkedin/settings",healthSupport:true,propertySelection:true},
   manual:{id:"manual",displayName:"Manual",icon:"MN",colour:"#52525b",category:"Internal",description:"Structured first-party records, evidence references and deterministic CSV imports.",oauth:false,sync:false,capabilities:["manual","read_write"],schedule:"manual",recommendedFrequency:"On demand",connector:"manual",connectPath:"/api/integrations/manual/connect",configurationPath:"/app/integrations/manual"},
-  notion:{id:"notion",displayName:"Notion",icon:"NO",colour:"#000000",category:"Operations",oauth:true,sync:true,capabilities:["oauth","polling","read_only"],schedule:"hourly",recommendedFrequency:"Hourly",connector:null},
-  slack:{id:"slack",displayName:"Slack",icon:"SL",colour:"#4a154b",category:"Communication",oauth:true,sync:true,capabilities:["oauth","webhooks","realtime","read_only"],schedule:"webhook",recommendedFrequency:"Webhook",connector:null},
+  notion:{id:"notion",displayName:"Notion",icon:"NO",colour:"#000000",category:"Productivity",description:"Read-only structured operational changes from selected Notion databases.",oauth:true,sync:true,capabilities:["oauth","polling","read_only"],schedule:"hourly",recommendedFrequency:"Hourly incremental",connector:"notion",connectPath:"/api/integrations/notion/connect",configurationPath:"/app/integrations/notion/settings",healthSupport:true,propertySelection:true},
+  slack:{id:"slack",displayName:"Slack",icon:"SL",colour:"#4a154b",category:"Communication",description:"Import selected Slack channel activity into Ghost Core.",oauth:true,sync:true,capabilities:["oauth","polling","read_only"],schedule:"hourly",recommendedFrequency:"Resumable polling",connector:"slack",connectPath:"/api/integrations/slack/connect",configurationPath:"/app/integrations/slack/settings",healthSupport:true,propertySelection:true},
 } as const satisfies Record<ProviderId,ProviderDefinition>;
 export const providers=Object.values(providerRegistry);
 export function getProvider(id:string):ProviderDefinition|undefined{return providers.find(provider=>provider.id===id)}

@@ -196,3 +196,27 @@ The authenticated API surface is:
 Manual records translate into revision-specific universal events with `source=manual`. Event payloads contain safe structured evidence metadata and attachment counts, never file bodies or public storage URLs.
 
 Deployment requires `supabase db push` (or applying `202607290007_manual_data.sql`). No new environment variables are required. A private object-storage upload UI is intentionally not part of this phase; API inputs accept validated references only after the application has placed a permitted file in private storage. Live RLS and browser smoke tests require the target Supabase project, authenticated users for each role and the migration applied.
+# Phase 15 handover — Notion connector
+
+Phase 15 registers `notion` as a Productivity provider and implements server-side OAuth, encrypted access/refresh tokens, workspace identity, data-source discovery, explicit selection, incremental page queries, property normalisation, snapshot fingerprints, universal-event translation, dashboard/search/filter UI and generic sync logging.
+
+The API client is focused and allowlisted: `users/me`, `search`, and read-only data-source query endpoints only. Every request carries bearer authentication and `Notion-Version: 2026-03-11`, uses opaque cursor pagination, timeouts, bounded retries, rate-limit classification and Zod shape validation. No generic proxy or Notion write method exists.
+
+Set `NOTION_CLIENT_ID`, `NOTION_CLIENT_SECRET`, and exact `NOTION_REDIRECT_URI`. In the Notion developer portal register the callback and enable only Read content. Users must explicitly share each database/page with the connection. Reconnect after sharing additional data sources so discovery refreshes.
+
+No migration is required. Workspace IDs, data-source metadata, selections, incremental checkpoints and page snapshots use the generic organisation-scoped integration settings; events and logs use existing RLS tables.
+
+Live manual steps remain: configure the public OAuth integration, apply the credentials, authorize one or more workspaces, share databases, select data sources, and run a credentialed sync. Repository validation cannot claim a live OAuth grant, token refresh or production workspace results.
+# Phase 16 handover — Slack connector
+
+Phase 16 registers Slack as a Communication provider and completes the current connector roadmap. It reuses the connector SDK, encrypted credentials, generic integration identities/settings, sync locks/logs, universal events, roles and RLS.
+
+OAuth state is cryptographic, HttpOnly, organisation/user/provider bound, ten-minute limited and consumed by the callback. The callback validates `auth.test` team identity against the OAuth team before storing encrypted tokens. Rotation metadata and refresh tokens are retained when Slack supplies them.
+
+The allowlisted client contains only `auth.test`, `team.info`, `conversations.list/info/history/replies`, and `users.list/info`. The implemented sync path uses discovery and history only. `ok:false`, HTTP 429 and known Slack errors are safely classified. Tokens use bearer headers and never enter URLs, events or logs.
+
+Restrictive non-Marketplace behavior is the baseline: 15 history results, one bounded channel request per invocation, no minute-long sleeps, persisted cursor/timestamp, five-minute overlap, channel rotation, partial continuation and `nextEligibleSyncAt`. Parent thread and aggregate reaction changes generate deterministic revisions.
+
+Configure the four requested environment variables plus optional `SLACK_ENABLE_PRIVATE_CHANNELS`. Register the exact callback, install the app, add it to desired channels, reconnect, explicitly select channels, and invoke sync repeatedly as continuation eligibility allows.
+
+No migration is required. Live OAuth, token rotation, Enterprise Grid, private-channel access and rate-tier verification require real Slack credentials/workspaces and were not claimed during repository validation.

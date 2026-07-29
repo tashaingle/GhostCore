@@ -17,7 +17,8 @@ describe("provider registry",()=>{
   it("declares capabilities and schedules",()=>{expect(hasCapability(providerRegistry.github,"oauth")).toBe(true);expect(providerRegistry.github.schedule).toBe("hourly");expect(hasCapability(providerRegistry.manual,"manual")).toBe(true);expect(providerRegistry.google_analytics.connector).toBe("google_analytics");expect(providerRegistry.google_analytics.propertySelection).toBe(true)});
 });
 describe("connector loading",()=>{
-  it("loads GitHub and placeholder connectors",()=>{expect(loadConnector("github","token").provider).toBe("github");expect(loadConnector("slack").provider).toBe("slack")});
+  it("loads GitHub and Slack connectors",()=>{expect(loadConnector("github","token").provider).toBe("github");expect(loadConnector("slack",{accessToken:"xoxb-test-token",settings:{teamId:"T1",channels:[]}}).provider).toBe("slack")});
+  it("requires Slack credentials",()=>expect(()=>loadConnector("slack")).toThrow(/Slack credentials/));
   it("rejects unknown providers",()=>expect(()=>loadConnector("unknown")).toThrow(/Unknown/));
 });
 it("maps all health states",()=>{expect(["connected","syncing","error","expired","disconnected","other"].map(healthFromStatus)).toEqual(["healthy","syncing","error","expired","disconnected","unknown"])});

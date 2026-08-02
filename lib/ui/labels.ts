@@ -1,4 +1,4 @@
-/** Human-friendly labels for providers and event noise reduction. */
+/** Human-friendly labels for providers, jobs, correlations, and roles. */
 
 const providerNames: Record<string, string> = {
   github: "GitHub",
@@ -10,13 +10,19 @@ const providerNames: Record<string, string> = {
   shopify: "Shopify",
   meta_ads: "Meta Ads",
   linkedin: "LinkedIn",
-  manual: "Manual",
+  manual: "Manual import",
   notion: "Notion",
   slack: "Slack",
 };
 
-export function providerLabel(id: string) {
+export function providerLabel(id: string | null | undefined) {
+  if (!id) return "Platform";
   return providerNames[id] ?? id.replaceAll("_", " ");
+}
+
+export function roleLabel(role: string | null | undefined) {
+  if (!role) return "";
+  return role.charAt(0).toUpperCase() + role.slice(1).toLowerCase();
 }
 
 /** Event types that clutter the default timeline for non-technical users. */
@@ -32,7 +38,7 @@ export function isLowSignalEventType(eventType: string) {
   return LOW_SIGNAL_EVENT_TYPES.has(eventType) || eventType.endsWith(".push");
 }
 
-export function humanEventLabel(source: string, category: string, eventType: string) {
+export function humanEventLabel(source: string, _category: string, eventType: string) {
   const provider = providerLabel(source);
   const type = eventType.includes(".")
     ? eventType.split(".").slice(1).join(" ").replaceAll("_", " ")
@@ -68,4 +74,121 @@ export function configureIntegrationLabel(
     return configurationRequired ? "Finish setup" : "Settings";
   }
   return configurationRequired ? "Finish setup" : "Settings";
+}
+
+const platformJobNames: Record<string, string> = {
+  "integration.health": "Check connected tools",
+  "correlation.reconcile": "Match related events",
+  "maintenance.expired-locks": "Clear stuck locks",
+  "maintenance.job-cleanup": "Clean old job history",
+  "notification.generate": "Refresh Action Centre",
+  "workflow.dispatch": "Continue workflows",
+  "workflow.timeout": "Check timed-out workflows",
+  "approval.reminders": "Approval reminders",
+  "workflow.cleanup": "Clean workflow history",
+};
+
+/** Turn job_key like integration.sync:uuid into a plain-English title. */
+export function humanJobLabel(
+  jobKey: string,
+  provider?: string | null,
+): {title: string; detail?: string} {
+  if (jobKey.startsWith("integration.sync:")) {
+    const name = providerLabel(provider);
+    return {
+      title: `Keep ${name} up to date`,
+      detail: "Automatic import of new activity from this connected tool",
+    };
+  }
+  if (platformJobNames[jobKey]) {
+    return {
+      title: platformJobNames[jobKey],
+      detail: jobKey,
+    };
+  }
+  if (jobKey.startsWith("integration.")) {
+    return {
+      title: `Integration task: ${jobKey.replace("integration.", "").replaceAll("_", " ")}`,
+      detail: jobKey,
+    };
+  }
+  return {
+    title: jobKey.replaceAll(".", " · ").replaceAll("_", " "),
+    detail: jobKey,
+  };
+}
+
+export function humanScheduleLabel(type: string, value: string | null) {
+  if (type === "recurring" && value) {
+    const map: Record<string, string> = {
+      "5m": "Every 5 minutes",
+      "15m": "Every 15 minutes",
+      "1h": "Every hour",
+      "1d": "Once a day",
+      "1w": "Once a week",
+    };
+    return map[value] ?? `Every ${value}`;
+  }
+  if (type === "cron" && value) return `Schedule: ${value}`;
+  if (type === "manual") return "Manual only";
+  if (type === "disabled") return "Paused";
+  return `${type}${value ? ` ${value}` : ""}`;
+}
+
+export function humanJobState(state: string) {
+  const map: Record<string, string> = {
+    healthy: "Healthy",
+    running: "Running now",
+    failing: "Failing",
+    overdue: "Behind schedule",
+    paused: "Paused",
+  };
+  return map[state] ?? state;
+}
+
+const relationshipNames: Record<string, string> = {
+  temporal_sequence: "Happened close together in time",
+  same_entity: "Same business object",
+  payment_match: "Matching payment activity",
+  refund_match: "Matching refund activity",
+  attribution: "Marketing attribution link",
+  traffic_change: "Related traffic change",
+  order_payment: "Order linked to payment",
+  ad_to_analytics: "Ads activity near website change",
+  email_calendar: "Email near calendar event",
+  deployment_traffic: "Deploy near traffic change",
+};
+
+export function humanRelationship(type: string) {
+  return (
+    relationshipNames[type] ??
+    type.replaceAll("_", " ").replace(/\b\w/g, (c) => c.toUpperCase())
+  );
+}
+
+export function humanStrength(strength: string) {
+  const map: Record<string, string> = {
+    confirmed: "Strong match",
+    strong: "Strong match",
+    moderate: "Possible match",
+    weak: "Weak match",
+  };
+  return map[strength] ?? strength;
+}
+
+export function humanCategory(category: string) {
+  const map: Record<string, string> = {
+    background_job: "Automation",
+    integration: "Connected tool",
+    credential: "Login / access",
+    correlation: "Related events",
+    financial: "Money",
+    task: "Task",
+    deployment: "Deploy",
+    import: "Import",
+    organisation: "Organisation",
+    security: "Security",
+    system: "System",
+  };
+  return map[category] ?? category.replaceAll("_", " ");
 }

@@ -2,6 +2,7 @@ import Link from "next/link";
 import {getActiveOrganisation} from "@/lib/organisations/active";
 import {signOut} from "@/app/actions";
 import {OrganisationSwitcher} from "@/components/organisation-switcher";
+import {roleLabel} from "@/lib/ui/labels";
 
 const primary = [
   ["Command Centre", "/app/command-centre"],
@@ -86,8 +87,8 @@ export default async function AppLayout({
                 <p className="truncate text-sm font-semibold">
                   {ctx.organisation.name}
                 </p>
-                <p className="text-xs capitalize text-zinc-500">
-                  {ctx.membership.role}
+                <p className="text-xs text-zinc-500">
+                  {roleLabel(ctx.membership.role)}
                 </p>
               </div>
             </div>

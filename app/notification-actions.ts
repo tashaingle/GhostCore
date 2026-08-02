@@ -22,9 +22,9 @@ const actionSchema = z.enum([
 ]);
 
 /** Next.js redirect() throws; rethrow so callers don't treat it as a failure. */
-function isNextControlFlow(error: unknown) {
+function isNextControlFlow(error: unknown): error is {digest: string} {
   return (
-    Boolean(error) &&
+    error !== null &&
     typeof error === "object" &&
     "digest" in error &&
     typeof (error as {digest?: unknown}).digest === "string"

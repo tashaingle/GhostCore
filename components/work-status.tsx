@@ -1,0 +1,1 @@
+export function WorkStatus({status,priority}:{status:string;priority:string}){return <span className="inline-flex rounded-full border px-2 py-1 text-xs capitalize" aria-label={`${priority} priority, ${status} status`}>{priority} · {status.replaceAll("_"," ")}</span>}

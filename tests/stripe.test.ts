@@ -1,5 +1,6 @@
 import {describe,expect,it} from "vitest";
 import {providerRegistry} from "@/lib/integrations/registry";
+import {STRIPE_MAX_TYPES_PER_REQUEST,STRIPE_SUPPORTED_EVENTS} from "@/lib/integrations/stripe/config";
 import {formatMinorAmount,translateStripeEvent} from "@/lib/integrations/stripe/translator";
 import {newStripeState,stateDigest,stateMatches} from "@/lib/integrations/stripe/oauth";
 import type Stripe from "stripe";
@@ -8,6 +9,10 @@ const ctx={organisationId:"org_1",integrationId:"int_1",receivedAt:"2026-07-28T0
 describe("Stripe provider",()=>{
   it("is available through the connector registry",()=>{expect(providerRegistry.stripe.connector).toBe("stripe");expect(providerRegistry.stripe.capabilities).toContain("read_only")});
   it("uses server OAuth and webhooks",()=>{expect(providerRegistry.stripe.connectPath).toBe("/api/integrations/stripe/connect");expect(providerRegistry.stripe.capabilities).toContain("webhooks")});
+  it("supports more event types than a single Stripe types request allows",()=>{
+    expect(STRIPE_SUPPORTED_EVENTS.length).toBeGreaterThan(STRIPE_MAX_TYPES_PER_REQUEST);
+    expect(STRIPE_MAX_TYPES_PER_REQUEST).toBe(20);
+  });
 });
 describe("Stripe OAuth state",()=>{
   it("creates unpredictable state and validates only its digest",()=>{const state=newStripeState();expect(state.length).toBeGreaterThan(30);expect(stateMatches(stateDigest(state),state)).toBe(true);expect(stateMatches(stateDigest(state),`${state}x`)).toBe(false)});

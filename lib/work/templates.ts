@@ -1,0 +1,5 @@
+export const builtInWorkTemplates=[
+ {key:"integration-reconnect",type:"task",name:"Reconnect integration",description:"Reconnect an expired or disconnected provider integration.",priority:"high",configuration:{title:"Reconnect integration",checklist:[{label:"Confirm affected integration",required:true},{label:"Reconnect provider authorization",required:true},{label:"Run and verify a sync",required:true}]}},
+ {key:"failed-job-investigation",type:"case_with_tasks",name:"Failed background job investigation",description:"Investigate and remediate a repeatedly failing job.",priority:"high",configuration:{title:"Investigate failed background job",tasks:["Review recent run evidence","Correct deterministic configuration","Retry and verify"]}},
+ {key:"data-import-remediation",type:"case_with_tasks",name:"Data import remediation",description:"Resolve rejected or duplicate imported rows.",priority:"normal",configuration:{title:"Data import remediation",tasks:["Review rejected rows","Correct source data","Re-import and verify"]}}
+]as const;

@@ -1,0 +1,27 @@
+import{describe,expect,it}from"vitest";import{canTransitionCase,canTransitionTask,caseClosureBlockers,completionBlockers,requireTransition,sortUnifiedWork}from"@/lib/work/status";import{wouldCreateCycle}from"@/lib/work/dependencies";import{sourceFingerprint,recurrenceFingerprint}from"@/lib/work/fingerprints";import{calculateSla}from"@/lib/work/sla";import{nextOccurrence,recurrenceScheduleSchema}from"@/lib/work/recurrence";import{savedViewSchema}from"@/lib/work/views";import{commentSchema,evidenceSchema}from"@/lib/work/schema";import{hasPermission}from"@/lib/auth/permissions";
+describe("deterministic work management",()=>{
+ it("allows explicit task transitions",()=>expect(canTransitionTask("open","in_progress")).toBe(true));
+ it("rejects implicit task completion",()=>expect(canTransitionTask("open","completed")).toBe(false));
+ it("allows explicit case transitions",()=>expect(canTransitionCase("resolved","closed")).toBe(true));
+ it("requires a reopen reason",()=>expect(()=>requireTransition("task","completed","open")).toThrow(/reason/));
+ it("reports checklist and dependency blockers",()=>expect(completionBlockers(2,1)).toHaveLength(2));
+ it("reports every case closure blocker",()=>expect(caseClosureBlockers(1,1,1)).toHaveLength(3));
+ it("detects direct dependency cycles",()=>expect(wouldCreateCycle([],"a","a")).toBe(true));
+ it("detects transitive dependency cycles",()=>expect(wouldCreateCycle([{taskId:"b",dependsOnTaskId:"a",dependencyType:"blocks"}],"a","b")).toBe(true));
+ it("permits acyclic dependencies",()=>expect(wouldCreateCycle([{taskId:"a",dependsOnTaskId:"b",dependencyType:"blocks"}],"b","c")).toBe(false));
+ it("source fingerprints are stable",()=>expect(sourceFingerprint({organisationId:"o",sourceType:"workflow",sourceId:"1",generationRule:"s"})).toBe(sourceFingerprint({sourceId:"1",generationRule:"s",sourceType:"workflow",organisationId:"o"})));
+ it("recurrence occurrences are unique",()=>expect(recurrenceFingerprint("o","r","2026-01-01","1")).not.toBe(recurrenceFingerprint("o","r","2026-01-02","1")));
+ it("calculates healthy SLA",()=>expect(calculateSla({openedAt:"2026-01-01T00:00:00Z",now:"2026-01-01T00:30:00Z",resolutionMinutes:100,warningThresholdPercent:80}).state).toBe("healthy"));
+ it("calculates SLA warning",()=>expect(calculateSla({openedAt:"2026-01-01T00:00:00Z",now:"2026-01-01T01:20:00Z",resolutionMinutes:100,warningThresholdPercent:80}).state).toBe("warning"));
+ it("calculates SLA breach",()=>expect(calculateSla({openedAt:"2026-01-01T00:00:00Z",now:"2026-01-01T02:00:00Z",resolutionMinutes:100,warningThresholdPercent:80}).state).toBe("breached"));
+ it("pauses an SLA clock explicitly",()=>expect(calculateSla({openedAt:"2026-01-01T00:00:00Z",now:"2026-01-01T02:00:00Z",pausedAt:"2026-01-01T00:30:00Z",resolutionMinutes:100,warningThresholdPercent:80}).state).toBe("paused"));
+ it("calculates interval recurrence",()=>expect(nextOccurrence(new Date("2026-01-01T00:00:00Z"),{type:"interval",minutes:60}).toISOString()).toBe("2026-01-01T01:00:00.000Z"));
+ it("rejects unbounded recurrence",()=>expect(recurrenceScheduleSchema.safeParse({type:"interval",minutes:1}).success).toBe(false));
+ it("validates allowlisted saved views",()=>expect(savedViewSchema.safeParse({name:"Mine",viewType:"task",filters:[{field:"status",operator:"eq",value:"open"}],sort:[{field:"due_at",direction:"asc"}],columns:["title"],isDefault:false,isShared:false}).success).toBe(true));
+ it("rejects SQL fields in saved views",()=>expect(savedViewSchema.safeParse({name:"Bad",viewType:"task",filters:[{field:"drop table",operator:"eq",value:"x"}],sort:[],columns:[],isDefault:false,isShared:false}).success).toBe(false));
+ it("bounds comments",()=>expect(commentSchema.safeParse({body:"x".repeat(5001),commentType:"comment"}).success).toBe(false));
+ it("validates evidence references",()=>expect(evidenceSchema.safeParse({evidenceType:"event",sourceType:"github",sourceId:"1",label:"Stored event"}).success).toBe(true));
+ it("keeps viewers read-only",()=>expect(hasPermission("viewer","work.manage")).toBe(false));
+ it("permits members to comment",()=>expect(hasPermission("member","work.comment")).toBe(true));
+ it("sorts overdue critical work first",()=>{const items=[{id:"b",kind:"task"as const,title:"B",status:"open",priority:"normal"as const,dueAt:null,createdAt:"2026-01-01"},{id:"a",kind:"task"as const,title:"A",status:"open",priority:"critical"as const,dueAt:"2026-01-01",createdAt:"2026-01-02"}];expect(sortUnifiedWork(items,new Date("2026-02-01"))[0].id).toBe("a")});
+});

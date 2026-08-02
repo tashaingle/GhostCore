@@ -511,3 +511,27 @@ Manual verification:
 5. Confirm workflow and approval events in `/app/timeline`.
 6. Confirm failures link to `/app/action-centre` and workflow metrics appear in `/app/command-centre`.
 7. Confirm all four workflow jobs appear in `/app/jobs`.
+# Phase 22: deterministic operational work
+
+Ghost Core now includes organisation-scoped tasks, cases, checklists, dependencies,
+assignments, watchers, comments/internal notes, evidence, immutable revisions,
+templates, validated saved views, explicit SLA policies and idempotent recurrence.
+Open `/app/work` for the unified inbox, or `/app/tasks` and `/app/cases` for focused
+lists. Work management is deterministic and organisation-scoped. No AI is used to
+create, prioritise or close work. SLA calculations use explicit stored policies.
+Recurring task generation is idempotent.
+
+Apply `supabase/migrations/202607290013_tasks_cases_work_management.sql` after the
+Phase 21 workflow migration. The migration is additive and enables RLS on every
+new table. The four `WORK_*` variables in `.env.example` are optional bounded
+configuration and have safe defaults.
+
+To add operational work from another subsystem, call the server-side work service
+with a stable source type, source ID, generation rule and template version.
+Automatic creation hashes those stable fields and returns the existing record on
+replay. Never create work directly from a browser database client.
+
+Attachment metadata is supported, but binary upload/storage is deferred until a
+secure shared document abstraction is selected. Watchers provide in-app visibility;
+email and push delivery are not claimed. Scheduling uses the existing background
+job framework and may require an external scheduler on Vercel Hobby.

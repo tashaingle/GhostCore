@@ -1,0 +1,13 @@
+export const taskStatuses=["backlog","open","in_progress","blocked","waiting","completed","cancelled"] as const;
+export type TaskStatus=typeof taskStatuses[number];
+export const caseStatuses=["open","investigating","waiting","resolved","closed","cancelled"] as const;
+export type CaseStatus=typeof caseStatuses[number];
+export const workPriorities=["low","normal","high","critical"] as const;
+export type WorkPriority=typeof workPriorities[number];
+export const workSourceTypes=["manual","notification","workflow","approval","correlation","integration","background_job","case","template","recurrence","system"] as const;
+export type WorkSourceType=typeof workSourceTypes[number];
+export const caseCategories=["integration","workflow","deployment","data_quality","financial","security","organisation","provider","operational","custom"] as const;
+export type CaseCategory=typeof caseCategories[number];
+export type WorkKind="task"|"case";
+export type SlaState="none"|"healthy"|"warning"|"breached"|"paused"|"met";
+export type UnifiedWork={id:string;kind:WorkKind;title:string;status:string;priority:WorkPriority;dueAt:string|null;createdAt:string};

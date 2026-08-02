@@ -1,0 +1,4 @@
+import{createHash}from"node:crypto";
+function stable(value:unknown):string{if(Array.isArray(value))return`[${value.map(stable).join(",")}]`;if(value&&typeof value==="object")return`{${Object.entries(value as Record<string,unknown>).sort(([a],[b])=>a.localeCompare(b)).map(([k,v])=>`${JSON.stringify(k)}:${stable(v)}`).join(",")}}`;return JSON.stringify(value)}
+export function sourceFingerprint(input:{organisationId:string;sourceType:string;sourceId:string;generationRule?:string;templateVersion?:string|number;occurrence?:string}){return createHash("sha256").update(stable(input)).digest("hex")}
+export const recurrenceFingerprint=(organisationId:string,ruleId:string,occurrence:string,templateVersion:string|number)=>sourceFingerprint({organisationId,sourceType:"recurrence",sourceId:ruleId,generationRule:"scheduled-task",templateVersion,occurrence});

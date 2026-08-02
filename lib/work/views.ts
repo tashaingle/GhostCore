@@ -1,0 +1,4 @@
+import{z}from"zod";
+export const allowedFilterFields=["status","priority","assigned_user_id","owner_user_id","case_id","source_type","due_at","created_at","completed_at","category","sla_state","watched"]as const;
+export const allowedSortFields=["due_at","priority","created_at","updated_at","completed_at","title","case_number"]as const;
+export const savedViewSchema=z.object({name:z.string().trim().min(1).max(100),description:z.string().trim().max(500).optional().nullable(),viewType:z.enum(["task","case","unified"]),filters:z.array(z.object({field:z.enum(allowedFilterFields),operator:z.enum(["eq","neq","in","is_null","before","after"]),value:z.union([z.string(),z.array(z.string()),z.boolean(),z.null()])})).max(20),sort:z.array(z.object({field:z.enum(allowedSortFields),direction:z.enum(["asc","desc"])})).max(5),columns:z.array(z.string().regex(/^[a-z_]+$/)).max(30),isDefault:z.boolean().default(false),isShared:z.boolean().default(false)});

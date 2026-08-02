@@ -304,3 +304,36 @@ Background jobs:
 No new environment variables are required. The webhook trigger route reuses `BACKGROUND_JOB_SECRET`. No AI is used.
 
 Known limitations: outbound approval email is not delivered; reminders are persisted job metrics only. Drag ordering is pointer-based HTML drag and drop. Provider mutations beyond existing sync jobs are deliberately unavailable. Workflow webhooks are one-way POST operations without response-body storage.
+# Phase 22 handover — Tasks, Cases & Operational Work
+
+Migration: `202607290013_tasks_cases_work_management.sql`.
+
+The `lib/work` domain owns precise types, Zod schemas, explicit lifecycle maps,
+completion/closure blockers, cycle detection, stable fingerprints, elapsed-time
+SLA evaluation, recurrence scheduling, templates, saved-view validation, mutations
+and bounded maintenance. Server actions always authenticate, derive the active
+organisation, check the central permission map, validate references, mutate through
+the service layer, append a revision, and emit a safe universal event.
+
+Task completion is blocked by required checklist items and unresolved blocking or
+required dependencies. Case closure is blocked by open tasks, pending linked
+approvals and unresolved critical linked notifications. Reopening requires a reason.
+Internal notes are manager-only by default. Viewers are read-only. RLS prevents
+cross-organisation access, immutable evidence/revision/run tables reject authenticated
+client writes, and automatic source fingerprints prevent duplicate generated work.
+
+Manual verification:
+
+1. Apply the migration and sign in as an organisation owner.
+2. Visit `/app/work`, `/app/tasks`, `/app/tasks/new`, and create a task.
+3. Open `/app/tasks/[id]`; add/complete a required checklist, add a dependency,
+   assignment, comment, internal note and evidence reference; verify history.
+4. Visit `/app/cases/new`; create a case and inspect `/app/cases/[id]`.
+5. Verify `/app/work/templates` and create a validated view at `/app/work/views`.
+6. Inspect `/app/action-centre`, `/app/workflows`, `/app/approvals`,
+   `/app/command-centre`, `/app/timeline`, and `/app/jobs` after work changes.
+7. Repeat read tests as a viewer and cross-organisation member.
+
+Known limits: attachment binaries are not uploaded; watcher outbound delivery is
+deferred; Vercel Hobby needs an external scheduler for frequent background runs;
+provider write actions remain connector-specific and are not invented by work.

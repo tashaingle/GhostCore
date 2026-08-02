@@ -1,5 +1,5 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import type {Metadata} from "next";
+import {Geist, Geist_Mono} from "next/font/google";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -13,8 +13,12 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Ghost Core",
-  description: "Business event infrastructure",
+  title: {
+    default: "Ghost Core",
+    template: "%s · Ghost Core",
+  },
+  description:
+    "See what changed across your business tools — and what to do next. Ops intelligence with evidence.",
 };
 
 export default function RootLayout({
@@ -27,7 +31,7 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full bg-zinc-50 text-zinc-950">{children}</body>
+      <body className="min-h-full bg-zinc-100 text-zinc-950">{children}</body>
     </html>
   );
 }

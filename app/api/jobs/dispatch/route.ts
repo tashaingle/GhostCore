@@ -3,18 +3,25 @@ import {dispatchDueJobs} from "@/lib/jobs/dispatch";
 
 export const maxDuration = 300;
 
+function secretMatches(supplied: string, configured: string | undefined) {
+  if (!configured || !supplied) return false;
+  const a = Buffer.from(supplied);
+  const b = Buffer.from(configured);
+  return a.length === b.length && timingSafeEqual(a, b);
+}
+
 function authorized(request: Request) {
-  const configured = process.env.BACKGROUND_JOB_SECRET ?? process.env.CRON_SECRET;
-  if (!configured) return false;
+  // Vercel Cron sends Authorization: Bearer <CRON_SECRET>.
+  // Manual/ops calls often use BACKGROUND_JOB_SECRET. Accept either.
   const supplied =
     request.headers.get("authorization")?.replace(/^Bearer\s+/i, "") ??
     request.headers.get("x-job-secret") ??
-    // Vercel Cron can send the secret as a query param in some project setups.
     new URL(request.url).searchParams.get("secret") ??
     "";
-  const a = Buffer.from(supplied);
-  const b = Buffer.from(configured);
-  return a.length === b.length && a.length > 0 && timingSafeEqual(a, b);
+  return (
+    secretMatches(supplied, process.env.CRON_SECRET) ||
+    secretMatches(supplied, process.env.BACKGROUND_JOB_SECRET)
+  );
 }
 
 async function dispatch(request: Request) {

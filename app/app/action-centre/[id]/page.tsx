@@ -229,7 +229,7 @@ export default async function NotificationDetail({
           </article>
 
           <article className="card">
-            <h3 className="font-semibold">History</h3>
+            <h3 className="font-semibold">Immutable history</h3>
             {revisions?.map((r) => (
               <div className="mt-3 border-t pt-3 text-sm" key={r.id}>
                 <strong>

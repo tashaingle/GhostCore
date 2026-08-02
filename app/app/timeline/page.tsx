@@ -169,7 +169,7 @@ export default async function Timeline({
     <section className="space-y-6">
       <PageHeader
         title="Timeline"
-        description="What happened across your connected tools — insights first, noise optional."
+        description="What happened across your connected tools - insights first, noise optional."
       />
       <Notice searchParams={params} />
 

@@ -34,7 +34,7 @@ export function GettingStarted({
     },
     {
       title: "Review insights",
-      body: "Ghost highlights risks and changes that need attention — with evidence, not guesswork.",
+      body: "Ghost highlights risks and changes that need attention - with evidence, not guesswork.",
       href: "/app/timeline?view=insights",
       label: insightCount > 0 ? "View insights" : "Open timeline",
       done: insightCount > 0,

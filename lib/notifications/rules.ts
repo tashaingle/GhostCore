@@ -178,7 +178,7 @@ const integrationCredentials: NotificationRuleDefinition = {
       .not("token_expires_at", "is", null)
       .lte("token_expires_at", until)
       .limit(c.limit);
-    // Short-lived access tokens with a refresh token renew automatically — skip those.
+    // Short-lived access tokens with a refresh token renew automatically - skip those.
     return (data ?? [])
       .filter((x) => !x.refresh_token_encrypted)
       .map((x) =>
@@ -280,7 +280,7 @@ const correlationReview: NotificationRuleDefinition = {
         severity: x.score >= 95 ? "critical" : "warning",
         title: `Review possible link: ${providerLabel(x.source_provider)} ↔ ${providerLabel(x.target_provider)}`,
         summary: `Ghost found a ${x.strength} match (score ${x.score}/100). This is not proof of cause.`,
-        explanation: "A correlation means two things look related in the data — not that one caused the other.",
+        explanation: "A correlation means two things look related in the data - not that one caused the other.",
         recommendedAction: "Open the correlation, check the evidence, then resolve or dismiss this item.",
         sourceType: "correlation",
         sourceId: x.id,
@@ -334,7 +334,7 @@ const importRejected: NotificationRuleDefinition = {
             sourceTable: "manual_imports",
             sourceId: x.id,
             label: "CSV import totals",
-            description: "Only counts are stored — not the row contents.",
+            description: "Only counts are stored - not the row contents.",
             observed: {
               rows: x.row_count,
               accepted: x.successful,

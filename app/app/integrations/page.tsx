@@ -312,7 +312,7 @@ export default async function Integrations({
                       {new Date(log.started_at).toLocaleString()}
                     </td>
                     <td className="p-3">
-                      {log.duration_ms === null ? "—" : `${log.duration_ms}ms`}
+                      {log.duration_ms === null ? "n/a" : `${log.duration_ms}ms`}
                     </td>
                     <td className="p-3">{log.records_received}</td>
                     <td className="p-3">{log.events_imported}</td>

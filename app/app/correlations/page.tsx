@@ -57,7 +57,7 @@ export default async function CorrelationsPage({
     <section className="space-y-6">
       <PageHeader
         title="Correlations"
-        description="Possible links between events from different tools — for example a deploy near a traffic drop. A link is a clue, not proof that one caused the other."
+        description="Possible links between events from different tools - for example a deploy near a traffic drop. A link is a clue, not proof that one caused the other."
         actions={
           <>
             <Link className="button button-secondary" href="/app/correlations/rules">

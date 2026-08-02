@@ -18,7 +18,7 @@ export const metadata: Metadata = {
     template: "%s · Ghost Core",
   },
   description:
-    "See what changed across your business tools — and what to do next. Ops intelligence with evidence.",
+    "See what changed across your business tools - and what to do next. Ops intelligence with evidence.",
 };
 
 export default function RootLayout({

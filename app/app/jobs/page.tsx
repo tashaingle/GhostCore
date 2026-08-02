@@ -56,7 +56,7 @@ export default async function JobsPage({
     <section className="space-y-6">
       <PageHeader
         title="Background jobs"
-        description="These are automatic chores Ghost runs for you — like syncing tools, matching related events, and housekeeping. You can run any job manually."
+        description="These are automatic chores Ghost runs for you, like syncing tools, matching related events, and housekeeping. You can run any job manually."
       />
       <Notice searchParams={params} />
 
@@ -206,7 +206,7 @@ export default async function JobsPage({
       <div className="card overflow-auto">
         <h3 className="font-semibold">Execution history and logs</h3>
         <p className="mt-1 text-sm text-zinc-500">
-          Recent run history — what each automatic task did.
+          Recent run history for each automatic task.
         </p>
         <table className="mt-3 w-full min-w-[800px] text-left text-sm">
           <thead>
@@ -230,13 +230,13 @@ export default async function JobsPage({
                   <td className="py-2 capitalize">{run.status.replaceAll("_", " ")}</td>
                   <td>{label}</td>
                   <td>{new Date(run.created_at).toLocaleString()}</td>
-                  <td>{run.duration_ms ?? "—"} ms</td>
+                  <td>{run.duration_ms === null ? "n/a" : `${run.duration_ms} ms`}</td>
                   <td>
                     {run.records_processed} processed · +{run.records_created} created ·{" "}
                     {run.records_skipped} skipped
                   </td>
                   <td className="max-w-xs truncate" title={run.error ?? undefined}>
-                    {run.error ?? "—"}
+                    {run.error ?? "None"}
                   </td>
                 </tr>
               );

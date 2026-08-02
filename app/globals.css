@@ -22,7 +22,9 @@ body {
 
 button, input, select, textarea { font: inherit; }
 
-a { color: inherit; text-decoration: none; }
+/* Do not force color:inherit on all anchors - it overrides Tailwind
+   text-white on dark buttons/tabs (e.g. Work "Assigned to me"). */
+a { text-decoration: none; }
 
 .field {
   width: 100%;

@@ -25,7 +25,7 @@ export function notionAuthorisationUrl(state: string) {
   return url.toString();
 }
 
-// Notion returns workspace_icon as a URL, an emoji string, or null — not always a URL.
+// Notion returns workspace_icon as a URL, an emoji string, or null - not always a URL.
 const tokenSchema = z.object({
   access_token: z.string().min(10),
   token_type: z.string(),

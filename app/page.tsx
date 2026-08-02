@@ -33,7 +33,7 @@ export default async function Home() {
           Operations intelligence
         </p>
         <h1 className="mt-3 max-w-3xl text-4xl font-bold tracking-tight text-zinc-950 md:text-5xl">
-          See what changed across your stack — and what to do next.
+          See what changed across your stack - and what to do next.
         </h1>
         <p className="mt-5 max-w-2xl text-lg text-zinc-600">
           Ghost connects Stripe, Shopify, GitHub, Google, Slack and more into one
@@ -53,7 +53,7 @@ export default async function Home() {
           {[
             {
               title: "One timeline",
-              body: "Payments, deploys, ads, email and store activity in one place — organised by your company.",
+              body: "Payments, deploys, ads, email and store activity in one place - organised by your company.",
             },
             {
               title: "Clear insights",
@@ -61,7 +61,7 @@ export default async function Home() {
             },
             {
               title: "Built for teams",
-              body: "Multi-workspace, roles, approvals and action tracking — without giving tools write access.",
+              body: "Multi-workspace, roles, approvals and action tracking - without giving tools write access.",
             },
           ].map((item) => (
             <article className="card" key={item.title}>

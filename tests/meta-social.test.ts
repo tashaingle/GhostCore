@@ -2,7 +2,9 @@ import {beforeEach, describe, expect, it} from "vitest";
 import {providerRegistry} from "@/lib/integrations/registry";
 import {
   META_SOCIAL_DEFAULT_VERSION,
-  META_SOCIAL_PERMISSIONS,
+  META_SOCIAL_PERMISSIONS_DEFAULT,
+  META_SOCIAL_PERMISSIONS_WITH_INSTAGRAM,
+  metaSocialPermissions,
 } from "@/lib/integrations/meta-social/config";
 import {authorisationUrl, stateMatches} from "@/lib/integrations/meta-social/oauth";
 import {
@@ -17,6 +19,8 @@ beforeEach(() => {
   process.env.META_SOCIAL_REDIRECT_URI =
     "http://localhost:3000/api/integrations/meta-social/callback";
   delete process.env.META_SOCIAL_GRAPH_API_VERSION;
+  delete process.env.META_SOCIAL_SCOPES;
+  delete process.env.META_SOCIAL_INCLUDE_INSTAGRAM;
 });
 
 const ctx = {
@@ -59,10 +63,17 @@ describe("Meta Social registration and OAuth", () => {
     expect(providerRegistry.meta_social.connectPath).toContain("meta-social");
   });
 
-  it("requests only organic scopes (no ads write)", () => {
-    expect(META_SOCIAL_PERMISSIONS).toContain("pages_read_engagement");
-    expect(META_SOCIAL_PERMISSIONS).toContain("instagram_manage_insights");
-    expect(META_SOCIAL_PERMISSIONS.join()).not.toMatch(/ads_management|pages_manage/i);
+  it("defaults to Page scopes that work without Instagram product", () => {
+    expect(META_SOCIAL_PERMISSIONS_DEFAULT).toContain("pages_read_engagement");
+    expect(META_SOCIAL_PERMISSIONS_DEFAULT).toContain("pages_show_list");
+    expect(META_SOCIAL_PERMISSIONS_DEFAULT).not.toContain("instagram_basic");
+    expect(metaSocialPermissions().join()).not.toMatch(/ads_management|pages_manage_posts/i);
+  });
+
+  it("can opt into Instagram scopes when product is enabled", () => {
+    expect(META_SOCIAL_PERMISSIONS_WITH_INSTAGRAM).toContain("instagram_basic");
+    process.env.META_SOCIAL_INCLUDE_INSTAGRAM = "true";
+    expect(metaSocialPermissions()).toContain("instagram_manage_insights");
   });
 
   it("uses configurable graph default", () => {
@@ -73,7 +84,8 @@ describe("Meta Social registration and OAuth", () => {
     const url = authorisationUrl("state");
     expect(url).toContain("/v25.0/dialog/oauth");
     expect(url).not.toContain("secret");
-    expect(url).toContain("instagram_manage_insights");
+    expect(url).toContain("pages_show_list");
+    expect(url).not.toContain("instagram_basic");
   });
 
   it("validates state exactly", () => {

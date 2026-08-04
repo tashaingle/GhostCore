@@ -1,6 +1,6 @@
 import "server-only";
 import {randomBytes, timingSafeEqual} from "node:crypto";
-import {META_SOCIAL_PERMISSIONS, metaSocialEnv} from "./config";
+import {metaSocialEnv, metaSocialPermissions} from "./config";
 
 export const newState = () => randomBytes(32).toString("base64url");
 
@@ -18,7 +18,7 @@ export function authorisationUrl(state: string) {
     client_id: env.appId,
     redirect_uri: env.redirectUri,
     state,
-    scope: META_SOCIAL_PERMISSIONS.join(","),
+    scope: metaSocialPermissions().join(","),
     response_type: "code",
   }).toString();
   return url.toString();

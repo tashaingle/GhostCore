@@ -62,14 +62,34 @@ META_SOCIAL_REDIRECT_URI=https://ghost-core-two.vercel.app/api/integrations/meta
 
 ## Permissions (code)
 
+**Default (Facebook Pages only — avoids “Invalid Scopes” on a basic app):**
+
 - `pages_show_list`
 - `pages_read_engagement`
-- `pages_read_user_content`
-- `instagram_basic`
-- `instagram_manage_insights`
+- `read_insights`
 - `business_management`
 
+**Instagram (only after adding Instagram Graph API product in Meta App Dashboard):**
+
+Set `META_SOCIAL_INCLUDE_INSTAGRAM=true` or:
+
+```env
+META_SOCIAL_SCOPES=pages_show_list,pages_read_engagement,pages_read_user_content,instagram_basic,instagram_manage_insights,read_insights,business_management
+```
+
+Also add those permissions under the app’s **Use cases / Permissions** in the dashboard, or OAuth will show *Invalid Scopes* to developers.
+
 Read-only; no publish / ads write.
+
+### Fix “Invalid Scopes: pages_read_user_content, instagram_basic, …”
+
+Those names are valid in Meta’s docs, but **not enabled on your app** until you:
+
+1. App Dashboard → **Add product** → **Instagram** / Instagram Graph API  
+2. App Dashboard → **Use cases** or **Permissions and features** → request/add those permissions  
+3. Set `META_SOCIAL_INCLUDE_INSTAGRAM=true` on Vercel and redeploy  
+
+Until then, Ghost only requests Page scopes so Connect works for Facebook Pages.
 
 ---
 

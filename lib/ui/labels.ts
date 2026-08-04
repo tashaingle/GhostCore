@@ -9,6 +9,7 @@ const providerNames: Record<string, string> = {
   stripe: "Stripe",
   shopify: "Shopify",
   meta_ads: "Meta Ads",
+  meta_social: "Meta Social",
   linkedin: "LinkedIn",
   manual: "Manual import",
   notion: "Notion",
@@ -63,6 +64,7 @@ export function configureIntegrationLabel(
     providerId === "google_analytics" ||
     providerId === "google_search_console" ||
     providerId === "meta_ads" ||
+    providerId === "meta_social" ||
     providerId === "linkedin"
   ) {
     return configurationRequired ? "Choose account" : "Settings";

@@ -18,7 +18,13 @@ export default async function Home() {
           </span>
           <span className="font-semibold tracking-tight">Ghost Core</span>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
+          <Link className="text-sm text-zinc-600 hover:text-zinc-900" href="/privacy">
+            Privacy
+          </Link>
+          <Link className="text-sm text-zinc-600 hover:text-zinc-900" href="/terms">
+            Terms
+          </Link>
           <Link className="button button-secondary" href="/login">
             Sign in
           </Link>
@@ -71,6 +77,20 @@ export default async function Home() {
           ))}
         </div>
       </section>
+
+      <footer className="border-t bg-white">
+        <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3 px-6 py-6 text-sm text-zinc-500">
+          <span>Ghost Core</span>
+          <div className="flex gap-4">
+            <Link className="hover:text-zinc-800" href="/privacy">
+              Privacy Policy
+            </Link>
+            <Link className="hover:text-zinc-800" href="/terms">
+              Terms of Service
+            </Link>
+          </div>
+        </div>
+      </footer>
     </main>
   );
 }

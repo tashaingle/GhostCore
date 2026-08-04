@@ -13,7 +13,7 @@ class FakeConnector implements IntegrationConnector{
   translate(){return event}
 }
 describe("provider registry",()=>{
-  it("is unique and complete",()=>{expect(providers).toHaveLength(12);expect(new Set(providers.map(provider=>provider.id)).size).toBe(providers.length);expect(getProvider("github")).toBe(providerRegistry.github)});
+  it("is unique and complete",()=>{expect(providers).toHaveLength(13);expect(new Set(providers.map(provider=>provider.id)).size).toBe(providers.length);expect(getProvider("github")).toBe(providerRegistry.github);expect(getProvider("meta_social")?.connector).toBe("meta_social");expect(getProvider("tiktok")).toBeUndefined()});
   it("declares capabilities and schedules",()=>{expect(hasCapability(providerRegistry.github,"oauth")).toBe(true);expect(providerRegistry.github.schedule).toBe("hourly");expect(hasCapability(providerRegistry.manual,"manual")).toBe(true);expect(providerRegistry.google_analytics.connector).toBe("google_analytics");expect(providerRegistry.google_analytics.propertySelection).toBe(true)});
 });
 describe("connector loading",()=>{

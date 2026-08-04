@@ -1,0 +1,46 @@
+# Calls Ghost Core job dispatch every 5 minutes.
+# Required GitHub secret: BACKGROUND_JOB_SECRET (same value as Vercel).
+# Optional repository variable: DISPATCH_URL (defaults to production app).
+name: Dispatch background jobs
+
+on:
+  schedule:
+    # Job types include 5m/15m/1h cadences; the dispatcher only runs due work.
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Invoke /api/jobs/dispatch
+        env:
+          SECRET: ${{ secrets.BACKGROUND_JOB_SECRET }}
+          URL: ${{ vars.DISPATCH_URL }}
+        run: |
+          set -euo pipefail
+          if [ -z "${SECRET:-}" ]; then
+            echo "Missing GitHub secret BACKGROUND_JOB_SECRET" >&2
+            exit 1
+          fi
+          ENDPOINT="${URL:-https://ghost-core-two.vercel.app}/api/jobs/dispatch"
+          # Strip trailing slash from base if present
+          ENDPOINT="${ENDPOINT%/}"
+          case "$ENDPOINT" in
+            */api/jobs/dispatch) ;;
+            *) ENDPOINT="${ENDPOINT}/api/jobs/dispatch" ;;
+          esac
+          echo "POST $ENDPOINT"
+          code=$(curl -sS -o /tmp/dispatch-body.json -w "%{http_code}" \
+            -X POST \
+            -H "Authorization: Bearer ${SECRET}" \
+            -H "Accept: application/json" \
+            --max-time 280 \
+            "$ENDPOINT")
+          echo "HTTP $code"
+          head -c 4000 /tmp/dispatch-body.json || true
+          echo
+          if [ "$code" != "200" ]; then
+            exit 1
+          fi

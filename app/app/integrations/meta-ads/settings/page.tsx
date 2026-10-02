@@ -18,13 +18,14 @@ export default async function MetaAdsSettings() {
     <section className="mx-auto max-w-4xl space-y-6">
       <div>
         <Link className="text-sm text-zinc-500" href="/app/integrations">
-          ← Integrations
+          ← Connections
         </Link>
         <h1 className="mt-2 text-3xl font-semibold tracking-tight text-zinc-950">
           Meta Ads accounts
         </h1>
         <p className="text-zinc-600">
-          Select up to ten accessible ad accounts. Ghost has reporting-only access.
+          Choose up to ten ad accounts to track. This includes your own ad accounts and those owned
+          by businesses you gave Ghost access to. Ghost can only read results, never change ads.
         </p>
       </div>
       {!items?.length ? (
@@ -51,13 +52,18 @@ export default async function MetaAdsSettings() {
             <form action={saveMetaAccounts} className="space-y-3" key={item.id}>
               <input type="hidden" name="integrationId" value={item.id} />
               <div className="card">
-                <strong>{item.provider_account_name}</strong>
+                <strong>
+                  Connected through {item.provider_account_name}&apos;s Facebook login
+                </strong>
                 <p className="text-sm text-zinc-500">
-                  Graph {String(s.graphApiVersion)} · Permissions:{" "}
-                  {((s.grantedPermissions as string[]) ?? []).join(", ") || "None"} · Expires:{" "}
                   {item.token_expires_at
-                    ? new Date(item.token_expires_at).toLocaleString()
-                    : "Unknown"}
+                    ? `Reconnect before ${new Date(item.token_expires_at).toLocaleDateString("en-GB", {day: "numeric", month: "long"})} to keep syncing.`
+                    : "This login doesn't expire."}{" "}
+                  Missing a business&apos;s ad account?{" "}
+                  <Link className="underline" href="/api/integrations/meta-ads/connect">
+                    Reconnect
+                  </Link>{" "}
+                  and tick that business when Facebook asks which ones Ghost can see.
                 </p>
                 {item.last_sync_error && <p className="text-red-700">{item.last_sync_error}</p>}
               </div>
@@ -73,14 +79,15 @@ export default async function MetaAdsSettings() {
                   <span>
                     <strong>{a.name}</strong>
                     <span className="block text-sm text-zinc-500">
-                      act_{a.accountId} · {a.businessName ?? "No business"} · {a.currency} ·{" "}
-                      {a.timezoneName} · status {a.accountStatus}
+                      {a.businessName ? `Owned by ${a.businessName}` : "Personal ad account"} ·{" "}
+                      {a.currency} · ID {a.accountId}
+                      {a.accessState === "disabled" ? " · Disabled in Meta" : ""}
                     </span>
                   </span>
                 </label>
               ))}
               <div className="flex gap-3">
-                <button className="button">Save accounts</button>
+                <button className="button">Save</button>
                 <Link className="button button-secondary" href="/app/integrations/meta-ads">
                   Open reporting
                 </Link>

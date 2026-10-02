@@ -267,6 +267,8 @@ Operational setup:
 5. Open `/app/jobs`; run the first due batch or use Run now, which queues the job for the next dispatcher invocation.
 
 Cancellation is cooperative: a queued job is cancelled before execution, while an in-flight provider request completes within its connector timeout and the job timeout records a timed-out run. The Phase 19 worker is HTTP-invoked and intentionally does not ship a cron deployment so hosting remains provider-neutral. Job history cleanup retains failures/retries for audit; only old successful, skipped, and cancelled runs are removed.
+
+Production scheduling: Vercel Hobby allows only daily crons (`vercel.json` keeps a daily fallback), so the five-minute schedule runs from Supabase. Migration `202607290014_job_dispatch_schedule.sql` enables `pg_cron` and `pg_net` and schedules `private.dispatch_background_jobs()` every five minutes. It reads the app URL and job secret from Supabase Vault (`ghost_app_url`, `ghost_background_job_secret`) and does nothing when they are absent. Verify with `select * from cron.job_run_details order by start_time desc limit 5;` and `select status_code, created from net._http_response order by created desc limit 5;`. The GitHub `Dispatch background jobs` workflow remains for manual runs only.
 # Phase 20 handover — deterministic notifications and Action Centre
 
 Migration `202607290011_notifications_action_centre.sql` adds notification rules, durable notifications, structured evidence, immutable revisions, assignment history, preferences and generation runs with organisation RLS and bounded indexes. Apply it after `202607290010_background_jobs.sql`; it is additive and preserves existing data.

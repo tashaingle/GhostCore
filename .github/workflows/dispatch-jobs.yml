@@ -1,12 +1,11 @@
-# Calls Ghost Core job dispatch every 5 minutes.
+# Manually invokes Ghost Core job dispatch ("Run workflow" in the Actions tab).
+# The five-minute schedule runs from Supabase pg_cron:
+# supabase/migrations/202607290014_job_dispatch_schedule.sql
 # Required GitHub secret: BACKGROUND_JOB_SECRET (same value as Vercel).
 # Optional repository variable: DISPATCH_URL (defaults to production app).
 name: Dispatch background jobs
 
 on:
-  schedule:
-    # Job types include 5m/15m/1h cadences; the dispatcher only runs due work.
-    - cron: "*/5 * * * *"
   workflow_dispatch:
 
 jobs:

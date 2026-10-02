@@ -10,7 +10,7 @@ import {connectionStatus, reconnectHref, type ConnectionState} from "@/lib/home/
 import {ProviderMark} from "@/components/home-ui";
 import {AutoRefresh} from "@/components/auto-refresh";
 import {SubmitButton} from "@/components/submit-button";
-import {githubAppEnv, manageUrl} from "@/lib/integrations/github/app";
+import {githubAppEnv} from "@/lib/integrations/github/app";
 import {disconnectIntegration, syncIntegration} from "@/app/integration-actions";
 import {ConnectProviderButton} from "@/components/connect-provider-button";
 import {Notice} from "@/components/notice";
@@ -99,26 +99,15 @@ function Controls({
 
   return (
     <>
-      {provider.configurationPath ? (
+      {provider.configurationPath &&
+      // Older GitHub OAuth connections can't choose repositories until they upgrade below.
+      !(provider.id === "github" && typeof settings.installationId !== "string") ? (
         <Link className="button button-secondary" href={provider.configurationPath}>
           {configureIntegrationLabel(provider.id, configurationRequired)}
         </Link>
       ) : null}
       {provider.id === "github" && provider.connectPath ? (
-        typeof settings.installationId === "string" ? (
-          <a
-            className="button button-secondary"
-            href={manageUrl(
-              settings.accountType as string | undefined,
-              settings.accountLogin as string | undefined,
-              settings.installationId,
-            )}
-            target="_blank"
-            rel="noreferrer"
-          >
-            Manage repositories
-          </a>
-        ) : (
+        typeof settings.installationId === "string" ? null : (
           // Older OAuth connections see every repository; upgrading lets the user pick.
           <Link className="button button-secondary" href={provider.connectPath}>
             Choose repositories

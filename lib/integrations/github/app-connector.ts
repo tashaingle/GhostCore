@@ -11,6 +11,7 @@ import type {NormalisedEventInput} from "@/types/events";
 import {GitHubApi, GitHubApiError} from "./api";
 import {githubActivityTranslator, githubWorkflowTranslator} from "./translator";
 import type {GitHubActivity, GitHubWorkflowRun} from "./types";
+import {trackedRepositories} from "./selection";
 
 type GitHubRecord =
   {kind: "activity"; value: GitHubActivity} | {kind: "workflow"; value: GitHubWorkflowRun};
@@ -20,7 +21,8 @@ export const GITHUB_APP_LIMITS = {repositories: 20, workflowRepositories: 10} as
 
 /**
  * GitHub connector backed by a GitHub App installation. It only ever sees the repositories the
- * user chose when installing, and stores no long-lived token: each sync mints a one-hour token.
+ * user gave the app on GitHub and, of those, only the ones this organisation chose to track. It
+ * stores no long-lived token: each sync mints a one-hour token.
  */
 export class GitHubAppConnector implements IntegrationConnector<GitHubRecord> {
   provider = "github";
@@ -29,6 +31,8 @@ export class GitHubAppConnector implements IntegrationConnector<GitHubRecord> {
     private getApi: () => Promise<
       Pick<GitHubApi, "installationRepositories" | "repositoryActivity" | "workflowRuns">
     >,
+    /** Repositories this organisation tracks; undefined (older connections) means all of them. */
+    private selection?: string[],
   ) {}
   private async client() {
     this.api ??= await this.getApi();
@@ -58,11 +62,12 @@ export class GitHubAppConnector implements IntegrationConnector<GitHubRecord> {
       : githubWorkflowTranslator.translate(record.value, context);
   }
   async sync(context: IntegrationSyncContext): Promise<ConnectorSyncResult> {
+    if (this.selection && !this.selection.length) return {received: 0, events: []};
     const api = await this.client(),
-      repositories = (await api.installationRepositories()).slice(
-        0,
-        GITHUB_APP_LIMITS.repositories,
-      ),
+      repositories = trackedRepositories(
+        await api.installationRepositories(),
+        this.selection,
+      ).slice(0, GITHUB_APP_LIMITS.repositories),
       activity: GitHubActivity[] = [];
     for (const repository of repositories) {
       try {

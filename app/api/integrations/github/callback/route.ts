@@ -5,22 +5,30 @@ import {hasPermission, type OrganisationRole} from "@/lib/auth/permissions";
 import {
   exchangeUserCode,
   GITHUB_APP_COOKIE,
+  GITHUB_CHOICES_COOKIE,
   githubAppEnv,
-  installation,
+  installUrl,
   stateMatches,
-  userCanAccessInstallation,
+  userInstallations,
 } from "@/lib/integrations/github/app";
-import type {Json} from "@/types/database";
+import {attachInstallation} from "@/lib/integrations/github/repositories";
+import {encryptToken} from "@/lib/security/token-crypto";
 
-const back = (url: URL, kind: "error" | "success", message: string) =>
-  NextResponse.redirect(
-    new URL(`/app/integrations?${kind}=${encodeURIComponent(message)}`, url.origin),
-  );
+const SETTINGS = "/app/integrations/github/settings";
+const back = (url: URL, kind: "error" | "success", message: string, path = "/app/integrations") =>
+  NextResponse.redirect(new URL(`${path}?${kind}=${encodeURIComponent(message)}`, url.origin));
+const cookieOptions = (path: string) => ({
+  httpOnly: true,
+  sameSite: "lax" as const,
+  secure: process.env.NODE_ENV === "production",
+  path,
+  maxAge: 900,
+});
 
 /**
- * GitHub returns here after the app is installed (or its repository selection changed). The
- * installation is verified against the signed-in GitHub user before it is attached to the
- * organisation that started the flow.
+ * GitHub returns here after the user signs in with GitHub, installs the app, or changes the app's
+ * repository selection. Installations are verified against the signed-in GitHub user before one is
+ * attached to the organisation that started the flow.
  */
 export async function GET(request: Request) {
   const url = new URL(request.url),
@@ -31,10 +39,15 @@ export async function GET(request: Request) {
     setupAction = url.searchParams.get("setup_action");
   store.delete(GITHUB_APP_COOKIE);
 
-  // Changing the repository selection later from GitHub's settings also returns here. Ghost reads
-  // the current selection on every sync, so there is nothing to store.
-  if (!raw && setupAction === "update")
-    return back(url, "success", "GitHub repository selection updated.");
+  // Changing the repository selection on GitHub also returns here (when "Redirect on update" is
+  // on). Ghost reads the current list whenever it is needed, so send the user to choose.
+  if (setupAction === "update" && (!raw || !code))
+    return back(
+      url,
+      "success",
+      "GitHub updated. Choose which repositories to track here.",
+      SETTINGS,
+    );
 
   let state: {state: string; userId: string; organisationId: string; createdAt: number} | undefined;
   try {
@@ -44,13 +57,13 @@ export async function GET(request: Request) {
     !state ||
     Date.now() - state.createdAt > 900_000 ||
     !stateMatches(state.state, url.searchParams.get("state")) ||
-    !/^\d+$/.test(installationId) ||
+    (installationId && !/^\d+$/.test(installationId)) ||
     !code
   )
     return back(url, "error", "GitHub connection expired or failed validation. Please try again.");
 
   const env = githubAppEnv();
-  if (!env) return back(url, "error", "GitHub App is not configured yet.");
+  if (!env) return back(url, "error", "GitHub isn't set up on this site yet.");
   try {
     const supabase = await createClient(),
       {
@@ -69,57 +82,48 @@ export async function GET(request: Request) {
       throw new Error("You no longer have permission to connect GitHub here.");
 
     const redirectUri = new URL("/api/integrations/github/callback", url.origin).toString(),
-      userToken = await exchangeUserCode(env, code, redirectUri);
-    if (!(await userCanAccessInstallation(userToken, installationId)))
+      installations = await userInstallations(await exchangeUserCode(env, code, redirectUri));
+    let chosen = installationId;
+    if (chosen && !installations.some((i) => i.id === chosen))
       throw new Error("That GitHub installation doesn't belong to your GitHub account.");
-    const details = await installation(env, installationId),
-      login = details.account?.login ?? "GitHub";
-
-    const values = {
-      provider_account_id: `installation:${installationId}`,
-      provider_account_name: login,
-      status: "connected",
-      // No long-lived token is stored: each sync mints a one-hour installation token.
-      access_token_encrypted: null,
-      refresh_token_encrypted: null,
-      token_expires_at: null,
-      last_sync_status: "connected",
-      last_sync_error: null,
-      settings: {
-        mode: "app",
-        installationId,
-        accountLogin: login,
-        accountType: details.account?.type ?? null,
-        repositorySelection: details.repository_selection,
-        connectedAt: new Date().toISOString(),
-      } as Json,
-    };
-    // One GitHub connection per organisation: an older OAuth connection is upgraded in place.
-    const {data: existing} = await supabase
-      .from("integrations")
-      .select("id")
-      .eq("organisation_id", state.organisationId)
-      .eq("provider", "github")
-      .order("created_at")
-      .limit(1)
-      .maybeSingle();
-    const result = existing
-      ? await supabase
-          .from("integrations")
-          .update(values)
-          .eq("id", existing.id)
-          .eq("organisation_id", state.organisationId)
-      : await supabase
-          .from("integrations")
-          .insert({organisation_id: state.organisationId, provider: "github", ...values});
-    if (result.error) throw new Error("The GitHub connection could not be saved.");
-    return back(
-      url,
-      "success",
-      details.repository_selection === "all"
-        ? `GitHub connected (${login}, all repositories).`
-        : `GitHub connected (${login}, selected repositories).`,
-    );
+    if (!chosen) {
+      if (!installations.length) {
+        // Not installed anywhere yet: install it, then GitHub returns here with the installation.
+        store.set(
+          GITHUB_APP_COOKIE,
+          JSON.stringify({...state, createdAt: Date.now()}),
+          cookieOptions("/api/integrations/github"),
+        );
+        return NextResponse.redirect(installUrl(env.slug, state.state));
+      }
+      if (installations.length > 1) {
+        // Installed on more than one GitHub account (e.g. personal and a company): let them pick.
+        // Encrypted so the verified list can't be edited in the browser.
+        store.set(
+          GITHUB_CHOICES_COOKIE,
+          encryptToken(
+            JSON.stringify({
+              userId: user.id,
+              organisationId: state.organisationId,
+              installations,
+              createdAt: Date.now(),
+            }),
+          ),
+          cookieOptions("/app/integrations/github"),
+        );
+        return NextResponse.redirect(new URL("/app/integrations/github/choose", url.origin));
+      }
+      chosen = installations[0].id;
+    }
+    const result = await attachInstallation(supabase, env, state.organisationId, chosen);
+    return result.needsChoice
+      ? back(
+          url,
+          "success",
+          `GitHub connected (${result.login}). Now choose which repositories this organisation tracks.`,
+          SETTINGS,
+        )
+      : back(url, "success", `GitHub connected (${result.login}).`);
   } catch (error) {
     console.error("GitHub App connection failed", error);
     return back(

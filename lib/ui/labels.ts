@@ -71,6 +71,9 @@ export function configureIntegrationLabel(providerId: string, configurationRequi
   ) {
     return configurationRequired ? "Choose account" : "Settings";
   }
+  if (providerId === "github") {
+    return configurationRequired ? "Choose repositories" : "Repositories";
+  }
   if (providerId === "notion") {
     return configurationRequired ? "Choose databases" : "Databases";
   }

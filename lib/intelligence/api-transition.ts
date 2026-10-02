@@ -1,6 +1,6 @@
 import "server-only";
 import {NextResponse} from "next/server";
-import {insightApiContext} from "./api-context";
+import {insightApiContext, insightDatabaseError, isInsightId} from "./api-context";
 import {transitionInsight, type InsightAction} from "./lifecycle";
 import type {InsightStatus} from "./types";
 import {hasPermission, type OrganisationRole} from "@/lib/auth/permissions";
@@ -16,12 +16,14 @@ export async function transitionInsightApi(id: string, action: InsightAction) {
       {error: {code: "forbidden", message: "This role cannot update insights."}},
       {status: 403},
     );
-  const {data} = await ctx.supabase
-    .from("insights")
-    .select("status")
-    .eq("id", id)
-    .eq("organisation_id", ctx.organisationId)
-    .maybeSingle();
+  const {data} = isInsightId(id)
+    ? await ctx.supabase
+        .from("insights")
+        .select("status")
+        .eq("id", id)
+        .eq("organisation_id", ctx.organisationId)
+        .maybeSingle()
+    : {data: null};
   if (!data)
     return NextResponse.json(
       {error: {code: "not_found", message: "Insight not found."}},
@@ -42,7 +44,5 @@ export async function transitionInsightApi(id: string, action: InsightAction) {
     .eq("organisation_id", ctx.organisationId)
     .select("*")
     .single();
-  return error
-    ? NextResponse.json({error: {code: "update_failed", message: error.message}}, {status: 400})
-    : NextResponse.json({data: updated});
+  return error ? insightDatabaseError("update_failed", error) : NextResponse.json({data: updated});
 }

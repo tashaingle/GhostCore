@@ -1,5 +1,5 @@
 import {NextResponse} from "next/server";
-import {insightApiContext} from "@/lib/intelligence/api-context";
+import {insightApiContext, insightDatabaseError} from "@/lib/intelligence/api-context";
 export async function GET(request: Request) {
   const ctx = await insightApiContext();
   if (!ctx)
@@ -22,7 +22,5 @@ export async function GET(request: Request) {
   if (severity && ["info", "good", "warning", "critical"].includes(severity))
     query = query.eq("severity", severity as "info" | "good" | "warning" | "critical");
   const {data, error} = await query;
-  return error
-    ? NextResponse.json({error: {code: "query_failed", message: error.message}}, {status: 400})
-    : NextResponse.json({data});
+  return error ? insightDatabaseError("query_failed", error) : NextResponse.json({data});
 }

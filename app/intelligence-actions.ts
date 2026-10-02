@@ -7,21 +7,26 @@ import {transitionInsight, type InsightAction} from "@/lib/intelligence/lifecycl
 import type {InsightStatus} from "@/lib/intelligence/types";
 import {requirePermission} from "@/lib/auth/permissions";
 
-export async function runIntelligenceAction() {
+export async function runIntelligenceAction(form?: FormData) {
   const ctx = await getActiveOrganisation();
   if (!ctx) redirect("/app/onboarding");
   requirePermission(ctx.membership.role, "insight.manage");
+  // Only allow returning to known pages so the form value cannot redirect elsewhere.
+  const back = form?.get("returnTo") === "/app/insights" ? "/app/insights" : "/app";
   try {
     const result = await runIntelligence(ctx.supabase, ctx.organisation.id);
     revalidatePath("/app");
+    revalidatePath("/app/insights");
     revalidatePath("/app/timeline");
-    redirect(
-      `/app?success=${encodeURIComponent(`Intelligence complete: ${result.inserted} new, ${result.updated} updated, ${result.resolved} resolved.`)}`,
-    );
+    const message = result.inserted
+      ? `Insights refreshed: ${result.inserted} new.`
+      : "Insights refreshed. Nothing new to report.";
+    redirect(`${back}?success=${encodeURIComponent(message)}`);
   } catch (error) {
     if (error && typeof error === "object" && "digest" in error) throw error;
+    console.error("Insight refresh failed", error);
     redirect(
-      `/app?error=${encodeURIComponent(error instanceof Error ? error.message : "Intelligence failed.")}`,
+      `${back}?error=${encodeURIComponent("Insights could not be refreshed. Please try again.")}`,
     );
   }
 }

@@ -117,7 +117,7 @@ describe("schema, routes and immutable audit", () => {
     ),
     list = readFileSync("app/app/action-centre/page.tsx", "utf8"),
     detail = readFileSync("app/app/action-centre/[id]/page.tsx", "utf8"),
-    sidebar = readFileSync("app/app/layout.tsx", "utf8"),
+    sidebar = readFileSync("components/sidebar-nav.tsx", "utf8"),
     command = readFileSync("app/app/command-centre/page.tsx", "utf8");
   it("creates all tenant tables, indexes and RLS", () => {
     for (const table of [
@@ -142,7 +142,7 @@ describe("schema, routes and immutable audit", () => {
     expect(list).toContain("Apply to selected");
     expect(detail).toContain("Structured evidence");
     expect(detail).toContain("Immutable history");
-    expect(sidebar).toContain("Action Centre");
+    expect(sidebar).toContain(`href: "/app/action-centre"`);
   });
   it("links Command Centre metrics to Action Centre filters", () => {
     expect(command).toContain("/app/action-centre?severity=critical");

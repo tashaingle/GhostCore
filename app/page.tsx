@@ -7,7 +7,7 @@ export default async function Home() {
   const {
     data: {user},
   } = await supabase.auth.getUser();
-  if (user) redirect("/app/command-centre");
+  if (user) redirect("/app");
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-zinc-50 via-white to-violet-50">

@@ -3,9 +3,8 @@ import {createClient} from "@/lib/supabase/server";
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const code = url.searchParams.get("code");
-  const requested = url.searchParams.get("next") ?? "/app/command-centre";
-  const next =
-    requested.startsWith("/") && !requested.startsWith("//") ? requested : "/app/command-centre";
+  const requested = url.searchParams.get("next") ?? "/app";
+  const next = requested.startsWith("/") && !requested.startsWith("//") ? requested : "/app";
   if (code) {
     const supabase = await createClient();
     const {error} = await supabase.auth.exchangeCodeForSession(code);

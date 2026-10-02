@@ -27,6 +27,11 @@ export default async function MetaAdsSettings() {
           Choose up to ten ad accounts to track. This includes your own ad accounts and those owned
           by businesses you gave Ghost access to. Ghost can only read results, never change ads.
         </p>
+        <p className="mt-2 text-sm text-zinc-500">
+          Facebook shares one set of permissions with Ghost across all your organisations. If you
+          connect again, keep every business and Page ticked on Facebook&apos;s screens: anything
+          you untick disappears from all of them. You choose what each organisation tracks here.
+        </p>
       </div>
       {!items?.length ? (
         <Link className="button" href="/api/integrations/meta-ads/connect">

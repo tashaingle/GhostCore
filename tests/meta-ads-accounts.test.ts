@@ -1,5 +1,6 @@
 import {afterEach, describe, expect, it, vi} from "vitest";
 import {MetaAdsClient} from "@/lib/integrations/meta-ads/client";
+import {lostAccessMessage, lostItems} from "@/lib/integrations/meta/lost-access";
 
 const account = (id: string, name: string, business?: {id: string; name: string}) => ({
   id: `act_${id}`,
@@ -50,5 +51,22 @@ describe("Meta ad accounts", () => {
     expect((await new MetaAdsClient("t", request).accounts()).map((a) => a.name)).toEqual([
       "Tasha Card",
     ]);
+  });
+});
+
+describe("Meta access lost on reconnect", () => {
+  it("names businesses' items Facebook stopped sharing, once each", () => {
+    const before = [
+      {id: "1", name: "XUFU"},
+      {id: "2", name: "RabbitCare.co.uk"},
+      {id: "2", name: "RabbitCare.co.uk"},
+      {id: "3", name: "Unhinged Clothing"},
+    ];
+    const lost = lostItems(before, [{id: "1", name: "XUFU"}]);
+    expect(lost.map((i) => i.name)).toEqual(["RabbitCare.co.uk", "Unhinged Clothing"]);
+    expect(lostAccessMessage(lost)).toContain(
+      "no longer lets Ghost see RabbitCare.co.uk, Unhinged Clothing",
+    );
+    expect(lostAccessMessage([])).toBe("");
   });
 });

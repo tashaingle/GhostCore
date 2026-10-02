@@ -65,7 +65,9 @@ export default async function RunDetail({
       <header className="card">
         <div className="flex justify-between">
           <div>
-            <h2 className="text-2xl font-bold">{definition?.name ?? "Workflow run"}</h2>
+            <h1 className="text-3xl font-semibold tracking-tight text-zinc-950">
+              {definition?.name ?? "Workflow run"}
+            </h1>
             <p className="capitalize">
               {run.status} · version {run.workflow_version} · {run.trigger_type}
             </p>

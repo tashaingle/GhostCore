@@ -43,7 +43,7 @@ export default async function ApprovalDetail({
       <Link href="/app/approvals">← Approvals</Link>
       <Notice searchParams={p} />
       <div className="card">
-        <h2 className="text-2xl font-bold">Workflow approval</h2>
+        <h1 className="text-3xl font-semibold tracking-tight text-zinc-950">Workflow approval</h1>
         <p className="capitalize">{item.status}</p>
         <dl className="mt-4 grid gap-3 md:grid-cols-3">
           <div>

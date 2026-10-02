@@ -30,7 +30,7 @@ export default async function WorkflowRuns({
   return (
     <section className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold">Workflow runs</h2>
+        <h1 className="text-3xl font-semibold tracking-tight text-zinc-950">Workflow runs</h1>
         <p className="text-zinc-600">Immutable-version execution history, retries and evidence.</p>
       </div>
       <Notice searchParams={p} />

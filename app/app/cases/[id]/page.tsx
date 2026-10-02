@@ -97,7 +97,7 @@ export default async function CaseDetail({
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <p className="text-sm text-zinc-500">{item.case_number}</p>
-            <h2 className="text-2xl font-bold">{item.title}</h2>
+            <h1 className="text-3xl font-semibold tracking-tight text-zinc-950">{item.title}</h1>
             <p className="mt-2">{item.summary}</p>
             <p className="mt-3 whitespace-pre-wrap">{item.description}</p>
           </div>

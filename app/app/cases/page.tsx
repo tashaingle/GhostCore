@@ -41,7 +41,7 @@ export default async function Cases({
     <section className="space-y-6">
       <div className="flex justify-between">
         <div>
-          <h2 className="text-2xl font-bold">Cases</h2>
+          <h1 className="text-3xl font-semibold tracking-tight text-zinc-950">Cases</h1>
           <p className="text-zinc-600">
             Durable operational records spanning tasks, evidence and participants.
           </p>

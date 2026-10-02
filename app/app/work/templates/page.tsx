@@ -11,7 +11,7 @@ export default async function WorkTemplates() {
   return (
     <section className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold">Work templates</h2>
+        <h1 className="text-3xl font-semibold tracking-tight text-zinc-950">Work templates</h1>
         <p className="text-zinc-600">
           Versioned, deterministic starting points for tasks and cases.
         </p>

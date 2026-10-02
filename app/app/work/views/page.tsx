@@ -18,7 +18,7 @@ export default async function WorkViews({
   return (
     <section className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold">Saved work views</h2>
+        <h1 className="text-3xl font-semibold tracking-tight text-zinc-950">Saved work views</h1>
         <p className="text-zinc-600">
           Validated filters and deterministic sort definitions - never arbitrary SQL.
         </p>

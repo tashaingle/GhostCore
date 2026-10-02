@@ -1,4 +1,5 @@
 import Link from "next/link";
+import {PageHeader} from "@/components/page-header";
 import {getActiveOrganisation} from "@/lib/organisations/active";
 import {WorkList} from "@/components/work-list";
 import {Notice} from "@/components/notice";
@@ -81,22 +82,22 @@ export default async function WorkInbox({
   ];
   return (
     <section className="space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h2 className="text-2xl font-bold">Work</h2>
-          <p className="text-zinc-600">One deterministic inbox for organisation tasks and cases.</p>
-        </div>
-        <div className="flex gap-2">
-          <Link className="button" href="/app/tasks/new">
-            New task
-          </Link>
-          <Link className="button button-secondary" href="/app/cases/new">
-            New case
-          </Link>
-        </div>
-      </div>
+      <PageHeader
+        title="Work"
+        description="Tasks and cases your team is working on. A case groups related tasks, like a customer complaint or an outage. Automations can create them for you."
+        actions={
+          <>
+            <Link className="button button-secondary" href="/app/cases/new">
+              New case
+            </Link>
+            <Link className="button" href="/app/tasks/new">
+              New task
+            </Link>
+          </>
+        }
+      />
       <Notice searchParams={p} />
-      <nav className="flex flex-wrap gap-2" aria-label="Work views">
+      <nav className="flex flex-wrap gap-1 rounded-xl bg-zinc-200/60 p-1" aria-label="Work views">
         {[
           ["assigned", "Assigned to me"],
           ["unassigned", "Unassigned"],
@@ -111,23 +112,29 @@ export default async function WorkInbox({
           <Link
             key={k}
             href={`/app/work?tab=${k}`}
-            style={
-              tab === k
-                ? {background: "#18181b", color: "#ffffff", borderColor: "#18181b"}
-                : {background: "#ffffff", color: "#27272a", borderColor: "#e4e4e7"}
-            }
-            className="rounded-lg border px-3 py-2 text-sm font-semibold no-underline"
+            aria-current={tab === k ? "page" : undefined}
+            className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
+              tab === k ? "bg-white text-zinc-950 shadow-sm" : "text-zinc-600 hover:text-zinc-950"
+            }`}
           >
             {l}
           </Link>
         ))}
       </nav>
       <WorkList items={items} />
-      <div className="flex gap-4 text-sm">
-        <Link href="/app/tasks">Task list</Link>
-        <Link href="/app/cases">Case list</Link>
-        <Link href="/app/work/templates">Templates</Link>
-        <Link href="/app/work/views">Saved views</Link>
+      <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm text-zinc-500">
+        <Link className="hover:text-zinc-950" href="/app/tasks">
+          All tasks
+        </Link>
+        <Link className="hover:text-zinc-950" href="/app/cases">
+          All cases
+        </Link>
+        <Link className="hover:text-zinc-950" href="/app/work/templates">
+          Templates
+        </Link>
+        <Link className="hover:text-zinc-950" href="/app/work/views">
+          Saved views
+        </Link>
       </div>
     </section>
   );

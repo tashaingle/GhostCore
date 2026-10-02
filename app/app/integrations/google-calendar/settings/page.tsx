@@ -17,7 +17,9 @@ export default async function Page({
     .eq("provider", "google_calendar");
   return (
     <section className="space-y-5">
-      <h2 className="text-2xl font-bold">Google Calendar settings</h2>
+      <h1 className="text-3xl font-semibold tracking-tight text-zinc-950">
+        Google Calendar settings
+      </h1>
       <Notice searchParams={await searchParams} />
       {rows?.map((row) => {
         const s = row.settings as Record<string, unknown>,

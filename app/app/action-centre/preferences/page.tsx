@@ -81,13 +81,16 @@ export default async function Preferences({
         ← Action Centre
       </Link>
       <div>
-        <h2 className="text-2xl font-bold">Notification preferences</h2>
-        <p className="text-zinc-600">
-          Precedence: mandatory rule, user override, organisation default, system default.
+        <h1 className="text-3xl font-semibold tracking-tight text-zinc-950">
+          Notification preferences
+        </h1>
+        <p className="mt-2 text-base text-zinc-500">
+          Choose which alerts you hear about. Your own settings override the organisation&apos;s
+          defaults, and a few essential alerts are always shown.
         </p>
-        <p className="text-sm text-zinc-500">
-          In-app delivery works now. Email and webhook settings are stored for future delivery and
-          do not send messages in this phase.
+        <p className="mt-2 text-sm text-zinc-500">
+          Alerts always appear in the Action Centre. Email alerts will start once email sending is
+          switched on for Ghost; webhooks aren&apos;t available yet.
         </p>
       </div>
       <Notice searchParams={p} />

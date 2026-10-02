@@ -43,7 +43,7 @@ export default async function NotionDashboard({
     <section className="space-y-6">
       <div className="flex justify-between">
         <div>
-          <h2 className="text-2xl font-bold">Notion operations</h2>
+          <h1 className="text-3xl font-semibold tracking-tight text-zinc-950">Notion operations</h1>
           <p className="text-zinc-600">
             Structured, read-only evidence from selected Notion databases.
           </p>

@@ -5,6 +5,7 @@ import {runIntegrationSync} from "@/lib/integrations/sync-runner";
 import {runCorrelations} from "@/lib/correlations/runner";
 import {generateNotificationsForOrganisation} from "@/lib/notifications/generate";
 import {dispatchDueWorkflowRuns} from "@/lib/workflows/engine";
+import {runEmailDelivery} from "@/lib/email/outbox";
 import {discoverStoredTriggers} from "@/lib/workflows/triggers";
 import {
   evaluateOverdueWork,
@@ -36,6 +37,7 @@ async function handle(client: SupabaseClient<Database>, job: Job): Promise<JobMe
   if (job.job_type === "work.overdue.evaluate")
     return evaluateOverdueWork(client, job.organisation_id);
   if (job.job_type === "work.maintenance") return maintainWork(client, job.organisation_id);
+  if (job.job_type === "email.deliver") return runEmailDelivery(client, job.organisation_id);
   if (job.job_type === "workflow.dispatch") {
     const triggered = await discoverStoredTriggers(client, job.organisation_id),
       results = await dispatchDueWorkflowRuns(client, job.organisation_id, 20);

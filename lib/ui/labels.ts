@@ -81,6 +81,7 @@ const platformJobNames: Record<string, string> = {
   "maintenance.expired-locks": "Clear stuck locks",
   "maintenance.job-cleanup": "Clean old job history",
   "notification.generate": "Refresh Action Centre",
+  "email.deliver": "Send emails",
   "workflow.dispatch": "Continue workflows",
   "workflow.timeout": "Check timed-out workflows",
   "approval.reminders": "Approval reminders",

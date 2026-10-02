@@ -47,8 +47,12 @@ export default async function Preferences({
       </label>
       {[
         ["inApp", "In-app enabled", current?.in_app_enabled ?? true],
-        ["assignment", "Assignment-related", current?.assignment_enabled ?? true],
-        ["email", "Email preference (delivery deferred)", current?.email_enabled ?? false],
+        [
+          "assignment",
+          "Assignment-related (includes approval request emails)",
+          current?.assignment_enabled ?? true,
+        ],
+        ["email", "Email me alerts (immediate digest mode only)", current?.email_enabled ?? false],
         ["webhook", "Webhook preference (delivery deferred)", current?.webhook_enabled ?? false],
       ].map(([name, label, checked]) => (
         <label className="flex gap-2" key={String(name)}>

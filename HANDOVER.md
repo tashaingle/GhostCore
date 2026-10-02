@@ -339,3 +339,11 @@ Manual verification:
 Known limits: attachment binaries are not uploaded; watcher outbound delivery is
 deferred; Vercel Hobby needs an external scheduler for frequent background runs;
 provider write actions remain connector-specific and are not invented by work.
+
+# Email delivery
+
+Migration `202607290015_email_outbox.sql` adds `email_outbox`, which only the service role can read or write. The `email.deliver` background job runs every five minutes for each organisation. It scans notifications and pending workflow approvals created in the last six hours, queues one email per recipient under a unique dedupe key (`<kind>:<source id>:<user id>`), sends due rows through Resend's REST API with that key as the `Idempotency-Key`, and retries rate limits and outages with exponential backoff up to five attempts. Rejected emails are marked failed. Sent and failed rows are removed after 30 days.
+
+Recipients follow the existing notification preferences. Alert emails are opt-in: email must be enabled, the digest mode must be `immediate`, and the alert must meet the minimum severity. Approval emails go to the named approver or to every active member with the approver role, and are on by default. People can opt out with the "Assignment-related" preference. Daily and weekly digests, assignment emails and watcher emails are not implemented yet.
+
+Delivery is disabled until both `RESEND_API_KEY` and `EMAIL_FROM` are set; the job then reports `configured: false` and queues nothing, so enabling it never sends a backlog. To enable it: install Resend from the Vercel Marketplace with the sending domain (`vercel integration add resend/resend-email -m domain=<domain> -m region=eu-west-1`), add the DNS records Resend shows, set `EMAIL_FROM` in Vercel to an address on that domain, apply the migration and redeploy.

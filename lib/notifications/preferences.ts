@@ -23,7 +23,7 @@ const fallback: Preference = {
 export function resolvePreference(
   rows: Preference[],
   userId: string,
-  category: NotificationCategory,
+  category: NotificationCategory | null,
   mandatory = false,
 ) {
   const user =

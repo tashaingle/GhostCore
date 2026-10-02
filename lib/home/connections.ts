@@ -46,7 +46,7 @@ export function timeAgo(iso: string | null, now = new Date()) {
   return `on ${new Date(iso).toLocaleDateString("en-GB", {day: "numeric", month: "short"})}`;
 }
 
-function reconnectHref(
+export function reconnectHref(
   provider: ProviderDefinition | undefined,
   settings: Record<string, unknown>,
 ) {
@@ -118,7 +118,7 @@ export function connectionStatus(
       state: "stale",
       label: "Not syncing",
       detail: row.last_sync_at
-        ? `No new data since ${lastSync}.`
+        ? `No new data coming in. Last synced ${lastSync}.`
         : "Connected, but it hasn't synced yet.",
       needsAttention: true,
       action: {label: "View", href: "/app/integrations"},

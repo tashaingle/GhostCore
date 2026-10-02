@@ -1,4 +1,6 @@
 import {getProvider} from "@/lib/integrations/registry";
+import {timeAgo} from "@/lib/home/connections";
+import {providerLabel} from "@/lib/ui/labels";
 import type {
   NotificationCandidate,
   NotificationRuleContext,
@@ -108,11 +110,11 @@ const integrationStale: NotificationRuleDefinition = {
       return [
         make(c, integrationStale, {
           severity: late >= interval * 3 ? "critical" : "warning",
-          title: `${x.provider} integration is stale`,
-          summary: `Last stored sync: ${last}.`,
-          explanation: `The provider registry expects ${schedule} updates and the last sync is at least two intervals old.`,
+          title: `${providerLabel(x.provider)} hasn't synced recently`,
+          summary: `No new data coming in. Last synced ${timeAgo(last, c.now)}.`,
+          explanation: `${providerLabel(x.provider)} normally updates ${schedule === "hourly" ? "every hour" : "every day"}, but Ghost hasn't received new data for more than twice that long.`,
           recommendedAction:
-            "Review its background job and run a sync after correcting any failure.",
+            "Open Connections and click Sync now. If it fails, reconnect the tool.",
           sourceType: "integration",
           sourceId: x.id,
           condition: "stale",

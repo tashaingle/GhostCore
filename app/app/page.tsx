@@ -8,20 +8,21 @@ import {
   timeAgo,
   type ConnectionStatus,
 } from "@/lib/home/connections";
-import {PULSE_EVENT_TYPES, weeklyPulse} from "@/lib/home/pulse";
+import {
+  PERFORMANCE_EVENT_TYPES,
+  PERIOD_DAYS,
+  highlights as buildHighlights,
+  parsePeriod,
+  performanceMetrics,
+} from "@/lib/home/performance";
+import {HowYoureDoing} from "@/components/how-youre-doing";
 import {insightNeedsAction} from "@/lib/notifications/insight-rules";
 import type {IntelligenceEvent} from "@/lib/intelligence/types";
 import {runIntelligenceAction} from "@/app/intelligence-actions";
 import {Notice} from "@/components/notice";
 import {GettingStarted} from "@/components/getting-started";
 import {AutoRefresh} from "@/components/auto-refresh";
-import {
-  InsightCard,
-  ProviderMark,
-  SectionHeading,
-  SeverityLabel,
-  TrendChip,
-} from "@/components/home-ui";
+import {InsightCard, ProviderMark, SectionHeading, SeverityLabel} from "@/components/home-ui";
 
 export const metadata = {title: "Home"};
 
@@ -93,17 +94,37 @@ export default async function Home({
   const ctx = await getActiveOrganisation();
   const org = ctx.organisation.id,
     now = new Date(),
-    weekAgo = new Date(now.getTime() - 7 * DAY_MS).toISOString(),
-    fortnightAgo = new Date(now.getTime() - 14 * DAY_MS).toISOString();
+    period = parsePeriod(params.period),
+    days = PERIOD_DAYS[period],
+    currentStart = new Date(now.getTime() - days * DAY_MS).toISOString(),
+    previousStart = new Date(now.getTime() - 2 * days * DAY_MS).toISOString();
+  // Counted rather than loaded, as these can be numerous over a year.
+  const countEvents = (types: string[], from: string, to?: string) => {
+    let q = ctx.supabase
+      .from("events")
+      .select("id", {count: "exact", head: true})
+      .eq("organisation_id", org)
+      .in("event_type", types)
+      .gte("occurred_at", from);
+    if (to) q = q.lt("occurred_at", to);
+    return q.then((r) => r.count ?? 0);
+  };
+  const countPair = async (types: string[]) => ({
+    current: await countEvents(types, currentStart),
+    previous: await countEvents(types, previousStart, currentStart),
+  });
 
   const [
     {data: integrations},
     {data: notifications, count: notificationCount},
     {data: approvals},
     {data: insights, count: insightCount},
-    {data: pulseRows},
-    {count: activityNow},
-    {count: activityBefore},
+    {data: performanceRows},
+    {count: updates},
+    emails,
+    meetings,
+    deployments,
+    failedBuilds,
   ] = await Promise.all([
     ctx.supabase
       .from("integrations")
@@ -137,20 +158,20 @@ export default async function Home({
       .from("events")
       .select("id,source,event_type,title,occurred_at,created_at,metadata")
       .eq("organisation_id", org)
-      .in("event_type", PULSE_EVENT_TYPES)
-      .gte("occurred_at", fortnightAgo)
-      .limit(5000),
+      .in("event_type", PERFORMANCE_EVENT_TYPES)
+      .gte("occurred_at", previousStart)
+      .limit(20000),
+    // Updates from connected tools; Ghost's own audit trail is not business activity.
     ctx.supabase
       .from("events")
       .select("id", {count: "exact", head: true})
       .eq("organisation_id", org)
-      .gte("occurred_at", weekAgo),
-    ctx.supabase
-      .from("events")
-      .select("id", {count: "exact", head: true})
-      .eq("organisation_id", org)
-      .gte("occurred_at", fortnightAgo)
-      .lt("occurred_at", weekAgo),
+      .neq("source", "ghost")
+      .gte("occurred_at", currentStart),
+    countPair(["gmail.message_received"]),
+    countPair(["google_calendar.event_created"]),
+    countPair(["workflow.success", "release.published"]),
+    countPair(["workflow.failed"]),
   ]);
 
   const connections = sortConnections(
@@ -206,7 +227,7 @@ export default async function Home({
       .slice(0, 4),
     attentionTotal = (notificationCount ?? 0) + (approvals?.length ?? 0);
 
-  const pulseEvents: IntelligenceEvent[] = (pulseRows ?? []).map((e) => ({
+  const performanceEvents: IntelligenceEvent[] = (performanceRows ?? []).map((e) => ({
       id: e.id,
       source: e.source,
       eventType: e.event_type,
@@ -220,12 +241,13 @@ export default async function Home({
           ? (e.metadata as Record<string, unknown>)
           : {},
     })),
-    pulse = weeklyPulse({
-      events: pulseEvents,
-      activity: {current: activityNow ?? 0, previous: activityBefore ?? 0},
+    metrics = performanceMetrics({
+      events: performanceEvents,
+      counts: {emails, meetings, deployments, failedBuilds},
+      period,
       now,
-      currencyHint: ctx.organisation.default_currency ?? "GBP",
-    });
+    }),
+    highlights = buildHighlights(metrics, period);
 
   const firstName =
       (ctx.user.user_metadata?.full_name as string | undefined)?.trim().split(/\s+/)[0] ?? null,
@@ -337,33 +359,12 @@ export default async function Home({
       )}
 
       {connections.length ? (
-        <section aria-label="This week">
-          <SectionHeading
-            title="This week"
-            description="The last 7 days compared with the 7 before."
-          />
-          <div
-            className={`grid gap-4 sm:grid-cols-2 ${pulse.length >= 4 ? "lg:grid-cols-4" : "lg:grid-cols-3"}`}
-          >
-            {pulse.map((metric) => (
-              <article
-                key={metric.key}
-                className="rounded-2xl border border-zinc-200/80 bg-white p-5 shadow-sm shadow-zinc-900/[0.03]"
-              >
-                <div className="flex items-baseline justify-between gap-2">
-                  <p className="text-sm font-medium text-zinc-600">{metric.label}</p>
-                  <p className="truncate text-xs text-zinc-400">{metric.source}</p>
-                </div>
-                <p className="mt-3 text-3xl font-semibold tracking-tight text-zinc-950 tabular-nums">
-                  {metric.value}
-                </p>
-                <div className="mt-3">
-                  <TrendChip change={metric.change} higherIsBetter={metric.higherIsBetter} />
-                </div>
-              </article>
-            ))}
-          </div>
-        </section>
+        <HowYoureDoing
+          period={period}
+          metrics={metrics}
+          highlights={highlights}
+          updates={updates ?? 0}
+        />
       ) : null}
 
       {connections.length ? (

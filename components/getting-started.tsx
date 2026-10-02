@@ -1,81 +1,52 @@
 import Link from "next/link";
+import {ArrowRight, Plug, RefreshCw, Sparkles} from "lucide-react";
 
-type Step = {
-  title: string;
-  body: string;
-  href: string;
-  label: string;
-  done?: boolean;
-};
+const steps = [
+  {
+    icon: Plug,
+    title: "Connect a tool",
+    body: "Shopify, Stripe, Google Analytics, Meta Ads, Gmail and more. Read-only, and takes about a minute.",
+  },
+  {
+    icon: RefreshCw,
+    title: "Ghost imports your activity",
+    body: "The first sync starts straight away, then keeps itself up to date automatically.",
+  },
+  {
+    icon: Sparkles,
+    title: "See what needs you",
+    body: "This page fills with this week's numbers, anything that needs fixing, and what Ghost noticed.",
+  },
+];
 
-export function GettingStarted({
-  connectedCount,
-  eventCount,
-  insightCount,
-}: {
-  connectedCount: number;
-  eventCount: number;
-  insightCount: number;
-}) {
-  const steps: Step[] = [
-    {
-      title: "Connect your tools",
-      body: "Link Stripe, Shopify, GitHub, Google, Slack, or others so Ghost can watch what changes.",
-      href: "/app/integrations",
-      label: connectedCount > 0 ? "Manage integrations" : "Connect a tool",
-      done: connectedCount > 0,
-    },
-    {
-      title: "Sync activity",
-      body: "Run Sync on each connected tool. Ghost turns raw activity into a single timeline.",
-      href: "/app/integrations",
-      label: "Open integrations",
-      done: eventCount > 0,
-    },
-    {
-      title: "Review insights",
-      body: "Ghost highlights risks and changes that need attention - with evidence, not guesswork.",
-      href: "/app/timeline?view=insights",
-      label: insightCount > 0 ? "View insights" : "Open timeline",
-      done: insightCount > 0,
-    },
-  ];
-
-  const complete = steps.every((step) => step.done);
-  if (complete) return null;
-
+/** Shown on Home until the organisation has connected its first tool. */
+export function GettingStarted() {
   return (
-    <section className="card space-y-4 border-violet-200 bg-gradient-to-br from-violet-50 to-white">
-      <div>
-        <p className="text-xs font-semibold uppercase tracking-wide text-violet-700">
-          Getting started
-        </p>
-        <h3 className="mt-1 text-xl font-bold">Set up Ghost in a few minutes</h3>
-        <p className="mt-1 text-sm text-zinc-600">
-          Connect tools, sync data, then review what needs attention.
-        </p>
-      </div>
-      <ol className="grid gap-3 md:grid-cols-3">
-        {steps.map((step, index) => (
-          <li
-            key={step.title}
-            className={`rounded-xl border p-4 ${step.done ? "border-green-200 bg-green-50/50" : "border-zinc-200 bg-white"}`}
-          >
-            <div className="flex items-center gap-2">
-              <span
-                className={`grid h-7 w-7 place-items-center rounded-full text-xs font-bold ${step.done ? "bg-green-600 text-white" : "bg-zinc-900 text-white"}`}
-              >
-                {step.done ? "✓" : index + 1}
+    <section className="overflow-hidden rounded-3xl border border-violet-200/70 bg-gradient-to-br from-violet-50 via-white to-indigo-50/60 p-6 shadow-sm sm:p-8">
+      <h2 className="text-xl font-semibold tracking-tight text-zinc-950">
+        Let&apos;s get your first tool connected
+      </h2>
+      <p className="mt-1 text-sm text-zinc-600">
+        Ghost needs something to watch before it can tell you what&apos;s happening.
+      </p>
+      <ol className="mt-6 grid gap-4 md:grid-cols-3">
+        {steps.map(({icon: Icon, title, body}, i) => (
+          <li key={title} className="rounded-2xl border border-white/80 bg-white/80 p-4">
+            <div className="flex items-center gap-3">
+              <span className="grid h-9 w-9 place-items-center rounded-xl bg-violet-100 text-violet-700">
+                <Icon aria-hidden className="h-[18px] w-[18px]" />
               </span>
-              <strong className="text-sm">{step.title}</strong>
+              <span className="text-xs font-medium text-zinc-400">Step {i + 1}</span>
             </div>
-            <p className="mt-2 text-sm text-zinc-600">{step.body}</p>
-            <Link className="button button-secondary mt-3 text-sm" href={step.href}>
-              {step.label}
-            </Link>
+            <p className="mt-3 font-medium text-zinc-900">{title}</p>
+            <p className="mt-1 text-sm text-zinc-600">{body}</p>
           </li>
         ))}
       </ol>
+      <Link href="/welcome" className="button mt-6">
+        Connect a tool
+        <ArrowRight aria-hidden className="h-4 w-4" />
+      </Link>
     </section>
   );
 }

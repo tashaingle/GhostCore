@@ -50,7 +50,7 @@ export async function createWorkspace(form: FormData) {
   if (recent) {
     await supabase.from("profiles").update({active_organisation_id: recent.id}).eq("id", user.id);
     await setActive(recent.id);
-    redirect("/app");
+    redirect("/welcome");
   }
   const {data: id, error} = await supabase.rpc("create_organisation_with_owner", {
     organisation_name: parsed.data.name,
@@ -74,7 +74,7 @@ export async function createWorkspace(form: FormData) {
     .eq("id", id);
   await supabase.from("profiles").update({active_organisation_id: id}).eq("id", user.id);
   await setActive(id);
-  redirect("/app");
+  redirect("/welcome");
 }
 export async function switchOrganisation(form: FormData) {
   const id = z.uuid().safeParse(form.get("organisationId"));

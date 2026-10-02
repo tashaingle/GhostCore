@@ -1,21 +1,10 @@
 import {createWorkspace} from "@/app/organisation-actions";
 import {Notice} from "@/components/notice";
 import {SubmitButton} from "@/components/submit-button";
-import {getActiveOrganisation} from "@/lib/organisations/active";
 import {redirect} from "next/navigation";
-export default async function Onboarding({
-  searchParams,
-}: {
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
-}) {
-  if (await getActiveOrganisation(true)) redirect("/app");
-  return (
-    <WorkspaceForm
-      params={await searchParams}
-      returnPath="/app/onboarding"
-      title="Create your first organisation"
-    />
-  );
+/** First-time setup now lives at /welcome (full screen, no sidebar). */
+export default function Onboarding() {
+  redirect("/welcome");
 }
 function WorkspaceForm({
   params,

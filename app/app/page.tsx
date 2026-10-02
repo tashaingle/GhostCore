@@ -270,7 +270,7 @@ export default async function Home({
       <AutoRefresh active={connections.some((c) => c.state === "syncing")} />
 
       {!connections.length ? (
-        <GettingStarted connectedCount={0} eventCount={0} insightCount={0} />
+        <GettingStarted />
       ) : broken.length ? (
         <section
           aria-labelledby="fix-heading"

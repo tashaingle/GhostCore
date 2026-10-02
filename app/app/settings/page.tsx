@@ -132,7 +132,11 @@ export default async function Settings({
               GitHub. Your other organisations aren&apos;t affected.
             </p>
             <label className="label">
-              Type <strong>{ctx.organisation.name}</strong> to confirm
+              <span>
+                {"Type "}
+                <strong>{ctx.organisation.name}</strong>
+                {" to confirm"}
+              </span>
               <input className="field" name="confirm" autoComplete="off" required />
             </label>
             <SubmitButton className="button bg-rose-600 hover:bg-rose-700" pendingLabel="Deleting…">
@@ -169,7 +173,11 @@ export default async function Settings({
           ) : (
             <>
               <label className="label">
-                Type <strong>{ACCOUNT_DELETE_PHRASE}</strong> to confirm
+                <span>
+                  {"Type "}
+                  <strong>{ACCOUNT_DELETE_PHRASE}</strong>
+                  {" to confirm"}
+                </span>
                 <input className="field" name="confirm" autoComplete="off" required />
               </label>
               <SubmitButton

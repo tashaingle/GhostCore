@@ -753,6 +753,52 @@ export type Database = {
         Update: {expires_at?: string; heartbeat_at?: string};
         Relationships: EmptyRelationships;
       };
+      email_outbox: {
+        Row: {
+          id: string;
+          organisation_id: string;
+          user_id: string | null;
+          kind: "notification" | "approval";
+          source_id: string;
+          dedupe_key: string;
+          recipient_email: string;
+          subject: string;
+          html_body: string;
+          text_body: string;
+          status: "pending" | "sent" | "failed";
+          attempts: number;
+          next_attempt_at: string;
+          last_error: string | null;
+          provider_message_id: string | null;
+          sent_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          organisation_id: string;
+          user_id?: string | null;
+          kind: "notification" | "approval";
+          source_id: string;
+          dedupe_key: string;
+          recipient_email: string;
+          subject: string;
+          html_body: string;
+          text_body: string;
+          status?: "pending" | "sent" | "failed";
+          next_attempt_at?: string;
+        };
+        Update: {
+          status?: "pending" | "sent" | "failed";
+          attempts?: number;
+          next_attempt_at?: string;
+          last_error?: string | null;
+          provider_message_id?: string | null;
+          sent_at?: string | null;
+          updated_at?: string;
+        };
+        Relationships: EmptyRelationships;
+      };
       notification_rules: {
         Row: {
           id: string;

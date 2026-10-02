@@ -9,6 +9,7 @@ import {
   type ConnectionStatus,
 } from "@/lib/home/connections";
 import {PULSE_EVENT_TYPES, weeklyPulse} from "@/lib/home/pulse";
+import {insightNeedsAction} from "@/lib/notifications/insight-rules";
 import type {IntelligenceEvent} from "@/lib/intelligence/types";
 import {runIntelligenceAction} from "@/app/intelligence-actions";
 import {Notice} from "@/components/notice";
@@ -194,7 +195,9 @@ export default async function Home({
           b.last_detected_at.localeCompare(a.last_detected_at),
       )
       .slice(0, 5),
+    // Urgent money insights already appear above as Action Centre items.
     topInsights = [...(insights ?? [])]
+      .filter((i) => !insightNeedsAction(i))
       .sort(
         (a, b) =>
           severityRank(a.severity) - severityRank(b.severity) ||

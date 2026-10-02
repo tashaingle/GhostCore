@@ -151,7 +151,11 @@ export default async function NotificationDetail({
                 </Link>
               ) : item.source_type === "integration" ? (
                 <Link className="underline" href="/app/integrations">
-                  Integrations
+                  Connections
+                </Link>
+              ) : item.source_type === "insight" ? (
+                <Link className="underline" href={`/app/insights/${item.source_id}`}>
+                  Insight
                 </Link>
               ) : item.source_type === "correlation" ? (
                 <Link className="underline" href={`/app/correlations/${item.source_id}`}>

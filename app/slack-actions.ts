@@ -3,6 +3,51 @@ import {redirect} from "next/navigation";
 import {getActiveOrganisation} from "@/lib/organisations/active";
 import {requireOrganisationAdmin} from "@/lib/auth/organisation-admin";
 import type {Json} from "@/types/database";
+import {SlackClient} from "@/lib/integrations/slack/client";
+import {mergeSlackChannels} from "@/lib/integrations/slack/channels";
+import {slackEnv} from "@/lib/integrations/slack/config";
+import {decryptToken} from "@/lib/security/token-crypto";
+
+const SETTINGS = "/app/integrations/slack/settings";
+
+/** Re-reads channels from Slack, e.g. after the app was invited to more channels. */
+export async function refreshSlackChannels(form: FormData) {
+  const ctx = await getActiveOrganisation();
+  if (!ctx) redirect("/login");
+  requireOrganisationAdmin(ctx.membership.role);
+  const integrationId = String(form.get("integrationId") || ""),
+    {data: item} = await ctx.supabase
+      .from("integrations")
+      .select("settings,access_token_encrypted")
+      .eq("id", integrationId)
+      .eq("organisation_id", ctx.organisation.id)
+      .eq("provider", "slack")
+      .maybeSingle();
+  if (!item?.access_token_encrypted)
+    redirect(`${SETTINGS}?error=${encodeURIComponent("Reconnect Slack, then try again.")}`);
+  let fresh;
+  try {
+    fresh = await new SlackClient(decryptToken(item.access_token_encrypted)).channels(
+      slackEnv().privateChannels,
+    );
+  } catch (error) {
+    console.error("Slack channel refresh failed", error);
+    redirect(
+      `${SETTINGS}?error=${encodeURIComponent("Slack channels could not be refreshed. Try Reconnect.")}`,
+    );
+  }
+  const settings = item.settings as Record<string, Json>,
+    channels = mergeSlackChannels(fresh, settings.channels);
+  await ctx.supabase
+    .from("integrations")
+    .update({settings: {...settings, channels} as unknown as Json})
+    .eq("id", integrationId)
+    .eq("organisation_id", ctx.organisation.id);
+  const ready = channels.filter((c) => c.isMember).length;
+  redirect(
+    `${SETTINGS}?success=${encodeURIComponent(`Channels refreshed. Ghost can read ${ready} of ${channels.length}.`)}`,
+  );
+}
 export async function saveSlackChannels(form: FormData) {
   const ctx = await getActiveOrganisation();
   if (!ctx) redirect("/login");

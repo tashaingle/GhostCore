@@ -1,7 +1,8 @@
 import Link from "next/link";
 import {getActiveOrganisation} from "@/lib/organisations/active";
 import {requireOrganisationAdmin} from "@/lib/auth/organisation-admin";
-import {saveSlackChannels} from "@/app/slack-actions";
+import {refreshSlackChannels, saveSlackChannels} from "@/app/slack-actions";
+import {Notice} from "@/components/notice";
 export default async function SlackSettings({
   searchParams,
 }: {
@@ -10,7 +11,8 @@ export default async function SlackSettings({
   const ctx = await getActiveOrganisation();
   if (!ctx) return null;
   requireOrganisationAdmin(ctx.membership.role);
-  const q = String((await searchParams).q ?? "").toLowerCase(),
+  const params = await searchParams,
+    q = String(params.q ?? "").toLowerCase(),
     {data: items} = await ctx.supabase
       .from("integrations")
       .select(
@@ -30,6 +32,7 @@ export default async function SlackSettings({
           Select channels explicitly. Ghost never joins channels, imports DMs or sends messages.
         </p>
       </div>
+      <Notice searchParams={params} />
       <form>
         <input className="input" name="q" defaultValue={q} placeholder="Search channels" />
         <button className="button button-secondary ml-2">Search</button>
@@ -80,6 +83,12 @@ export default async function SlackSettings({
                 </p>
                 {item.last_sync_error && <p className="text-red-700">{item.last_sync_error}</p>}
               </div>
+              {channels.some((c) => !c.isMember && !c.isArchived) ? (
+                <p className="info-banner">
+                  To let Ghost read a channel, open it in Slack and type <code>/invite @</code>{" "}
+                  followed by your app&apos;s name. Then click <strong>Refresh channels</strong>.
+                </p>
+              ) : null}
               {channels.map((c) => (
                 <label className="card flex gap-3" key={c.id}>
                   <input
@@ -93,8 +102,8 @@ export default async function SlackSettings({
                     <strong>#{c.name}</strong>
                     <span className="block text-sm text-zinc-500">
                       {c.isPrivate ? "Private" : "Public"} · {c.accessState} ·{" "}
-                      {c.isExtShared ? "Slack Connect · " : ""}checkpoint{" "}
-                      {c.checkpoint ?? "not started"}
+                      {c.isExtShared ? "Slack Connect · " : ""}
+                      {c.checkpoint ? "syncing" : "not synced yet"}
                     </span>
                     <span className="block max-w-xl truncate text-xs">{c.topic}</span>
                     {c.latestError && <span className="text-sm text-red-700">{c.latestError}</span>}
@@ -103,6 +112,9 @@ export default async function SlackSettings({
               ))}
               <div className="flex gap-2">
                 <button className="button">Save channels</button>
+                <button className="button button-secondary" formAction={refreshSlackChannels}>
+                  Refresh channels
+                </button>
                 <Link className="button button-secondary" href="/app/integrations/slack">
                   Dashboard
                 </Link>

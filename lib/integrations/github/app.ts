@@ -92,6 +92,16 @@ export function installation(env: GitHubAppEnv, id: string, request: typeof fetc
   });
 }
 
+/** Removes Ghost's access to the installation's repositories (used when deleting an organisation). */
+export async function uninstall(env: GitHubAppEnv, id: string, request: typeof fetch = fetch) {
+  const response = await request(`${API}/app/installations/${encodeURIComponent(id)}`, {
+    method: "DELETE",
+    headers: headers(appJwt(env.appId, env.privateKey)),
+  });
+  // 404 means it was already uninstalled, which is the desired outcome.
+  return response.status === 204 || response.status === 404;
+}
+
 /** Exchanges the code GitHub returns after installation for a user token (used only to verify). */
 export async function exchangeUserCode(
   env: GitHubAppEnv,

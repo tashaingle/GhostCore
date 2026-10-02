@@ -4,6 +4,7 @@ import {createClient} from "@/lib/supabase/server";
 import {hasPermission, type OrganisationRole} from "@/lib/auth/permissions";
 import {exchangeSlackCode, slackStateMatches} from "@/lib/integrations/slack/oauth";
 import {SlackClient} from "@/lib/integrations/slack/client";
+import {mergeSlackChannels} from "@/lib/integrations/slack/channels";
 import {SLACK_PUBLIC_SCOPES, slackEnv} from "@/lib/integrations/slack/config";
 import {encryptToken} from "@/lib/security/token-crypto";
 import type {Json} from "@/types/database";
@@ -85,15 +86,7 @@ export async function GET(request: Request) {
         typeof existing.settings === "object" &&
         !Array.isArray(existing.settings)
           ? (existing.settings as Record<string, Json>)
-          : {},
-      previous = Array.isArray(old.channels)
-        ? (old.channels as {
-            id?: string;
-            selected?: boolean;
-            checkpoint?: string;
-            cursor?: string;
-          }[])
-        : [];
+          : {};
     const values = {
       provider_account_id: token.team.id,
       provider_account_name: token.team.name,
@@ -119,11 +112,7 @@ export async function GET(request: Request) {
         installedAt: new Date().toISOString(),
         tokenRotation: Boolean(token.refresh_token),
         privateChannelsEnabled: slackEnv().privateChannels,
-        channels: channels.map((c) => ({
-          ...c,
-          ...previous.find((p) => p.id === c.id),
-          selected: previous.find((p) => p.id === c.id)?.selected ?? false,
-        })),
+        channels: mergeSlackChannels(channels, old.channels),
         configurationStatus: "property_required",
         capabilities: {
           workspaceMetadata: "available",

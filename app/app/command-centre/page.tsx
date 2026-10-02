@@ -145,7 +145,7 @@ export default async function CommandCentre({
   const {data: actionItems} = await ctx.supabase
       .from("notifications")
       .select(
-        "id,title,summary,severity,status,assigned_user_id,first_detected_at,last_detected_at,resolved_at,occurrence_count",
+        "id,title,summary,severity,category,status,assigned_user_id,first_detected_at,last_detected_at,resolved_at,occurrence_count",
       )
       .eq("organisation_id", orgId)
       .order("first_detected_at")
@@ -162,8 +162,13 @@ export default async function CommandCentre({
           resolutionDurations.reduce((a, b) => a + b, 0) / resolutionDurations.length / 3600000,
         )
       : 0,
+    // Connection problems are already listed once each above; housekeeping is not shown here.
     notificationAlerts = activeActions
-      .filter((x) => x.severity === "critical")
+      .filter(
+        (x) =>
+          x.severity === "critical" &&
+          !["integration", "credential", "background_job"].includes(x.category),
+      )
       .slice(0, 8)
       .map((x) => ({
         id: `notification-${x.id}`,

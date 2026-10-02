@@ -1,3 +1,5 @@
+import {connectionStatus} from "@/lib/home/connections";
+import {getProvider} from "@/lib/integrations/registry";
 import type {CommandAlert, CommandEvent, CommandIntegration} from "./types";
 export function commandAlerts(
   integrations: CommandIntegration[],
@@ -8,50 +10,39 @@ export function commandAlerts(
 ) {
   const alerts: CommandAlert[] = [];
   for (const item of integrations) {
-    const name = item.provider_account_name || item.provider;
-    if (item.status === "disconnected" || item.status === "expired")
+    if (item.status === "disconnected") continue;
+    // One alert per connection, worded the same as the home and Connections pages.
+    const status = connectionStatus(item, getProvider(item.provider), now);
+    if (status.needsAttention) {
       alerts.push({
         id: `integration-${item.id}`,
-        severity: item.status === "expired" ? "critical" : "warning",
-        title: `${name} is ${item.status}`,
-        detail: "Future imports are unavailable until this integration is reconnected.",
-        href: "/app/integrations",
-        evidence: `Integration status: ${item.status}`,
+        severity: status.state === "expired" || status.state === "failing" ? "critical" : "warning",
+        title: `${status.name}: ${status.label.toLowerCase()}`,
+        detail: status.detail,
+        href: status.action?.href ?? "/app/integrations",
+        evidence: item.provider_account_name ?? status.name,
       });
-    else if (item.status === "error" || item.last_sync_status === "error")
-      alerts.push({
-        id: `sync-${item.id}`,
-        severity: "critical",
-        title: `${name} sync failed`,
-        detail: item.last_sync_error || "The latest sync returned an error.",
-        href: "/app/integrations",
-        evidence: `Last sync status: ${item.last_sync_status ?? item.status}`,
-      });
+      continue;
+    }
     if (item.token_expires_at) {
       const days = (Date.parse(item.token_expires_at) - now.getTime()) / 86400000;
       if (days >= 0 && days <= 7)
         alerts.push({
           id: `token-${item.id}`,
           severity: days <= 1 ? "critical" : "warning",
-          title: `${name} token expires soon`,
-          detail: `Token expiry: ${new Date(item.token_expires_at).toLocaleString()}.`,
+          title: `${status.name}: login expires soon`,
+          detail: `Reconnect before ${new Date(item.token_expires_at).toLocaleDateString("en-GB", {day: "numeric", month: "short"})} to avoid a gap in your data.`,
           href: "/app/integrations",
-          evidence: "Stored provider token expiry",
+          evidence: item.provider_account_name ?? status.name,
         });
     }
-    if (item.last_sync_at && now.getTime() - Date.parse(item.last_sync_at) > 7 * 86400000)
-      alerts.push({
-        id: `stale-${item.id}`,
-        severity: "warning",
-        title: `${name} has not synced for seven days`,
-        detail: `Last successful sync: ${new Date(item.last_sync_at).toLocaleString()}.`,
-        href: "/app/integrations",
-        evidence: "Stored last successful sync timestamp",
-      });
   }
   for (const event of events
     .filter(
-      (e) => e.severity === "critical" || /failed|overdue|awaiting_payment/i.test(e.event_type),
+      (e) =>
+        // Ghost's own audit trail (alert, task and workflow changes) is not a business problem.
+        e.source !== "ghost" &&
+        (e.severity === "critical" || /failed|overdue|awaiting_payment/i.test(e.event_type)),
     )
     .slice(0, 20))
     alerts.push({

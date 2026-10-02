@@ -178,7 +178,7 @@ export function humanStrength(strength: string) {
 
 export function humanCategory(category: string) {
   const map: Record<string, string> = {
-    background_job: "Automation",
+    background_job: "System",
     integration: "Connected tool",
     credential: "Login / access",
     correlation: "Related events",
@@ -287,10 +287,10 @@ export function humanizeNotificationDisplay(input: {
         /Known expiry:\s*([^\n.]+)/i,
         (_, iso: string) => `Access may stop working after ${formatWhenFriendly(iso.trim())}`,
       );
-      recommendedAction = "Open Integrations and reconnect this tool if Sync starts failing.";
-    } else if (/is (error|expired|disconnected)/i.test(title)) {
+      recommendedAction = "Open Connections and reconnect this tool if Sync starts failing.";
+    } else if (/^[a-z0-9_]+ is (error|expired|disconnected)$/.test(title)) {
       title = `${name} needs attention`;
-      recommendedAction = "Open Integrations to reconnect or fix this tool.";
+      recommendedAction = "Open Connections to reconnect or fix this tool.";
     }
   }
 

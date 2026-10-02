@@ -124,14 +124,26 @@ const integrationError: NotificationRuleDefinition = {
     return (data ?? []).map((x) =>
       candidate(c, integrationError, {
         severity: x.status === "expired" || x.status === "error" ? "critical" : "warning",
-        title: `${providerLabel(x.provider)} needs attention`,
+        title:
+          x.status === "expired"
+            ? `${providerLabel(x.provider)} login expired`
+            : x.status === "disconnected"
+              ? `${providerLabel(x.provider)} is disconnected`
+              : `${providerLabel(x.provider)} sync is failing`,
         summary:
-          safe(x.last_sync_error) || `Connection status is “${x.status.replaceAll("_", " ")}”.`,
-        explanation: `Ghost cannot use this connected tool until it is fixed (status: ${x.status}).`,
+          x.status === "expired"
+            ? "Ghost can't import new data until you reconnect it."
+            : x.status === "disconnected"
+              ? "Ghost is no longer importing data from this tool."
+              : safe(x.last_sync_error) || "The last sync didn't finish.",
+        explanation:
+          x.status === "expired"
+            ? `${providerLabel(x.provider)} access expired, which usually happens when a password changes or permissions are revoked. Reconnecting signs in again.`
+            : `Ghost cannot use this connected tool until it is fixed.`,
         recommendedAction:
           x.status === "disconnected" || x.status === "expired"
-            ? "Open Integrations and reconnect this tool."
-            : "Open Integrations, review the error, then try Sync now.",
+            ? "Open Connections and reconnect this tool."
+            : "Open Connections, review the error, then try Sync now.",
         sourceType: "integration",
         sourceId: x.id,
         condition: x.status,
@@ -184,7 +196,7 @@ const integrationCredentials: NotificationRuleDefinition = {
           summary: `Access may stop working after ${formatWhen(x.token_expires_at)}.`,
           explanation:
             "This connection does not have a long-lived refresh token, so Ghost cannot renew it automatically.",
-          recommendedAction: "Open Integrations and reconnect this tool before it expires.",
+          recommendedAction: "Open Connections and reconnect this tool before it expires.",
           sourceType: "integration",
           sourceId: x.id,
           condition: "credential_expiry",

@@ -13,6 +13,8 @@ import {
 import {sortNotifications} from "@/lib/notifications/status";
 import {humanCategory, humanizeNotificationDisplay, titleCase} from "@/lib/ui/labels";
 
+const SYSTEM_CATEGORY = "background_job";
+
 export default async function ActionCentre({
   searchParams,
 }: {
@@ -29,6 +31,8 @@ export default async function ActionCentre({
   const source = value("source");
   const q = value("q").slice(0, 100);
   const days = Math.min(365, Math.max(1, Number(value("days") || 30)));
+  // Ghost's own background-task alerts are hidden unless asked for or filtered to explicitly.
+  const showSystem = value("show") === "system" || category === SYSTEM_CATEGORY;
   const now = new Date();
 
   let query = ctx.supabase
@@ -40,9 +44,14 @@ export default async function ActionCentre({
     .limit(200);
 
   if (status) query = query.eq("status", status);
-  else query = query.or(`status.neq.snoozed,snoozed_until.lte.${now.toISOString()}`);
+  // "Active attention": open or acknowledged, plus snoozed items whose snooze has ended.
+  else
+    query = query.or(
+      `status.in.(open,acknowledged),and(status.eq.snoozed,snoozed_until.lte.${now.toISOString()})`,
+    );
   if (severity) query = query.eq("severity", severity);
   if (category) query = query.eq("category", category);
+  else if (!showSystem) query = query.neq("category", SYSTEM_CATEGORY);
   if (rule) query = query.eq("rule_key", rule);
   if (source) query = query.eq("source_type", source);
   if (assignment === "me") query = query.eq("assigned_user_id", ctx.user.id);
@@ -66,7 +75,7 @@ export default async function ActionCentre({
     query,
     ctx.supabase
       .from("notifications")
-      .select("id,status,severity,assigned_user_id,resolved_at,rule_key")
+      .select("id,status,severity,category,assigned_user_id,resolved_at,rule_key")
       .eq("organisation_id", ctx.organisation.id)
       .limit(1000),
     ctx.supabase
@@ -116,7 +125,10 @@ export default async function ActionCentre({
     return {...item, display};
   });
 
-  const open = (all ?? []).filter((x) => ["open", "acknowledged", "snoozed"].includes(x.status));
+  const allOpen = (all ?? []).filter((x) => ["open", "acknowledged", "snoozed"].includes(x.status)),
+    systemOpen = allOpen.filter((x) => x.category === SYSTEM_CATEGORY).length,
+    // Summary counts match what the list shows.
+    open = showSystem ? allOpen : allOpen.filter((x) => x.category !== SYSTEM_CATEGORY);
   const recent = new Date(now.getTime() - 7 * 86400000);
   const role = ctx.membership.role as OrganisationRole;
   const canAcknowledge = hasPermission(role, "notifications.acknowledge");
@@ -146,11 +158,27 @@ export default async function ActionCentre({
       />
       <Notice searchParams={p} />
 
-      <div className="info-banner">
-        <strong>Not sure what an item means?</strong> Click the title. Ghost will explain what
-        happened and what to do next. Items about &quot;behind schedule&quot; usually mean an
-        automatic background task has not run - open Background Jobs and click Run now, or dismiss
-        if you only sync tools yourself.
+      <div className="info-banner flex flex-wrap items-center justify-between gap-2">
+        <span>
+          <strong>Not sure what an item means?</strong> Click its title and Ghost will explain what
+          happened and what to do next.
+        </span>
+        {showSystem ? (
+          <Link
+            className="font-medium underline-offset-2 hover:underline"
+            href="/app/action-centre"
+          >
+            Hide system alerts
+          </Link>
+        ) : systemOpen ? (
+          <Link
+            className="font-medium underline-offset-2 hover:underline"
+            href="/app/action-centre?show=system"
+            title="Alerts about Ghost's own background tasks running late or retrying. They usually fix themselves."
+          >
+            Show {systemOpen} system alert{systemOpen === 1 ? "" : "s"}
+          </Link>
+        ) : null}
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-7">
@@ -176,6 +204,7 @@ export default async function ActionCentre({
       </div>
 
       <form className="card grid gap-2 md:grid-cols-4 xl:grid-cols-8">
+        {showSystem ? <input type="hidden" name="show" value="system" /> : null}
         <input className="field" name="q" defaultValue={q} placeholder="Search" />
         <select className="field" name="status" defaultValue={status}>
           <option value="">Active attention</option>

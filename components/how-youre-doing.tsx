@@ -3,6 +3,7 @@ import {CircleCheck, TriangleAlert} from "lucide-react";
 import {TrendChip} from "@/components/home-ui";
 import {
   PERIOD_LABEL,
+  steadyLines,
   type Highlight,
   type Metric,
   type MetricGroup,
@@ -21,16 +22,26 @@ export function HowYoureDoing({
   metrics,
   highlights,
   updates,
+  healthy = [],
 }: {
   period: Period;
   metrics: Metric[];
   highlights: Highlight[];
   updates: number;
+  /** Good news about the organisation's setup, e.g. all connections working. */
+  healthy?: string[];
 }) {
   const good = highlights.filter((h) => h.tone === "good"),
     bad = highlights.filter((h) => h.tone === "bad"),
     labels = PERIOD_LABEL[period],
-    comparable = metrics.some((m) => m.comparable);
+    comparable = metrics.some((m) => m.comparable),
+    // Improvements first, then healthy basics, then whatever is holding steady.
+    goingWell = [
+      ...good.map((h) => h.text),
+      ...healthy,
+      ...(good.length ? [] : steadyLines(metrics)),
+    ],
+    nextPeriod = period === "week" ? "Month" : period === "month" ? "Year" : null;
 
   return (
     <section aria-label="How you're doing" className="space-y-5">
@@ -62,26 +73,35 @@ export function HowYoureDoing({
         </nav>
       </div>
 
-      {metrics.length ? (
+      {metrics.length || healthy.length ? (
         <div className="grid gap-4 md:grid-cols-2">
           <div className="rounded-2xl border border-emerald-200/70 bg-emerald-50/50 p-5">
             <h3 className="flex items-center gap-2 font-medium text-emerald-900">
               <CircleCheck aria-hidden className="h-[18px] w-[18px]" />
               Going well
             </h3>
-            {good.length ? (
+            {goingWell.length ? (
               <ul className="mt-3 space-y-2 text-sm text-emerald-950">
-                {good.map((h) => (
-                  <li key={h.text}>{h.text}</li>
+                {goingWell.map((text) => (
+                  <li key={text}>{text}</li>
                 ))}
               </ul>
-            ) : (
+            ) : null}
+            {!comparable && metrics.length ? (
               <p className="mt-3 text-sm text-emerald-900/70">
-                {comparable
-                  ? `Nothing improved by 10% or more since ${labels.previous}.`
-                  : "Ghost needs a bit more history before it can compare."}
+                {`Ghost compares with ${labels.previous} once it has data from then.`}
+                {nextPeriod ? " Your tools may have more history: " : null}
+                {nextPeriod ? (
+                  <Link
+                    className="font-medium underline"
+                    href={`/app?period=${nextPeriod.toLowerCase()}`}
+                    scroll={false}
+                  >
+                    {`try ${nextPeriod}`}
+                  </Link>
+                ) : null}
               </p>
-            )}
+            ) : null}
           </div>
           <div className="rounded-2xl border border-amber-200/70 bg-amber-50/50 p-5">
             <h3 className="flex items-center gap-2 font-medium text-amber-900">
@@ -97,7 +117,7 @@ export function HowYoureDoing({
             ) : (
               <p className="mt-3 text-sm text-amber-900/70">
                 {comparable
-                  ? `Nothing got worse by 10% or more since ${labels.previous}.`
+                  ? `Nothing has dropped by 10% or more since ${labels.previous}.`
                   : "Nothing to flag yet."}
               </p>
             )}

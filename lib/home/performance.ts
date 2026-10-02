@@ -328,3 +328,25 @@ export function highlights(metrics: Metric[], period: Period): Highlight[] {
   }
   return out;
 }
+
+/**
+ * Measures that held roughly level (within the highlight threshold) where up is good, so a quiet
+ * period still shows what is holding up rather than an empty "Going well".
+ */
+export function steadyLines(metrics: Metric[], limit = 3): string[] {
+  return metrics
+    .filter(
+      (m) =>
+        m.comparable &&
+        m.change !== null &&
+        m.higherIsBetter === true &&
+        Math.abs(m.change) < HIGHLIGHT_PERCENT,
+    )
+    .slice(0, limit)
+    .map((m) => {
+      const c = Math.round(m.change!);
+      return c === 0
+        ? `${m.label} steady at ${m.value}`
+        : `${m.label} steady at ${m.value} (${c > 0 ? "up" : "down"} ${Math.abs(c)}%)`;
+    });
+}

@@ -8,6 +8,8 @@ import {
 } from "@/lib/integrations/registry";
 import {connectionStatus, reconnectHref, type ConnectionState} from "@/lib/home/connections";
 import {ProviderMark} from "@/components/home-ui";
+import {AutoRefresh} from "@/components/auto-refresh";
+import {SubmitButton} from "@/components/submit-button";
 import {githubAppEnv, manageUrl} from "@/lib/integrations/github/app";
 import {disconnectIntegration, syncIntegration} from "@/app/integration-actions";
 import {ConnectProviderButton} from "@/components/connect-provider-button";
@@ -129,8 +131,8 @@ function Controls({
       ) : null}
       <form action={syncIntegration}>
         <input type="hidden" name="integrationId" value={integration.id} />
-        <button
-          className="button"
+        <SubmitButton
+          pendingLabel="Starting…"
           disabled={integration.status === "syncing" || configurationRequired}
           title={configurationRequired ? "Finish setup before syncing" : "Import latest activity"}
         >
@@ -139,7 +141,7 @@ function Controls({
             : configurationRequired
               ? "Setup required"
               : "Sync now"}
-        </button>
+        </SubmitButton>
       </form>
       <form action={disconnectIntegration}>
         <input type="hidden" name="integrationId" value={integration.id} />
@@ -256,6 +258,7 @@ export default async function Integrations({
         </p>
       </header>
       <Notice searchParams={params} />
+      <AutoRefresh active={(integrations ?? []).some((i) => i.status === "syncing")} />
 
       <div className="grid gap-3 sm:grid-cols-3">
         {[

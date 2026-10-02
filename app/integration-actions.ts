@@ -1,5 +1,7 @@
 "use server";
 import {redirect} from "next/navigation";
+import {after} from "next/server";
+import {createServiceClient} from "@/lib/supabase/service";
 import {revalidatePath} from "next/cache";
 import {getActiveOrganisation} from "@/lib/organisations/active";
 import {runIntegrationSync} from "@/lib/integrations/sync-runner";
@@ -8,38 +10,64 @@ import {loadConnector} from "@/lib/integrations/loader";
 import {decryptToken} from "@/lib/security/token-crypto";
 import {requireOrganisationAdmin} from "@/lib/auth/organisation-admin";
 import {requirePermission} from "@/lib/auth/permissions";
-import {runIntelligence} from "@/lib/intelligence/runner";
 const destination = (kind: "error" | "success", message: string) =>
   `/app/integrations?${kind}=${encodeURIComponent(message)}`;
+/**
+ * Starts a sync and returns immediately; the sync itself runs after the response is sent, so a
+ * slow provider never blocks navigation. The page shows "Syncing" and refreshes until it finishes.
+ * Insights are refreshed by the hourly background job rather than on every manual sync.
+ */
 export async function syncIntegration(form: FormData) {
   const integrationId = String(form.get("integrationId") || "");
   const ctx = await getActiveOrganisation();
   if (!ctx) redirect("/app/onboarding");
   requirePermission(ctx.membership.role, "integration.sync");
-  try {
-    const summary = await runIntegrationSync({
-      supabase: ctx.supabase,
-      userId: ctx.user.id,
-      organisationId: ctx.organisation.id,
-      integrationId,
-    });
-    await runIntelligence(ctx.supabase, ctx.organisation.id);
-    revalidatePath("/app");
-    revalidatePath("/app/command-centre");
-    revalidatePath("/app/timeline");
-    revalidatePath("/app/integrations");
-    redirect(
-      destination(
-        summary.errors ? "error" : "success",
-        `${getProvider(summary.provider)?.displayName ?? summary.provider} sync: ${summary.imported} imported, ${summary.skipped} skipped, ${summary.errors} errors in ${summary.durationMs}ms.`,
-      ),
-    );
-  } catch (error) {
-    if (error && typeof error === "object" && "digest" in error) throw error;
-    redirect(
-      destination("error", error instanceof Error ? error.message : "Integration sync failed."),
-    );
-  }
+  const {data: integration} = await ctx.supabase
+    .from("integrations")
+    .select("id,provider")
+    .eq("id", integrationId)
+    .eq("organisation_id", ctx.organisation.id)
+    .maybeSingle();
+  if (!integration) redirect(destination("error", "Integration was not found."));
+  const name = getProvider(integration.provider)?.displayName ?? integration.provider;
+  await ctx.supabase
+    .from("integrations")
+    .update({status: "syncing", last_sync_status: "syncing", last_sync_error: null})
+    .eq("id", integration.id)
+    .eq("organisation_id", ctx.organisation.id);
+  const organisationId = ctx.organisation.id,
+    userId = ctx.user.id;
+  after(async () => {
+    const service = createServiceClient();
+    try {
+      // The runner records success or failure on the integration once it holds the sync lock.
+      await runIntegrationSync({
+        supabase: service,
+        userId,
+        organisationId,
+        integrationId: integration.id,
+      });
+    } catch (error) {
+      console.error("Background sync failed", integration.provider, error);
+      const message = error instanceof Error ? error.message : "Sync failed.";
+      // Another sync already holds the lock and will record its own result.
+      if (/already syncing/i.test(message)) return;
+      // Failures before the runner took over would otherwise leave the card stuck on "Syncing".
+      await service
+        .from("integrations")
+        .update({
+          status: "error",
+          last_sync_status: "error",
+          last_sync_error: message.slice(0, 300),
+        })
+        .eq("id", integration.id)
+        .eq("organisation_id", organisationId)
+        .eq("status", "syncing");
+    }
+  });
+  revalidatePath("/app");
+  revalidatePath("/app/integrations");
+  redirect(destination("success", `${name} sync started. This page updates when it finishes.`));
 }
 export async function disconnectIntegration(form: FormData) {
   const integrationId = String(form.get("integrationId") || "");

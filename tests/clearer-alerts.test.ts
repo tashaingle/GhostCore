@@ -1,7 +1,7 @@
 import {describe, expect, it} from "vitest";
 import {commandAlerts} from "@/lib/command-centre/alerts";
 import type {CommandIntegration} from "@/lib/command-centre/types";
-import {humanizeNotificationDisplay, humanCategory} from "@/lib/ui/labels";
+import {humanizeNotificationDisplay, humanCategory, isLowSignalEventType} from "@/lib/ui/labels";
 import {getProvider} from "@/lib/integrations/registry";
 import {connectionStatus} from "@/lib/home/connections";
 import {providers} from "@/lib/integrations/registry";
@@ -108,5 +108,15 @@ describe("plain-English alert text", () => {
       expect(p.description, p.id).toBeTruthy();
       expect(p.description, p.id).not.toMatch(/deterministic|organisation timeline|provider/i);
     }
+  });
+});
+
+describe("timeline noise", () => {
+  it("hides alert lifecycle entries but keeps real work and tool activity", () => {
+    expect(isLowSignalEventType("notification.reopened")).toBe(true);
+    expect(isLowSignalEventType("github.push")).toBe(true);
+    expect(isLowSignalEventType("task.completed")).toBe(false);
+    expect(isLowSignalEventType("approval.approved")).toBe(false);
+    expect(isLowSignalEventType("stripe.payment_succeeded")).toBe(false);
   });
 });

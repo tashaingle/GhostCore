@@ -6,6 +6,7 @@ import {runCorrelations} from "@/lib/correlations/runner";
 import {generateNotificationsForOrganisation} from "@/lib/notifications/generate";
 import {dispatchDueWorkflowRuns} from "@/lib/workflows/engine";
 import {runEmailDelivery} from "@/lib/email/outbox";
+import {runIntelligence} from "@/lib/intelligence/runner";
 import {discoverStoredTriggers} from "@/lib/workflows/triggers";
 import {
   evaluateOverdueWork,
@@ -38,6 +39,16 @@ async function handle(client: SupabaseClient<Database>, job: Job): Promise<JobMe
     return evaluateOverdueWork(client, job.organisation_id);
   if (job.job_type === "work.maintenance") return maintainWork(client, job.organisation_id);
   if (job.job_type === "email.deliver") return runEmailDelivery(client, job.organisation_id);
+  if (job.job_type === "intelligence.evaluate") {
+    const x = await runIntelligence(client, job.organisation_id);
+    return {
+      processed: x.candidates,
+      created: x.inserted,
+      updated: x.updated + x.resolved,
+      skipped: 0,
+      metadata: {rulesEvaluated: x.evaluatedRules},
+    };
+  }
   if (job.job_type === "workflow.dispatch") {
     const triggered = await discoverStoredTriggers(client, job.organisation_id),
       results = await dispatchDueWorkflowRuns(client, job.organisation_id, 20);

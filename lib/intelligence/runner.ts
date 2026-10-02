@@ -18,11 +18,12 @@ export type IntelligenceRunSummary = {
 export function evaluateRules(
   events: IntelligenceEvent[],
   rules: IntelligenceRule[] = intelligenceRules,
+  now = new Date(),
 ): EvaluatedInsight[] {
   return [...rules]
     .sort((a, b) => a.priority - b.priority)
     .flatMap((rule) =>
-      rule.evaluate(events).map((candidate) => ({
+      rule.evaluate(events, {now}).map((candidate) => ({
         ...candidate,
         confidence: Math.max(0, Math.min(100, Math.round(candidate.confidence))),
         sourceEventIds: [...new Set(candidate.sourceEventIds)].sort(),
@@ -39,7 +40,7 @@ export async function runIntelligence(
   const since = new Date(Date.now() - C.rollingWindowDays * 86400000).toISOString();
   const {data, error} = await supabase
     .from("events")
-    .select("id,source,event_type,title,description,severity,occurred_at,metadata")
+    .select("id,source,event_type,title,description,severity,occurred_at,created_at,metadata")
     .eq("organisation_id", organisationId)
     .gte("occurred_at", since)
     .order("occurred_at", {ascending: false})
@@ -53,6 +54,7 @@ export async function runIntelligence(
     description: event.description,
     severity: event.severity as IntelligenceEvent["severity"],
     occurredAt: event.occurred_at,
+    recordedAt: event.created_at,
     metadata:
       event.metadata && typeof event.metadata === "object" && !Array.isArray(event.metadata)
         ? (event.metadata as Record<string, unknown>)

@@ -8,6 +8,8 @@ export type IntelligenceEvent = {
   description: string | null;
   severity: EventSeverity;
   occurredAt: string;
+  /** When Ghost stored the event; distinguishes revised provider reports for the same day. */
+  recordedAt?: string;
   metadata: Record<string, unknown>;
 };
 export type InsightCandidate = {
@@ -22,11 +24,12 @@ export type InsightCandidate = {
   metadata?: Record<string, unknown>;
   resolveRuleIds?: string[];
 };
+export type RuleContext = {now: Date};
 export type IntelligenceRule = {
   id: string;
   name: string;
   description: string;
   priority: number;
   supportedProviders: string[];
-  evaluate(events: IntelligenceEvent[]): InsightCandidate[];
+  evaluate(events: IntelligenceEvent[], context?: RuleContext): InsightCandidate[];
 };

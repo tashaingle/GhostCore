@@ -63,6 +63,13 @@ export const maintenanceJobs: JobRegistration[] = [
     timeout: 300,
   },
   {
+    key: "intelligence.evaluate",
+    type: "intelligence.evaluate",
+    scheduleType: "recurring",
+    scheduleValue: "1h",
+    timeout: 120,
+  },
+  {
     key: "email.deliver",
     type: "email.deliver",
     scheduleType: "recurring",

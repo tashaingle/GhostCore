@@ -1,5 +1,6 @@
-import {describe, expect, it} from "vitest";
+import {afterEach, describe, expect, it, vi} from "vitest";
 import {providerRegistry} from "@/lib/integrations/registry";
+import {stripeEnvironment} from "@/lib/integrations/stripe/config";
 import {
   STRIPE_MAX_TYPES_PER_REQUEST,
   STRIPE_SUPPORTED_EVENTS,
@@ -151,5 +152,34 @@ describe("Stripe translator", () => {
     expect(text).not.toContain("person@example.com");
     expect(text).not.toContain("pm_1");
     expect(text).not.toContain('"secret"');
+  });
+});
+
+describe("Stripe test mode on the live site", () => {
+  const base = {
+    STRIPE_PLATFORM_SECRET_KEY: "sk_test_example",
+    STRIPE_CONNECT_CLIENT_ID: "ca_example",
+    STRIPE_REDIRECT_URI: "https://example.test/api/integrations/stripe/callback",
+  };
+  afterEach(() => vi.unstubAllEnvs());
+  const stub = (env: Record<string, string>) => {
+    for (const [k, v] of Object.entries({...base, ...env})) vi.stubEnv(k, v);
+  };
+
+  it("refuses test keys in production by default", () => {
+    stub({NODE_ENV: "production"});
+    expect(() => stripeEnvironment()).toThrow(/STRIPE_ALLOW_TEST_MODE/);
+  });
+
+  it("allows test keys in production only when explicitly switched on", () => {
+    stub({NODE_ENV: "production", STRIPE_ALLOW_TEST_MODE: "true"});
+    expect(stripeEnvironment().secretKey).toBe("sk_test_example");
+    stub({NODE_ENV: "production", STRIPE_ALLOW_TEST_MODE: "yes"});
+    expect(() => stripeEnvironment()).toThrow();
+  });
+
+  it("always allows live keys", () => {
+    stub({NODE_ENV: "production", STRIPE_PLATFORM_SECRET_KEY: "sk_live_example"});
+    expect(stripeEnvironment().secretKey).toBe("sk_live_example");
   });
 });

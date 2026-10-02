@@ -37,6 +37,21 @@ export async function createWorkspace(form: FormData) {
   const path = String(form.get("returnPath") || "/app/organisations/new");
   if (!parsed.success) redirect(message(path, "error", "Check the organisation details and URLs."));
   const {supabase, user} = await requireUser();
+  // A repeated submit (e.g. a double click) within a minute reuses the organisation just created.
+  const {data: recent} = await supabase
+    .from("organisations")
+    .select("id")
+    .eq("created_by", user.id)
+    .eq("name", parsed.data.name)
+    .gte("created_at", new Date(Date.now() - 60_000).toISOString())
+    .order("created_at")
+    .limit(1)
+    .maybeSingle();
+  if (recent) {
+    await supabase.from("profiles").update({active_organisation_id: recent.id}).eq("id", user.id);
+    await setActive(recent.id);
+    redirect("/app");
+  }
   const {data: id, error} = await supabase.rpc("create_organisation_with_owner", {
     organisation_name: parsed.data.name,
     organisation_slug: uniqueSlug(parsed.data.name),

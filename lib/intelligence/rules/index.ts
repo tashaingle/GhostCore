@@ -5,5 +5,19 @@ import {deploymentTrafficDeclineRule} from "./cross-provider/deployment-traffic-
 import {failedDeploymentTrafficDeclineRule} from "./cross-provider/failed-deployment-traffic-decline";
 import {trafficDeclineStableConversionsRule} from "./cross-provider/traffic-decline-stable-conversions";
 import {repeatedWorkflowFailuresRule} from "./github/repeated-workflow-failures";
-export const intelligenceRules:IntelligenceRule[]=[trackingInactiveRule,failedDeploymentTrafficDeclineRule,deploymentTrafficDeclineRule,trafficDeclineStableConversionsRule,repeatedWorkflowFailuresRule,analyticsRecoveredRule].sort((a,b)=>a.priority-b.priority);
-export {analyticsRecoveredRule,trackingInactiveRule,deploymentTrafficDeclineRule,failedDeploymentTrafficDeclineRule,trafficDeclineStableConversionsRule,repeatedWorkflowFailuresRule};
+export const intelligenceRules: IntelligenceRule[] = [
+  trackingInactiveRule,
+  failedDeploymentTrafficDeclineRule,
+  deploymentTrafficDeclineRule,
+  trafficDeclineStableConversionsRule,
+  repeatedWorkflowFailuresRule,
+  analyticsRecoveredRule,
+].sort((a, b) => a.priority - b.priority);
+export {
+  analyticsRecoveredRule,
+  trackingInactiveRule,
+  deploymentTrafficDeclineRule,
+  failedDeploymentTrafficDeclineRule,
+  trafficDeclineStableConversionsRule,
+  repeatedWorkflowFailuresRule,
+};

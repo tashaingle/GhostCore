@@ -71,10 +71,10 @@ export default function TermsPage() {
 
         <h2>4. Third-party services</h2>
         <p>
-          Integrations (including Meta, Google, Stripe, Shopify, GitHub, Slack, Notion, and
-          others) are provided by third parties. Their terms and privacy policies apply to your use
-          of those platforms. Ghost does not control provider outages, API changes, rate limits, or
-          approval of developer apps.
+          Integrations (including Meta, Google, Stripe, Shopify, GitHub, Slack, Notion, and others)
+          are provided by third parties. Their terms and privacy policies apply to your use of those
+          platforms. Ghost does not control provider outages, API changes, rate limits, or approval
+          of developer apps.
         </p>
         <p>
           Social and advertising connectors are generally <strong>read-only</strong>. Ghost does not
@@ -134,9 +134,9 @@ export default function TermsPage() {
 
         <h2>12. Governing law</h2>
         <p>
-          Unless mandatory local law says otherwise, these Terms are governed by the laws of
-          England and Wales, and courts there have exclusive jurisdiction, without prejudice to
-          consumer protections that cannot be waived.
+          Unless mandatory local law says otherwise, these Terms are governed by the laws of England
+          and Wales, and courts there have exclusive jurisdiction, without prejudice to consumer
+          protections that cannot be waived.
         </p>
 
         <h2>13. Contact</h2>

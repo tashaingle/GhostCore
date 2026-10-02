@@ -47,10 +47,7 @@ export function humanEventLabel(source: string, _category: string, eventType: st
   return `${provider} · ${type}`;
 }
 
-export function configureIntegrationLabel(
-  providerId: string,
-  configurationRequired: boolean,
-) {
+export function configureIntegrationLabel(providerId: string, configurationRequired: boolean) {
   if (providerId === "slack") {
     return configurationRequired ? "Choose channels" : "Manage channels";
   }
@@ -163,8 +160,7 @@ const relationshipNames: Record<string, string> = {
 
 export function humanRelationship(type: string) {
   return (
-    relationshipNames[type] ??
-    type.replaceAll("_", " ").replace(/\b\w/g, (c) => c.toUpperCase())
+    relationshipNames[type] ?? type.replaceAll("_", " ").replace(/\b\w/g, (c) => c.toUpperCase())
   );
 }
 
@@ -230,10 +226,7 @@ export function humanizeNotificationDisplay(input: {
   sourceType: string;
   sourceId: string;
   jobById?: Map<string, {job_key: string; provider: string | null}>;
-  integrationById?: Map<
-    string,
-    {provider: string; name: string | null}
-  >;
+  integrationById?: Map<string, {provider: string; name: string | null}>;
 }): {title: string; summary: string; recommendedAction: string; explanation?: string} {
   const job = input.jobById?.get(input.sourceId);
   const integration = input.integrationById?.get(input.sourceId);
@@ -252,23 +245,19 @@ export function humanizeNotificationDisplay(input: {
   ) {
     const jobKey =
       job?.job_key ??
-      (title.match(
+      title.match(
         /((?:integration|maintenance|correlation|notification|workflow)\.[\w.:-]+)/,
       )?.[1] ??
-        "");
+      "";
     if (jobKey || job) {
       const label = humanJobLabel(jobKey || job!.job_key, job?.provider);
       if (/overdue|behind schedule|stale/i.test(title) || input.ruleKey.includes("stale")) {
         title = `${label.title} is behind schedule`;
         summary =
-          summary.replace(
-            /Scheduled execution was due [^\n.]+/i,
-            (match) => {
-              const iso = match.replace(/Scheduled execution was due /i, "").trim();
-              return `This automatic task was due ${formatWhenFriendly(iso)}`;
-            },
-          ) ||
-          `This automatic task was supposed to run earlier and has not finished yet.`;
+          summary.replace(/Scheduled execution was due [^\n.]+/i, (match) => {
+            const iso = match.replace(/Scheduled execution was due /i, "").trim();
+            return `This automatic task was due ${formatWhenFriendly(iso)}`;
+          }) || `This automatic task was supposed to run earlier and has not finished yet.`;
         if (!summary.includes("automatic")) {
           summary = `${summary} Ghost runs this in the background so your tools stay up to date.`;
         }
@@ -279,8 +268,7 @@ export function humanizeNotificationDisplay(input: {
           "Ghost's automatic scheduler has not run this task on time.";
       } else if (/failed/i.test(title)) {
         title = `${label.title} failed`;
-        recommendedAction =
-          "Open Background Jobs, check the error, then click Retry or Run now.";
+        recommendedAction = "Open Background Jobs, check the error, then click Retry or Run now.";
       } else if (/retrying/i.test(title)) {
         title = `${label.title} is retrying`;
         recommendedAction = "Wait for the automatic retry, or open Background Jobs and run it now.";
@@ -288,14 +276,8 @@ export function humanizeNotificationDisplay(input: {
     }
   }
 
-  if (
-    input.sourceType === "integration" ||
-    /credential expires|integration is /i.test(title)
-  ) {
-    const provider =
-      integration?.provider ??
-      title.match(/^([a-z0-9_]+)\s/i)?.[1] ??
-      "";
+  if (input.sourceType === "integration" || /credential expires|integration is /i.test(title)) {
+    const provider = integration?.provider ?? title.match(/^([a-z0-9_]+)\s/i)?.[1] ?? "";
     const name = providerLabel(provider || integration?.provider);
     if (/expires/i.test(title)) {
       title = `${name} access may expire soon`;
@@ -303,8 +285,7 @@ export function humanizeNotificationDisplay(input: {
         /Known expiry:\s*([^\n.]+)/i,
         (_, iso: string) => `Access may stop working after ${formatWhenFriendly(iso.trim())}`,
       );
-      recommendedAction =
-        "Open Integrations and reconnect this tool if Sync starts failing.";
+      recommendedAction = "Open Integrations and reconnect this tool if Sync starts failing.";
     } else if (/is (error|expired|disconnected)/i.test(title)) {
       title = `${name} needs attention`;
       recommendedAction = "Open Integrations to reconnect or fix this tool.";
@@ -317,15 +298,16 @@ export function humanizeNotificationDisplay(input: {
     .replace(/\s+/g, " ")
     .trim();
   recommendedAction = recommendedAction
-    .replace(/Review the dispatcher and job locks, then run the job when safe\.?/gi, 
-      "Open Background Jobs and click Run now.")
+    .replace(
+      /Review the dispatcher and job locks, then run the job when safe\.?/gi,
+      "Open Background Jobs and click Run now.",
+    )
     .trim();
 
   return {
     title,
     summary: summary || "Open this item for more detail.",
-    recommendedAction:
-      recommendedAction || "Open this item for the recommended next step.",
+    recommendedAction: recommendedAction || "Open this item for the recommended next step.",
     explanation,
   };
 }

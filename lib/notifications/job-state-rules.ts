@@ -66,7 +66,11 @@ const failed: NotificationRuleDefinition = {
     );
     return (jobs ?? []).flatMap((job) => {
       const run = latest.get(job.id);
-      if (!run || !["failed", "timed_out"].includes(run.status) || job.job_key === "notification.generate")
+      if (
+        !run ||
+        !["failed", "timed_out"].includes(run.status) ||
+        job.job_key === "notification.generate"
+      )
         return [];
       const label = humanJobLabel(job.job_key, job.provider);
       const severity: NotificationSeverity =

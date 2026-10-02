@@ -42,9 +42,9 @@ export default async function Home() {
           See what changed across your stack - and what to do next.
         </h1>
         <p className="mt-5 max-w-2xl text-lg text-zinc-600">
-          Ghost connects Stripe, Shopify, GitHub, Google, Slack and more into one
-          secure timeline. It surfaces deterministic insights with evidence, so
-          your team can act without drowning in dashboards.
+          Ghost connects Stripe, Shopify, GitHub, Google, Slack and more into one secure timeline.
+          It surfaces deterministic insights with evidence, so your team can act without drowning in
+          dashboards.
         </p>
         <div className="mt-8 flex flex-wrap gap-3">
           <Link className="button" href="/register">

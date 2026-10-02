@@ -39,7 +39,8 @@ export async function exchangeCode(code: string) {
     expires_in?: number;
     error?: {message?: string};
   };
-  if (!short.ok || !shortBody.access_token) throw new Error("Meta Social authorization code exchange failed.");
+  if (!short.ok || !shortBody.access_token)
+    throw new Error("Meta Social authorization code exchange failed.");
 
   const longUrl = new URL(`https://graph.facebook.com/${env.version}/oauth/access_token`);
   longUrl.search = new URLSearchParams({

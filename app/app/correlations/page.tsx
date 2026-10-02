@@ -5,11 +5,7 @@ import {runCorrelationsAction} from "@/app/correlation-actions";
 import {hasPermission, type OrganisationRole} from "@/lib/auth/permissions";
 import {Notice} from "@/components/notice";
 import {PageHeader} from "@/components/page-header";
-import {
-  humanRelationship,
-  humanStrength,
-  providerLabel,
-} from "@/lib/ui/labels";
+import {humanRelationship, humanStrength, providerLabel} from "@/lib/ui/labels";
 
 export default async function CorrelationsPage({
   searchParams,
@@ -20,8 +16,7 @@ export default async function CorrelationsPage({
   const ctx = await getActiveOrganisation();
   if (!ctx) return null;
 
-  const relationship =
-    typeof params.relationship === "string" ? params.relationship : "";
+  const relationship = typeof params.relationship === "string" ? params.relationship : "";
   const strength = typeof params.strength === "string" ? params.strength : "";
 
   let query = ctx.supabase
@@ -48,10 +43,7 @@ export default async function CorrelationsPage({
   ]);
 
   const metrics = correlationDashboard(rows ?? []);
-  const canRun = hasPermission(
-    ctx.membership.role as OrganisationRole,
-    "correlation.run",
-  );
+  const canRun = hasPermission(ctx.membership.role as OrganisationRole, "correlation.run");
 
   return (
     <section className="space-y-6">
@@ -76,8 +68,7 @@ export default async function CorrelationsPage({
 
       <div className="info-banner">
         <strong>How to read this:</strong> Ghost compares events with fixed rules (not AI
-        guesswork). Higher scores mean a stronger match. Always check the evidence before
-        acting.
+        guesswork). Higher scores mean a stronger match. Always check the evidence before acting.
       </div>
 
       <div className="grid gap-3 md:grid-cols-5">
@@ -133,15 +124,10 @@ export default async function CorrelationsPage({
                 >
                   <div className="flex flex-wrap items-center gap-2">
                     <strong>
-                      {providerLabel(row.source_provider)} →{" "}
-                      {providerLabel(row.target_provider)}
+                      {providerLabel(row.source_provider)} → {providerLabel(row.target_provider)}
                     </strong>
-                    <span className="badge badge-muted">
-                      {humanStrength(row.strength)}
-                    </span>
-                    <span className="ml-auto text-sm text-zinc-500">
-                      Score {row.score}/100
-                    </span>
+                    <span className="badge badge-muted">{humanStrength(row.strength)}</span>
+                    <span className="ml-auto text-sm text-zinc-500">Score {row.score}/100</span>
                   </div>
                   <p className="mt-1 text-sm text-zinc-600">
                     {humanRelationship(row.relationship_type)}
@@ -183,8 +169,8 @@ export default async function CorrelationsPage({
               runs.map((run, i) => (
                 <p className="mt-2 text-sm text-zinc-600" key={i}>
                   <span className="capitalize">{run.status}</span> · checked{" "}
-                  {run.candidates_evaluated} pairs · created {run.correlations_created} ·
-                  skipped {run.duplicates_skipped} · {run.duration_ms ?? 0} ms
+                  {run.candidates_evaluated} pairs · created {run.correlations_created} · skipped{" "}
+                  {run.duplicates_skipped} · {run.duration_ms ?? 0} ms
                 </p>
               ))
             )}

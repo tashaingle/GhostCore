@@ -38,8 +38,7 @@ function Controls({
   integration?: Integration;
   siteUrl: string;
 }) {
-  const connected =
-    integration && !["disconnected", "expired"].includes(integration.status);
+  const connected = integration && !["disconnected", "expired"].includes(integration.status);
   const settings = (integration?.settings ?? {}) as Record<string, unknown>;
   const configurationRequired = settings.configurationStatus === "property_required";
 
@@ -103,11 +102,7 @@ function Controls({
         <button
           className="button"
           disabled={integration.status === "syncing" || configurationRequired}
-          title={
-            configurationRequired
-              ? "Finish setup before syncing"
-              : "Import latest activity"
-          }
+          title={configurationRequired ? "Finish setup before syncing" : "Import latest activity"}
         >
           {integration.status === "syncing"
             ? "Syncing…"
@@ -154,11 +149,9 @@ export default async function Integrations({
   const byProvider = new Map(
     integrations?.map((integration) => [integration.provider, integration]),
   );
-  const siteUrl =
-    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "http://localhost:3000";
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "http://localhost:3000";
   const connectedCount =
-    integrations?.filter((i) => !["disconnected", "expired"].includes(i.status))
-      .length ?? 0;
+    integrations?.filter((i) => !["disconnected", "expired"].includes(i.status)).length ?? 0;
   const needsSetup =
     integrations?.filter((i) => {
       const settings = (i.settings ?? {}) as Record<string, unknown>;
@@ -198,8 +191,8 @@ export default async function Integrations({
 
       {needsSetup > 0 ? (
         <p className="info-banner">
-          Some tools need a quick setup step (for example Slack channels or analytics
-          properties) before Sync will run.
+          Some tools need a quick setup step (for example Slack channels or analytics properties)
+          before Sync will run.
         </p>
       ) : null}
 
@@ -230,8 +223,7 @@ export default async function Integrations({
               </div>
 
               <p className="text-sm text-zinc-600">
-                {provider.description ??
-                  "Bring this provider into your organisation timeline."}
+                {provider.description ?? "Bring this provider into your organisation timeline."}
               </p>
 
               <div className="text-sm text-zinc-600">
@@ -249,9 +241,7 @@ export default async function Integrations({
                         : "Never synced"}
                     </p>
                     {integration.last_sync_error ? (
-                      <p className="mt-2 text-sm text-red-700">
-                        {integration.last_sync_error}
-                      </p>
+                      <p className="mt-2 text-sm text-red-700">{integration.last_sync_error}</p>
                     ) : null}
                   </>
                 ) : (
@@ -260,11 +250,7 @@ export default async function Integrations({
               </div>
 
               <div className="mt-auto flex flex-wrap gap-2">
-                <Controls
-                  provider={provider}
-                  integration={integration}
-                  siteUrl={siteUrl}
-                />
+                <Controls provider={provider} integration={integration} siteUrl={siteUrl} />
               </div>
             </article>
           );
@@ -301,16 +287,14 @@ export default async function Integrations({
                 {logs.map((log) => (
                   <tr className="border-b last:border-0" key={log.id}>
                     <td className="p-3">
-                      {providers.find((provider) => provider.id === log.provider)
-                        ?.displayName ?? log.provider}
+                      {providers.find((provider) => provider.id === log.provider)?.displayName ??
+                        log.provider}
                     </td>
                     <td className="p-3" title={log.error_message ?? undefined}>
                       {log.status}
                       {log.rate_limited ? " · rate limited" : ""}
                     </td>
-                    <td className="p-3">
-                      {new Date(log.started_at).toLocaleString()}
-                    </td>
+                    <td className="p-3">{new Date(log.started_at).toLocaleString()}</td>
                     <td className="p-3">
                       {log.duration_ms === null ? "n/a" : `${log.duration_ms}ms`}
                     </td>

@@ -84,8 +84,8 @@ export default async function MetaSocialSettings() {
               ))}
               {!assets.length ? (
                 <p className="text-sm text-zinc-600">
-                  No Pages were discovered. Ensure this Meta user manages a Page and that Instagram is
-                  linked as a professional account.
+                  No Pages were discovered. Ensure this Meta user manages a Page and that Instagram
+                  is linked as a professional account.
                 </p>
               ) : null}
               <div className="flex gap-3">

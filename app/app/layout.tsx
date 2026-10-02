@@ -25,13 +25,7 @@ const admin = [
   ["Settings", "/app/settings"],
 ] as const;
 
-function NavGroup({
-  title,
-  links,
-}: {
-  title: string;
-  links: readonly (readonly [string, string])[];
-}) {
+function NavGroup({title, links}: {title: string; links: readonly (readonly [string, string])[]}) {
   return (
     <div>
       <p className="nav-section">{title}</p>
@@ -46,11 +40,7 @@ function NavGroup({
   );
 }
 
-export default async function AppLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default async function AppLayout({children}: {children: React.ReactNode}) {
   const ctx = await getActiveOrganisation(true);
 
   return (
@@ -84,12 +74,8 @@ export default async function AppLayout({
                 </span>
               )}
               <div className="min-w-0">
-                <p className="truncate text-sm font-semibold">
-                  {ctx.organisation.name}
-                </p>
-                <p className="text-xs text-zinc-500">
-                  {roleLabel(ctx.membership.role)}
-                </p>
+                <p className="truncate text-sm font-semibold">{ctx.organisation.name}</p>
+                <p className="text-xs text-zinc-500">{roleLabel(ctx.membership.role)}</p>
               </div>
             </div>
             <OrganisationSwitcher
@@ -104,9 +90,7 @@ export default async function AppLayout({
             </Link>
           </div>
         ) : (
-          <p className="my-5 text-xs text-zinc-500">
-            Create an organisation to continue.
-          </p>
+          <p className="my-5 text-xs text-zinc-500">Create an organisation to continue.</p>
         )}
 
         <div className="space-y-1">
@@ -116,9 +100,7 @@ export default async function AppLayout({
         </div>
 
         <form action={signOut} className="mt-8 border-t border-zinc-100 pt-4">
-          <button className="nav-link w-full text-left text-zinc-500">
-            Sign out
-          </button>
+          <button className="nav-link w-full text-left text-zinc-500">Sign out</button>
         </form>
       </aside>
 

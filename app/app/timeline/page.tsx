@@ -7,11 +7,7 @@ import {PageHeader} from "@/components/page-header";
 import {EmptyState} from "@/components/empty-state";
 import {SeverityBadge} from "@/components/severity-badge";
 import {mergeTimelineItems, type TimelineItem} from "@/lib/intelligence/timeline";
-import {
-  humanEventLabel,
-  isLowSignalEventType,
-  providerLabel,
-} from "@/lib/ui/labels";
+import {humanEventLabel, isLowSignalEventType, providerLabel} from "@/lib/ui/labels";
 
 const PAGE = 25;
 
@@ -33,9 +29,7 @@ export default async function Timeline({
 
   let eventQuery = ctx.supabase
     .from("events")
-    .select(
-      "id,source,category,event_type,title,description,severity,occurred_at,metadata",
-    )
+    .select("id,source,category,event_type,title,description,severity,occurred_at,metadata")
     .eq("organisation_id", ctx.organisation.id)
     .order("occurred_at", {ascending: false})
     .limit(PAGE * (filters.page + 2));
@@ -99,9 +93,7 @@ export default async function Timeline({
     .filter((event) => showNoise || !isLowSignalEventType(event.event_type))
     .map((event) => {
       const metadata =
-        event.metadata &&
-        typeof event.metadata === "object" &&
-        !Array.isArray(event.metadata)
+        event.metadata && typeof event.metadata === "object" && !Array.isArray(event.metadata)
           ? (event.metadata as Record<string, unknown>)
           : {};
       return {
@@ -130,28 +122,18 @@ export default async function Timeline({
     label: `Insight · ${insight.status} · ${insight.confidence}% confidence`,
   }));
 
-  const correlations: TimelineItem[] = (correlationsResult.data ?? []).map(
-    (item) => ({
-      id: item.id,
-      kind: "correlation" as const,
-      title: `${providerLabel(item.source_provider)} linked with ${providerLabel(item.target_provider)}`,
-      summary: `${item.relationship_type.replaceAll("_", " ")} matched by ${item.rule_key} v${item.rule_version}. This is a correlation, not proof of cause.`,
-      severity:
-        item.strength === "confirmed" || item.strength === "strong"
-          ? "good"
-          : "info",
-      timestamp: item.occurred_at,
-      href: `/app/correlations/${item.id}`,
-      label: `Correlation · score ${item.score} · ${item.strength}`,
-    }),
-  );
+  const correlations: TimelineItem[] = (correlationsResult.data ?? []).map((item) => ({
+    id: item.id,
+    kind: "correlation" as const,
+    title: `${providerLabel(item.source_provider)} linked with ${providerLabel(item.target_provider)}`,
+    summary: `${item.relationship_type.replaceAll("_", " ")} matched by ${item.rule_key} v${item.rule_version}. This is a correlation, not proof of cause.`,
+    severity: item.strength === "confirmed" || item.strength === "strong" ? "good" : "info",
+    timestamp: item.occurred_at,
+    href: `/app/correlations/${item.id}`,
+    label: `Correlation · score ${item.score} · ${item.strength}`,
+  }));
 
-  const merged = mergeTimelineItems(
-    events,
-    insights,
-    correlations,
-    PAGE * (filters.page + 1),
-  );
+  const merged = mergeTimelineItems(events, insights, correlations, PAGE * (filters.page + 1));
   const items = merged.slice((filters.page - 1) * PAGE, filters.page * PAGE);
   const hasNext = merged.length > filters.page * PAGE;
 
@@ -204,7 +186,12 @@ export default async function Timeline({
           <option value="90d">Last 90 days</option>
           <option value="all">All time</option>
         </select>
-        <input className="field" name="source" placeholder="Source (e.g. stripe)" defaultValue={filters.source} />
+        <input
+          className="field"
+          name="source"
+          placeholder="Source (e.g. stripe)"
+          defaultValue={filters.source}
+        />
         <label className="flex items-center gap-2 text-sm text-zinc-600 md:col-span-2">
           <input type="checkbox" name="noise" value="1" defaultChecked={showNoise} />
           Show routine noise (pushes, discount updates)
@@ -214,8 +201,7 @@ export default async function Timeline({
 
       {!showNoise && hiddenNoise > 0 ? (
         <p className="info-banner">
-          Hiding {hiddenNoise} routine events (for example git pushes and discount
-          updates).{" "}
+          Hiding {hiddenNoise} routine events (for example git pushes and discount updates).{" "}
           <Link className="font-semibold underline" href={url(1, {noise: "1"})}>
             Show them
           </Link>
@@ -254,9 +240,7 @@ export default async function Timeline({
                     {new Date(item.timestamp).toLocaleString()}
                   </time>
                 </div>
-                {item.summary ? (
-                  <p className="mt-2 text-sm text-zinc-700">{item.summary}</p>
-                ) : null}
+                {item.summary ? <p className="mt-2 text-sm text-zinc-700">{item.summary}</p> : null}
                 <p className="mt-3 text-xs text-zinc-500">{item.label}</p>
               </article>
             );

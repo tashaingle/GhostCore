@@ -50,9 +50,7 @@ export default async function Overview({
       .maybeSingle(),
     ctx.supabase
       .from("insights")
-      .select(
-        "id,title,summary,severity,confidence,status,recommendation,resolved_at,updated_at",
-      )
+      .select("id,title,summary,severity,confidence,status,recommendation,resolved_at,updated_at")
       .eq("organisation_id", orgId)
       .order("updated_at", {ascending: false})
       .limit(100),
@@ -68,16 +66,12 @@ export default async function Overview({
     ["Critical insights", metrics.critical],
     ["Resolved today", metrics.resolvedToday],
     ["Average confidence", `${metrics.averageConfidence}%`],
-    [
-      "Last event",
-      last.data ? new Date(last.data.occurred_at).toLocaleString() : "No events yet",
-    ],
+    ["Last event", last.data ? new Date(last.data.occurred_at).toLocaleString() : "No events yet"],
   ];
   const todaysInsights = insightRows
     .filter(
       (row) =>
-        row.updated_at >= today.toISOString() &&
-        ["active", "acknowledged"].includes(row.status),
+        row.updated_at >= today.toISOString() && ["active", "acknowledged"].includes(row.status),
     )
     .slice(0, 5);
 
@@ -127,9 +121,7 @@ export default async function Overview({
 
       <div>
         <h3 className="text-xl font-semibold">Today&apos;s insights</h3>
-        <p className="text-sm text-zinc-500">
-          Deterministic findings from your connected tools.
-        </p>
+        <p className="text-sm text-zinc-500">Deterministic findings from your connected tools.</p>
       </div>
 
       {!todaysInsights.length ? (

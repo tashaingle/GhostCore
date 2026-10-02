@@ -24,10 +24,10 @@ export default async function CorrelationRulesPage({
         <Link className="text-sm text-zinc-500" href="/app/correlations">
           ← Correlations
         </Link>
-        <h2 className="mt-2 text-2xl font-bold">Allowlisted correlation rules</h2>
+        <h1 className="mt-2 text-3xl font-semibold tracking-tight text-zinc-950">Matching rules</h1>
         <p className="text-zinc-600">
-          Settings can only enable or parameterise reviewed source-code rules. They cannot execute
-          database-provided code.
+          The rules Ghost uses to spot related events. You can switch rules on or off and adjust
+          their settings.
         </p>
       </div>
       <Notice searchParams={params} />

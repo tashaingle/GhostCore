@@ -117,7 +117,7 @@ export default async function CaseDetail({
             <dd>{item.owner_user_id ?? "None"}</dd>
           </div>
           <div>
-            <dt className="text-zinc-500">SLA</dt>
+            <dt className="text-zinc-500">Response target</dt>
             <dd className="capitalize">
               {sla.state}{" "}
               {sla.remainingMinutes !== null ? `(${sla.remainingMinutes} min remaining)` : ""}
@@ -170,7 +170,7 @@ export default async function CaseDetail({
             ))}
           </article>
           <article className="card">
-            <h3 className="font-semibold">Evidence ledger</h3>
+            <h3 className="font-semibold">Linked records</h3>
             {evidence?.map((x) => (
               <div className="mt-3 border-t pt-3 text-sm" key={x.id}>
                 <strong>{x.label}</strong>
@@ -197,7 +197,7 @@ export default async function CaseDetail({
             ))}
           </article>
           <article className="card">
-            <h3 className="font-semibold">Immutable history</h3>
+            <h3 className="font-semibold">History</h3>
             {revisions?.map((x) => (
               <p className="mt-2 text-sm" key={x.id}>
                 #{x.revision_number} <strong>{x.change_type}</strong> ·{" "}

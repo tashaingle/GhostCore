@@ -44,7 +44,9 @@ export default async function InsightDetail({
           </span>
           <span className="rounded-full bg-zinc-100 px-2 py-1 text-xs">{insight.status}</span>
         </div>
-        <h2 className="mt-4 text-2xl font-bold">{insight.title}</h2>
+        <h1 className="mt-4 text-3xl font-semibold tracking-tight text-zinc-950">
+          {insight.title}
+        </h1>
         <p className="mt-2 text-zinc-700">{insight.summary}</p>
         <p className="mt-4 text-3xl font-semibold">
           {insight.confidence}%{" "}
@@ -53,11 +55,11 @@ export default async function InsightDetail({
       </article>
       <div className="grid gap-4 md:grid-cols-2">
         <article className="card">
-          <h3 className="font-semibold">Why Ghost surfaced this</h3>
+          <h3 className="font-semibold">Why you&apos;re seeing this</h3>
           <p className="mt-2 text-sm text-zinc-700">{insight.explanation}</p>
         </article>
         <article className="card">
-          <h3 className="font-semibold">Recommendation</h3>
+          <h3 className="font-semibold">What to do</h3>
           <p className="mt-2 text-sm text-zinc-700">{insight.recommendation}</p>
         </article>
       </div>
@@ -76,7 +78,7 @@ export default async function InsightDetail({
         ))}
       </div>
       <div>
-        <h3 className="text-lg font-semibold">Supporting evidence</h3>
+        <h3 className="text-lg font-semibold">What Ghost saw</h3>
         <div className="mt-3 space-y-3">
           {evidence.map((event) => (
             <article className="card" key={event.id}>

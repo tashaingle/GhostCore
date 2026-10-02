@@ -111,8 +111,8 @@ const jobStale: NotificationRuleDefinition = {
 const integrationError: NotificationRuleDefinition = {
   key: "integration_error",
   version: 1,
-  name: "Integration error",
-  description: "A stored integration is disconnected, expired or in error.",
+  name: "Tool not working",
+  description: "A connected tool is disconnected, its login expired or its sync is failing.",
   category: "integration",
   defaultSeverity: "warning",
   async evaluate(c) {
@@ -153,7 +153,7 @@ const integrationError: NotificationRuleDefinition = {
             evidenceType: "integration_state",
             sourceTable: "integrations",
             sourceId: x.id,
-            label: "Integration status",
+            label: "Connection status",
             description: safe(x.last_sync_error),
             observed: {
               provider: x.provider,
@@ -222,7 +222,7 @@ const rateLimited: NotificationRuleDefinition = {
   key: "integration_rate_limited",
   version: 1,
   name: "Provider rate limited",
-  description: "An integration log explicitly records provider rate limiting.",
+  description: "A tool asked Ghost to slow down.",
   category: "integration",
   defaultSeverity: "warning",
   async evaluate(c) {
@@ -241,7 +241,7 @@ const rateLimited: NotificationRuleDefinition = {
           safe(x.error_message) ||
           "The provider temporarily limited how fast Ghost can import data.",
         explanation: "This is normal when too many requests were made in a short period.",
-        recommendedAction: "Wait a little, then try Sync again from Integrations.",
+        recommendedAction: "Wait a little, then click Sync now again in Connections.",
         sourceType: "integration",
         sourceId: x.integration_id,
         condition: "rate_limited",
@@ -265,8 +265,8 @@ const rateLimited: NotificationRuleDefinition = {
 const correlationReview: NotificationRuleDefinition = {
   key: "high_confidence_correlation_requires_review",
   version: 1,
-  name: "High-confidence correlation requires review",
-  description: "An active deterministic correlation exceeds the configured score.",
+  name: "Strong link worth reviewing",
+  description: "Ghost found a strong link between events from different tools.",
   category: "correlation",
   defaultSeverity: "warning",
   async evaluate(c) {
@@ -297,7 +297,7 @@ const correlationReview: NotificationRuleDefinition = {
             sourceTable: "event_correlations",
             sourceId: x.id,
             correlationId: x.id,
-            label: "Correlation evidence",
+            label: "Linked events",
             description: `${x.rule_key} v${x.rule_version}; ${x.strength}.`,
             observed: {score: x.score, strength: x.strength},
             expected: {minimumScore: score},
@@ -313,7 +313,7 @@ const importRejected: NotificationRuleDefinition = {
   key: "manual_import_rejected_rows",
   version: 1,
   name: "Manual import rejected rows",
-  description: "A CSV import persisted rejected rows.",
+  description: "Some rows in a spreadsheet import were rejected.",
   category: "import",
   defaultSeverity: "warning",
   async evaluate(c) {

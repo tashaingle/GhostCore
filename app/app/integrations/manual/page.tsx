@@ -37,10 +37,12 @@ export default async function ManualDashboard({
         <Link className="text-sm text-zinc-500" href="/app/integrations">
           ← Integrations
         </Link>
-        <h2 className="mt-2 text-2xl font-bold">Manual data</h2>
+        <h1 className="mt-2 text-3xl font-semibold tracking-tight text-zinc-950">
+          Add data yourself
+        </h1>
         <p className="text-zinc-600">
-          Structured first-party evidence. Every change is revisioned and produces a deterministic
-          universal event.
+          Record sales, costs, leads and more by hand, or upload a spreadsheet. Every change is kept
+          in the history.
         </p>
       </div>
       <Notice searchParams={params} />

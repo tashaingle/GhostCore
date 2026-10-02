@@ -115,7 +115,9 @@ export default async function NotificationDetail({
           <span className="badge badge-muted">{titleCase(item.status)}</span>
           <span className="badge badge-muted">{humanCategory(item.category)}</span>
         </div>
-        <h2 className="mt-3 text-2xl font-bold">{display.title}</h2>
+        <h1 className="mt-3 text-3xl font-semibold tracking-tight text-zinc-950">
+          {display.title}
+        </h1>
         <p className="mt-2 text-zinc-700">{display.summary}</p>
         <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-3">
           <div>
@@ -180,7 +182,7 @@ export default async function NotificationDetail({
           </article>
 
           <article className="card">
-            <h3 className="font-semibold">Structured evidence</h3>
+            <h3 className="font-semibold">What Ghost saw</h3>
             {!evidence?.length ? (
               <p className="mt-2 text-zinc-500">No evidence was stored.</p>
             ) : (
@@ -208,7 +210,7 @@ export default async function NotificationDetail({
                       className="mt-2 inline-block text-sm underline"
                       href={`/app/correlations/${e.correlation_id}`}
                     >
-                      Open related correlation
+                      See related events
                     </Link>
                   ) : null}
                   {e.job_run_id ? (
@@ -222,7 +224,7 @@ export default async function NotificationDetail({
           </article>
 
           <article className="card">
-            <h3 className="font-semibold">Immutable history</h3>
+            <h3 className="font-semibold">History</h3>
             {revisions?.map((r) => (
               <div className="mt-3 border-t pt-3 text-sm" key={r.id}>
                 <strong>

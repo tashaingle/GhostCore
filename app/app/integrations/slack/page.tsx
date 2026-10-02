@@ -57,9 +57,10 @@ export default async function SlackDashboard({
     <section className="space-y-6">
       <div className="flex justify-between">
         <div>
-          <h1 className="text-3xl font-semibold tracking-tight text-zinc-950">Slack activity</h1>
+          <h1 className="text-3xl font-semibold tracking-tight text-zinc-950">Slack</h1>
           <p className="text-zinc-600">
-            Evidence from selected authorised channels. No sentiment, summaries or employee scoring.
+            Activity from the channels you chose. Ghost doesn’t judge tone, summarise conversations
+            or score people.
           </p>
         </div>
         <Link className="button button-secondary" href="/app/integrations/slack/settings">
@@ -94,7 +95,7 @@ export default async function SlackDashboard({
           className="input"
           name="author"
           defaultValue={author}
-          placeholder="Slack author ID"
+          placeholder="Slack member ID"
         />
         <button className="button">Filter</button>
       </form>

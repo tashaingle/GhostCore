@@ -33,7 +33,7 @@ export async function createEvent(
       .eq("id", normalised.integrationId)
       .eq("organisation_id", normalised.organisationId)
       .maybeSingle();
-    if (!integration) return {ok: false, message: "The selected integration is not available."};
+    if (!integration) return {ok: false, message: "That connected tool is no longer available."};
   }
   if (normalised.externalId) {
     const {data: existing} = await supabase

@@ -32,7 +32,7 @@ export default async function Approvals({
     <section className="space-y-6">
       <PageHeader
         title="Approvals"
-        description="Decisions people need to make for workflows (approve or reject)."
+        description="Automations that are waiting for someone to approve or reject a step."
       />
       <Notice searchParams={p} />
 

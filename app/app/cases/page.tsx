@@ -43,7 +43,7 @@ export default async function Cases({
         <div>
           <h1 className="text-3xl font-semibold tracking-tight text-zinc-950">Cases</h1>
           <p className="text-zinc-600">
-            Durable operational records spanning tasks, evidence and participants.
+            Bigger issues your team is handling, each with its own tasks, notes and people involved.
           </p>
         </div>
         <Link className="button" href="/app/cases/new">

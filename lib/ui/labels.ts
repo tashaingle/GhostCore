@@ -114,7 +114,7 @@ export function humanJobLabel(
   }
   if (jobKey.startsWith("integration.")) {
     return {
-      title: `Integration task: ${jobKey.replace("integration.", "").replaceAll("_", " ")}`,
+      title: `Connection task: ${jobKey.replace("integration.", "").replaceAll("_", " ")}`,
       detail: jobKey,
     };
   }

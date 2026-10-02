@@ -205,7 +205,7 @@ export default async function TaskDetail({
             )}
           </article>
           <article className="card">
-            <h3 className="font-semibold">Evidence ledger</h3>
+            <h3 className="font-semibold">Linked records</h3>
             {!evidence?.length ? (
               <p className="text-sm text-zinc-500">No structured evidence linked.</p>
             ) : (
@@ -236,7 +236,7 @@ export default async function TaskDetail({
             ))}
           </article>
           <article className="card">
-            <h3 className="font-semibold">Immutable history</h3>
+            <h3 className="font-semibold">History</h3>
             {revisions?.map((x) => (
               <p className="mt-2 text-sm" key={x.id}>
                 #{x.revision_number} <strong>{x.change_type}</strong> ·{" "}

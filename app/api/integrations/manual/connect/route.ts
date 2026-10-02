@@ -17,7 +17,7 @@ export async function GET(request: Request) {
   } catch (error) {
     return NextResponse.redirect(
       new URL(
-        `/app/integrations?error=${encodeURIComponent(error instanceof Error ? error.message : "Manual provider could not be enabled.")}`,
+        `/app/integrations?error=${encodeURIComponent(error instanceof Error ? error.message : "Adding data by hand couldn't be switched on. Please try again.")}`,
         request.url,
       ),
     );

@@ -22,7 +22,9 @@ export default async function GmailSettings({
         <Link className="text-sm text-zinc-500" href="/app/integrations">
           ← Integrations
         </Link>
-        <h2 className="mt-2 text-2xl font-bold">Gmail mailboxes</h2>
+        <h1 className="mt-2 text-3xl font-semibold tracking-tight text-zinc-950">
+          Gmail mailboxes
+        </h1>
         <p className="text-zinc-600">Read-only, privacy-limited email activity settings.</p>
       </div>
       <Notice searchParams={await searchParams} />

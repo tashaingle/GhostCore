@@ -243,7 +243,7 @@ export default async function CommandCentre({
   const userActions = activeActions.filter((x) => x.category !== "background_job");
   const kpis = [
     [
-      "Running workflows",
+      "Running automations",
       workflowRuns?.filter((x) => ["queued", "running", "waiting"].includes(x.status)).length ?? 0,
       "/app/workflow-runs",
     ],
@@ -253,7 +253,7 @@ export default async function CommandCentre({
       "/app/approvals",
     ],
     [
-      "Failed workflows",
+      "Failed automations",
       workflowRuns?.filter((x) => x.status === "failed").length ?? 0,
       "/app/workflow-runs?status=failed",
     ],
@@ -287,12 +287,12 @@ export default async function CommandCentre({
     ["Resolved actions", resolvedActions.length, "/app/action-centre?status=resolved"],
     ["Average time to fix", `${averageResolution} h`, "/app/action-centre?status=resolved"],
     [
-      "Recurrent actions",
+      "Recurring alerts",
       userActions.filter((x) => x.occurrence_count > 1).length,
       "/app/action-centre",
     ],
     [
-      "Active integrations",
+      "Connected tools",
       integrationRows.filter((x) => x.status === "connected").length,
       "/app/integrations",
     ],
@@ -326,13 +326,16 @@ export default async function CommandCentre({
       {
         title: "Automations",
         labels: [
-          "Running workflows",
+          "Running automations",
           "Pending approvals",
-          "Failed workflows",
+          "Failed automations",
           "Recent completions",
         ],
       },
-    ].map((g) => ({title: g.title, items: g.labels.map((l) => kpiByLabel.get(l)!)})),
+    ].map((g) => ({
+      title: g.title,
+      items: g.labels.map((l) => kpiByLabel.get(l)).filter((k) => k !== undefined),
+    })),
     grouped = new Set(kpiGroups.flatMap((g) => g.items.map((k) => String(k[0])))),
     behindTheScenes = kpis.filter((k) => !grouped.has(String(k[0])));
   const sections: Record<CommandWidgetId, ReactNode> = {
@@ -384,9 +387,7 @@ export default async function CommandCentre({
     attention: (
       <Section id="attention" title="Needs attention">
         {!alerts.length ? (
-          <div className="card text-zinc-500">
-            No deterministic alerts in the current evidence window.
-          </div>
+          <div className="card text-zinc-500">Nothing needs attention right now.</div>
         ) : (
           <div className="grid gap-3 lg:grid-cols-2">
             {alerts.map((alert) => (
@@ -398,7 +399,7 @@ export default async function CommandCentre({
                   <strong>{alert.title}</strong>
                 </div>
                 <p className="mt-2 text-sm">{alert.detail}</p>
-                <p className="mt-2 text-xs text-zinc-500">Evidence: {alert.evidence}</p>
+                <p className="mt-2 text-xs text-zinc-500">{`From: ${alert.evidence}`}</p>
               </Link>
             ))}
           </div>
@@ -409,8 +410,8 @@ export default async function CommandCentre({
       <Section id="activity" title="Cross-platform activity">
         {!chains.length ? (
           <div className="card text-zinc-500">
-            No supported correlation chains yet. Run reconciliation after importing compatible
-            provider events.
+            No linked activity yet. Ghost links related events, like a deploy followed by a traffic
+            drop, once your tools have synced.
           </div>
         ) : (
           <div className="grid gap-3 lg:grid-cols-2">
@@ -490,8 +491,8 @@ export default async function CommandCentre({
       <Section id="correlations" title="Recent correlations">
         {!correlations?.length ? (
           <div className="card text-zinc-500">
-            No correlations yet. Relationships are created only when an allowlisted deterministic
-            rule reaches its threshold.
+            No related events found yet. Ghost only links events when they clearly match, so this
+            can stay empty for a while.
           </div>
         ) : (
           <div className="grid gap-3 lg:grid-cols-2">
@@ -523,7 +524,7 @@ export default async function CommandCentre({
               className="field flex-1"
               name="q"
               defaultValue={q}
-              placeholder="Search imported evidence"
+              placeholder="Search activity"
             />
             <input type="hidden" name="range" value={range} />
             <button className="button">Search</button>
@@ -677,7 +678,7 @@ export default async function CommandCentre({
             Background jobs
           </Link>
           <Link className="button button-secondary" href="/app/integrations">
-            Connect or sync provider
+            Connections
           </Link>
           <Link className="button button-secondary" href="/app/integrations/manual">
             Import CSV
@@ -689,10 +690,10 @@ export default async function CommandCentre({
             Open timeline
           </Link>
           <Link className="button button-secondary" href="/app/correlations">
-            Search correlations
+            Related events
           </Link>
           <Link className="button button-secondary" href="/app/correlations/rules">
-            Open rules
+            Matching rules
           </Link>
         </div>
       </Section>
@@ -708,14 +709,13 @@ export default async function CommandCentre({
             ["Managers", roleCounts.get("manager") ?? 0],
             ["Viewers", roleCounts.get("viewer") ?? 0],
             ["Timezone", ctx.organisation.timezone],
-            ["Rule library", `${correlationRules.length} current rules`],
+            ["Matching rules", `${correlationRules.length} available`],
             [
-              "Last reconciliation",
+              "Last checked for related events",
               lastRun?.completed_at ? new Date(lastRun.completed_at).toLocaleString() : "Never",
             ],
-            ["Database version", savedError ? "Phase 18 migration pending" : "Phase 18"],
-            ["Pending migrations", savedError ? 1 : 0],
-            ["Operational log records", logCountResult.count ?? 0],
+
+            ["Sync history entries", logCountResult.count ?? 0],
           ].map(([label, value]) => (
             <div key={label}>
               <p className="text-xs text-zinc-500">{label}</p>
@@ -777,7 +777,8 @@ export default async function CommandCentre({
           </summary>
           <form action={saveCommandCentreLayout} className="mt-4 space-y-4">
             <p className="text-sm text-zinc-500">
-              Set order, visibility and collapsed state. This shared layout is organisation-scoped.
+              Choose which sections show and in what order. Changes apply for everyone in this
+              organisation.
             </p>
             <div className="grid gap-2 md:grid-cols-3">
               {storedLayout.widgets.map((id, index) => (

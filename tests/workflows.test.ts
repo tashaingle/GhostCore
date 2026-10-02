@@ -164,7 +164,7 @@ describe("migration and UI regression", () => {
     expect(builder).toContain("draggable");
     expect(sidebar).toContain(`href: "/app/workflows"`);
     expect(sidebar).toContain(`href: "/app/approvals"`);
-    expect(run).toContain("Execution logs");
+    expect(run).toContain("Activity log");
     expect(approval).toContain("Approve");
   });
 });

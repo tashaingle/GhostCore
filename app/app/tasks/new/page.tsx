@@ -28,7 +28,7 @@ export default async function NewTask({
       <div>
         <h1 className="text-3xl font-semibold tracking-tight text-zinc-950">Create task</h1>
         <p className="text-zinc-600">
-          Create bounded work from a blank form or a deterministic source reference.
+          Add something for your team to do, from scratch or from a template.
         </p>
       </div>
       <Notice searchParams={p} />

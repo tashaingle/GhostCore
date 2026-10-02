@@ -22,10 +22,12 @@ export default async function MetaSocialSettings() {
         <Link className="text-sm text-zinc-500" href="/app/integrations">
           ← Integrations
         </Link>
-        <h2 className="mt-2 text-2xl font-bold">Meta Social assets</h2>
+        <h1 className="mt-2 text-3xl font-semibold tracking-tight text-zinc-950">
+          Facebook Pages and Instagram
+        </h1>
         <p className="text-zinc-600">
-          Select Facebook Pages and linked Instagram professional accounts. Ghost only reads organic
-          insights (followers, reach, views, engagement).
+          Choose the Facebook Pages and linked Instagram business accounts to track. Ghost only
+          reads followers, reach, views and engagement.
         </p>
       </div>
       {!items?.length ? (
@@ -84,14 +86,14 @@ export default async function MetaSocialSettings() {
               ))}
               {!assets.length ? (
                 <p className="text-sm text-zinc-600">
-                  No Pages were discovered. Ensure this Meta user manages a Page and that Instagram
-                  is linked as a professional account.
+                  No Pages found. Check this Facebook account manages a Page, and that any Instagram
+                  account is a business account linked to it.
                 </p>
               ) : null}
               <div className="flex gap-3">
-                <button className="button">Save assets</button>
+                <button className="button">Save</button>
                 <Link className="button button-secondary" href="/app/integrations">
-                  Back to integrations
+                  Back to Connections
                 </Link>
               </div>
             </form>

@@ -18,10 +18,12 @@ export default async function LinkedInSettings() {
         <Link className="text-sm text-zinc-500" href="/app/integrations">
           ← Integrations
         </Link>
-        <h2 className="mt-2 text-2xl font-bold">LinkedIn assets</h2>
+        <h1 className="mt-2 text-3xl font-semibold tracking-tight text-zinc-950">
+          LinkedIn ad accounts and Pages
+        </h1>
         <p className="text-zinc-600">
-          Select read-only ad accounts and Company Pages. Availability depends on LinkedIn product
-          approval, member scopes, and asset roles.
+          Choose the ad accounts and Company Pages to track. What appears here depends on LinkedIn
+          approving Ghost and on your role in each account or Page.
         </p>
       </div>
       {!items?.length ? (
@@ -71,8 +73,8 @@ export default async function LinkedInSettings() {
               <h3 className="font-semibold">Advertising accounts</h3>
               {!ads.length && (
                 <div className="card text-zinc-500">
-                  No accessible ad accounts. Advertising API approval and asset access may be
-                  required.
+                  No ad accounts found. LinkedIn may still be reviewing Ghost’s access, or your
+                  LinkedIn account may not have access to an ad account.
                 </div>
               )}
               {ads.map((a) => (
@@ -95,8 +97,8 @@ export default async function LinkedInSettings() {
               <h3 className="font-semibold">Company Pages</h3>
               {!orgs.length && (
                 <div className="card text-zinc-500">
-                  No administered Company Pages. Community Management approval and Page role may be
-                  required.
+                  No Company Pages found. LinkedIn may still be reviewing Ghost’s access, or you may
+                  not be an admin of a Company Page.
                 </div>
               )}
               {orgs.map((o) => (

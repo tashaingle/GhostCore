@@ -27,7 +27,8 @@ export async function POST(request: Request) {
       .eq("organisation_id", ctx.organisationId)
       .eq("provider", "google_search_console")
       .maybeSingle();
-  if (!integration) return Response.json({error: "Integration not found."}, {status: 404});
+  if (!integration)
+    return Response.json({error: "That connection no longer exists."}, {status: 404});
   const settings =
       integration.settings &&
       typeof integration.settings === "object" &&

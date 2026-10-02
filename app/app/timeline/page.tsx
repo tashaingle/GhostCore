@@ -151,7 +151,7 @@ export default async function Timeline({
     <section className="space-y-6">
       <PageHeader
         title="Timeline"
-        description="What happened across your connected tools - insights first, noise optional."
+        description="Everything that happened across your connected tools, newest first."
       />
       <Notice searchParams={params} />
 
@@ -166,7 +166,7 @@ export default async function Timeline({
           <option value="everything">Everything</option>
           <option value="insights">Insights only</option>
           <option value="events">Events only</option>
-          <option value="correlations">Correlations only</option>
+          <option value="correlations">Related events only</option>
         </select>
         <select className="field" name="severity" defaultValue={filters.severity ?? ""}>
           <option value="">All severities</option>
@@ -213,9 +213,9 @@ export default async function Timeline({
       ) : !items.length ? (
         <EmptyState
           title="Nothing to show yet"
-          description="Connect a tool and run Sync, or widen your filters. Insights appear after Ghost analyses imported events."
+          description="Connect a tool and sync it, or widen your filters."
           actionHref="/app/integrations"
-          actionLabel="Go to integrations"
+          actionLabel="Go to Connections"
         />
       ) : (
         <div className="space-y-3">

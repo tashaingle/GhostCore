@@ -20,7 +20,7 @@ export default async function WorkViews({
       <div>
         <h1 className="text-3xl font-semibold tracking-tight text-zinc-950">Saved work views</h1>
         <p className="text-zinc-600">
-          Validated filters and deterministic sort definitions - never arbitrary SQL.
+          Save filters you use often, like “my overdue tasks”, to open them in one click.
         </p>
       </div>
       <Notice searchParams={p} />

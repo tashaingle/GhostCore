@@ -35,8 +35,8 @@ const safe = (x: string | null) =>
 const lockContention: NotificationRuleDefinition = {
   key: "background_job_lock_contention",
   version: 1,
-  name: "Background job lock contention",
-  description: "Repeated lock skips exceed the explicit threshold.",
+  name: "Background task skipped",
+  description: "A background task keeps being skipped.",
   category: "background_job",
   defaultSeverity: "info",
   async evaluate(c) {
@@ -59,10 +59,12 @@ const lockContention: NotificationRuleDefinition = {
       .map(([jobId, items]) =>
         make(c, lockContention, {
           severity: items.length >= 6 ? "warning" : "info",
-          title: "Background job lock contention is recurring",
-          summary: `${items.length} lock skips were recorded in one hour.`,
-          explanation: "A single active-lock skip is ignored; this rule requires at least three.",
-          recommendedAction: "Review worker overlap and lock expiry without deleting active locks.",
+          title: "A background task keeps getting skipped",
+          summary: `It was skipped ${items.length} times in an hour because another run was still going.`,
+          explanation:
+            "Ghost skips a task if the previous run hasn't finished. One skip is normal; this has happened at least three times.",
+          recommendedAction:
+            "Usually this sorts itself out. If it keeps happening, open Background jobs to see which task is slow.",
           sourceType: "background_job",
           sourceId: jobId,
           condition: "lock_contention",
@@ -84,8 +86,8 @@ const lockContention: NotificationRuleDefinition = {
 const integrationStale: NotificationRuleDefinition = {
   key: "integration_stale",
   version: 1,
-  name: "Integration stale",
-  description: "A connected integration missed its registry-derived expected interval.",
+  name: "Tool not syncing",
+  description: "A connected tool hasn't synced for longer than expected.",
   category: "integration",
   defaultSeverity: "warning",
   async evaluate(c) {
@@ -138,8 +140,8 @@ const integrationStale: NotificationRuleDefinition = {
 const correlationInvalidated: NotificationRuleDefinition = {
   key: "correlation_invalidated",
   version: 1,
-  name: "Correlation invalidated",
-  description: "A stored deterministic correlation was explicitly invalidated.",
+  name: "Link withdrawn",
+  description: "A link between events was withdrawn.",
   category: "correlation",
   defaultSeverity: "info",
   async evaluate(c) {
@@ -154,7 +156,7 @@ const correlationInvalidated: NotificationRuleDefinition = {
     return (data ?? []).map((x) =>
       make(c, correlationInvalidated, {
         severity: "info",
-        title: "A deterministic correlation was invalidated",
+        title: "A link between events was withdrawn",
         summary: safe(x.invalidation_reason),
         explanation:
           "The correlation explicitly stores active=false and an invalidation timestamp.",
@@ -168,7 +170,7 @@ const correlationInvalidated: NotificationRuleDefinition = {
             sourceTable: "event_correlations",
             sourceId: x.id,
             correlationId: x.id,
-            label: "Invalidated correlation",
+            label: "Withdrawn link",
             description: safe(x.invalidation_reason),
             observed: {active: false, ruleKey: x.rule_key, ruleVersion: x.rule_version},
             expected: {active: true},
@@ -200,7 +202,7 @@ const importFailed: NotificationRuleDefinition = {
         severity: x.failed === x.row_count ? "critical" : "warning",
         title: `${x.filename} import failed`,
         summary: `No rows were accepted; ${x.failed} were rejected.`,
-        explanation: "The persisted import totals prove that no row was accepted.",
+        explanation: "None of the rows in this file could be imported.",
         recommendedAction: "Inspect validation errors, correct the file, and retry.",
         sourceType: "manual_import",
         sourceId: x.id,

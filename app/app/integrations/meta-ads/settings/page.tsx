@@ -20,7 +20,9 @@ export default async function MetaAdsSettings() {
         <Link className="text-sm text-zinc-500" href="/app/integrations">
           ← Integrations
         </Link>
-        <h2 className="mt-2 text-2xl font-bold">Meta Ads accounts</h2>
+        <h1 className="mt-2 text-3xl font-semibold tracking-tight text-zinc-950">
+          Meta Ads accounts
+        </h1>
         <p className="text-zinc-600">
           Select up to ten accessible ad accounts. Ghost has reporting-only access.
         </p>

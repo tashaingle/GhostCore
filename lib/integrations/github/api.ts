@@ -63,6 +63,19 @@ export class GitHubApi {
   activity(login: string) {
     return this.get<GitHubActivity[]>(`/users/${encodeURIComponent(login)}/events?per_page=100`);
   }
+  /** Repositories an installation token can see (only those the user selected). */
+  async installationRepositories() {
+    const result = await this.get<{repositories: {full_name: string; archived?: boolean}[]}>(
+      "/installation/repositories?per_page=100",
+    );
+    return result.repositories.filter((r) => !r.archived).map((r) => r.full_name);
+  }
+  repositoryActivity(repository: string) {
+    const [owner, name] = repository.split("/");
+    return this.get<GitHubActivity[]>(
+      `/repos/${encodeURIComponent(owner)}/${encodeURIComponent(name)}/events?per_page=30`,
+    );
+  }
   async workflowRuns(repositories: string[]) {
     const runs: GitHubWorkflowRun[] = [];
     for (const repository of repositories.slice(0, 10)) {

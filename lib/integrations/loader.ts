@@ -4,6 +4,8 @@ import {getProvider} from "./registry";
 import {PlaceholderConnector} from "./placeholder-connector";
 import {GitHubConnector} from "./github/connector";
 import {GitHubApi} from "./github/api";
+import {GitHubAppConnector} from "./github/app-connector";
+import {githubAppEnv, installationToken} from "./github/app";
 import {GoogleAnalyticsConnector, type GoogleAnalyticsSettings} from "./google-analytics/connector";
 import {GoogleAnalyticsClient} from "./google-analytics/client";
 import {GmailConnector} from "./gmail/connector";
@@ -49,6 +51,15 @@ export function loadConnector(
   if (!provider) throw new Error(`Unknown integration provider: ${providerId}`);
   const credentials = typeof input === "string" ? {accessToken: input} : (input ?? {});
   if (provider.connector === "github") {
+    // GitHub App installations mint a short-lived token per sync; older connections use OAuth.
+    const installationId = credentials.settings?.installationId;
+    if (typeof installationId === "string" && installationId) {
+      const env = githubAppEnv();
+      if (!env) throw new Error("GitHub App configuration is incomplete.");
+      return new GitHubAppConnector(
+        async () => new GitHubApi(await installationToken(env, installationId)),
+      );
+    }
     if (!credentials.accessToken) throw new Error("GitHub credentials are missing.");
     return new GitHubConnector(new GitHubApi(credentials.accessToken));
   }

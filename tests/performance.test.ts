@@ -1,5 +1,5 @@
 import {describe, expect, it} from "vitest";
-import {highlights, parsePeriod, performanceMetrics} from "@/lib/home/performance";
+import {highlights, parsePeriod, performanceMetrics, steadyLines} from "@/lib/home/performance";
 import type {IntelligenceEvent} from "@/lib/intelligence/types";
 
 const NOW = new Date("2026-10-02T12:00:00Z");
@@ -201,5 +201,35 @@ describe("going well and needs a look", () => {
         text: "Ad spend up 40% but return on ad spend fell 35% compared with last month",
       },
     ]);
+  });
+});
+
+describe("holding steady", () => {
+  const m = (
+    key: string,
+    change: number | null,
+    higherIsBetter: boolean | null,
+    comparable = true,
+  ) => ({
+    key,
+    group: "Money" as const,
+    label: key === "orders" ? "Orders" : key === "revenue" ? "Revenue" : "Ad spend",
+    value: "52",
+    change,
+    source: "x",
+    higherIsBetter,
+    comparable,
+  });
+
+  it("lists good-direction measures that held roughly level", () => {
+    expect(
+      steadyLines([m("orders", 3.4, true), m("revenue", 0, true), m("adSpend", 2, null)]),
+    ).toEqual(["Orders steady at 52 (up 3%)", "Revenue steady at 52"]);
+  });
+
+  it("ignores big moves, neutral measures and anything without history", () => {
+    expect(
+      steadyLines([m("orders", 25, true), m("adSpend", 1, null), m("revenue", 2, true, false)]),
+    ).toEqual([]);
   });
 });

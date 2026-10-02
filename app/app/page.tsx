@@ -364,6 +364,16 @@ export default async function Home({
           metrics={metrics}
           highlights={highlights}
           updates={updates ?? 0}
+          healthy={[
+            ...(connections.length && !broken.length
+              ? [
+                  connections.length === 1
+                    ? "Your connected tool is up to date"
+                    : `All ${connections.length} connected tools are up to date`,
+                ]
+              : []),
+            ...(attentionTotal === 0 ? ["Nothing urgent is waiting for you"] : []),
+          ]}
         />
       ) : null}
 

@@ -143,7 +143,8 @@ export default function PrivacyPage() {
         <p>
           Depending on your location, you may have rights to access, correct, delete, or export
           personal data, or to withdraw consent for a connected provider by disconnecting it in
-          Integrations (and optionally revoking access in the provider’s security settings).
+          Connections (and optionally revoking access in the provider’s security settings). See{" "}
+          <Link href="/data-deletion">how to delete your data</Link>.
         </p>
 
         <h2>9. Meta (Facebook / Instagram) specific notes</h2>

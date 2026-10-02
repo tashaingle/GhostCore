@@ -1,6 +1,8 @@
 import Link from "next/link";
 import {signIn, signUp} from "@/app/actions";
 import {Notice} from "./notice";
+import {AuthShell} from "./auth-shell";
+import {SubmitButton} from "./submit-button";
 
 export function AuthForm({
   mode,
@@ -12,28 +14,31 @@ export function AuthForm({
   const register = mode === "register";
 
   return (
-    <main className="mx-auto grid min-h-screen max-w-md place-items-center p-6">
-      <section className="card w-full space-y-5 shadow-sm">
-        <div className="space-y-2 text-center">
-          <span className="mx-auto grid h-10 w-10 place-items-center rounded-xl bg-zinc-900 text-sm font-bold text-white">
-            G
-          </span>
-          <h1 className="text-2xl font-bold tracking-tight">
-            {register ? "Create your account" : "Welcome back"}
-          </h1>
-          <p className="text-sm text-zinc-500">
-            {register
-              ? "Set up Ghost and connect your business tools."
-              : "Sign in to your Ghost workspace."}
-          </p>
-        </div>
-
+    <AuthShell
+      title={register ? "Create your account" : "Welcome back"}
+      subtitle={
+        register
+          ? "Free to start. You'll connect your first tool in a couple of minutes."
+          : "Sign in to see what's happening in your business."
+      }
+      footer={
+        <>
+          {register ? "Already have an account? " : "New to Ghost? "}
+          <Link
+            className="font-medium text-violet-700 hover:underline"
+            href={register ? "/login" : "/register"}
+          >
+            {register ? "Sign in" : "Create an account"}
+          </Link>
+        </>
+      }
+    >
+      <div className="space-y-5">
         <Notice searchParams={params} />
-
         <form action={register ? signUp : signIn} className="space-y-4">
           {register ? (
             <label className="label">
-              Full name
+              Your name
               <input className="field" name="fullName" autoComplete="name" required />
             </label>
           ) : null}
@@ -42,7 +47,17 @@ export function AuthForm({
             <input className="field" name="email" type="email" autoComplete="email" required />
           </label>
           <label className="label">
-            Password
+            <span className="flex items-center justify-between">
+              Password
+              {register ? null : (
+                <Link
+                  href="/forgot-password"
+                  className="text-xs font-medium text-violet-700 hover:underline"
+                >
+                  Forgot password?
+                </Link>
+              )}
+            </span>
             <input
               className="field"
               name="password"
@@ -51,17 +66,18 @@ export function AuthForm({
               autoComplete={register ? "new-password" : "current-password"}
               required
             />
+            {register ? (
+              <span className="text-xs font-normal text-zinc-500">At least 8 characters.</span>
+            ) : null}
           </label>
-          <button className="button w-full">{register ? "Create account" : "Sign in"}</button>
+          <SubmitButton
+            className="button w-full"
+            pendingLabel={register ? "Creating your account…" : "Signing in…"}
+          >
+            {register ? "Create account" : "Sign in"}
+          </SubmitButton>
         </form>
-
-        <p className="text-center text-sm text-zinc-600">
-          {register ? "Already have an account? " : "Need an account? "}
-          <Link className="font-medium underline" href={register ? "/login" : "/register"}>
-            {register ? "Sign in" : "Register"}
-          </Link>
-        </p>
-      </section>
-    </main>
+      </div>
+    </AuthShell>
   );
 }

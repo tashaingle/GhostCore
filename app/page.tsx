@@ -39,12 +39,12 @@ export default async function Home() {
           Operations intelligence
         </p>
         <h1 className="mt-3 max-w-3xl text-4xl font-bold tracking-tight text-zinc-950 md:text-5xl">
-          See what changed across your stack - and what to do next.
+          See what changed in your business, and what to do next.
         </h1>
         <p className="mt-5 max-w-2xl text-lg text-zinc-600">
-          Ghost connects Stripe, Shopify, GitHub, Google, Slack and more into one secure timeline.
-          It surfaces deterministic insights with evidence, so your team can act without drowning in
-          dashboards.
+          Ghost connects Stripe, Shopify, Google, Meta, Slack and more, then tells you in plain
+          English what changed, what needs fixing and what to do about it, without another dashboard
+          to check.
         </p>
         <div className="mt-8 flex flex-wrap gap-3">
           <Link className="button" href="/register">
@@ -63,11 +63,11 @@ export default async function Home() {
             },
             {
               title: "Clear insights",
-              body: "Failed workflows, traffic drops after deploys, and other risks with confidence and evidence.",
+              body: "Sales drops, failed payments, disputes and traffic changes, each with what to check next.",
             },
             {
               title: "Built for teams",
-              body: "Multi-workspace, roles, approvals and action tracking - without giving tools write access.",
+              body: "Invite your team, share what needs doing, and keep every tool read-only.",
             },
           ].map((item) => (
             <article className="card" key={item.title}>

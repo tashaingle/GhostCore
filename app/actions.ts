@@ -54,18 +54,49 @@ export async function signUp(form: FormData) {
     password: parsed.data.password,
     options: {
       data: {full_name: parsed.data.fullName},
-      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"}/auth/callback`,
+      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"}/auth/callback?next=/welcome`,
     },
   });
   if (error)
     redirect(
       messageUrl("/register", "error", "Registration failed. The account may already exist."),
     );
-  if (!data.session)
+  if (!data.session) redirect("/check-email");
+  redirect("/welcome");
+}
+const siteUrl = () => process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+/**
+ * Emails a password reset link. The response is the same whether or not the address has an
+ * account, so the form can't be used to discover who is registered.
+ */
+export async function requestPasswordReset(form: FormData) {
+  const email = z.email().safeParse(form.get("email"));
+  if (!email.success)
+    redirect(messageUrl("/forgot-password", "error", "Enter a valid email address."));
+  const supabase = await createClient();
+  const {error} = await supabase.auth.resetPasswordForEmail(email.data, {
+    redirectTo: `${siteUrl()}/auth/callback?next=/reset-password`,
+  });
+  if (error) console.error("Password reset request failed", error.message);
+  redirect("/check-email?reason=reset");
+}
+/** Sets a new password for the user signed in through the reset link. */
+export async function updatePassword(form: FormData) {
+  const parsed = z
+    .object({password: z.string().min(8).max(200), confirm: z.string()})
+    .refine((v) => v.password === v.confirm)
+    .safeParse(Object.fromEntries(form));
+  if (!parsed.success)
     redirect(
-      messageUrl("/login", "success", "Check your email to confirm your account, then sign in."),
+      messageUrl("/reset-password", "error", "Passwords must match and be at least 8 characters."),
     );
-  redirect("/app");
+  const {supabase} = await requireUser();
+  const {error} = await supabase.auth.updateUser({password: parsed.data.password});
+  if (error)
+    redirect(
+      messageUrl("/reset-password", "error", "Your password couldn't be changed. Try again."),
+    );
+  redirect("/app?success=Your%20password%20has%20been%20changed.");
 }
 export async function signOut() {
   const supabase = await createClient();

@@ -13,10 +13,10 @@ function secretMatches(supplied: string, configured: string | undefined) {
 function authorized(request: Request) {
   // Vercel Cron sends Authorization: Bearer <CRON_SECRET>.
   // Manual/ops calls often use BACKGROUND_JOB_SECRET. Accept either.
+  // Secrets are only read from headers: query strings end up in access logs.
   const supplied =
     request.headers.get("authorization")?.replace(/^Bearer\s+/i, "") ??
     request.headers.get("x-job-secret") ??
-    new URL(request.url).searchParams.get("secret") ??
     "";
   return (
     secretMatches(supplied, process.env.CRON_SECRET) ||

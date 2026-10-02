@@ -263,7 +263,7 @@ Operational setup:
 1. Apply `202607290010_background_jobs.sql`.
 2. Configure `SUPABASE_SERVICE_ROLE_KEY` and `BACKGROUND_JOB_SECRET` only in the server/worker environment.
 3. Schedule `POST /api/jobs/dispatch` with `Authorization: Bearer $BACKGROUND_JOB_SECRET` every five minutes in Vercel Cron, Supabase Scheduled Functions, or another scheduler.
-4. Optionally set `BACKGROUND_JOB_BATCH_SIZE` from 1–20 (default 5).
+4. Optionally set `BACKGROUND_JOB_CONCURRENCY` from 1–8 (default 4). Each dispatch runs due jobs for up to four minutes (at most 100); jobs not reached stay due for the next call. `BACKGROUND_JOB_BATCH_SIZE` is no longer used.
 5. Open `/app/jobs`; run the first due batch or use Run now, which queues the job for the next dispatcher invocation.
 
 Cancellation is cooperative: a queued job is cancelled before execution, while an in-flight provider request completes within its connector timeout and the job timeout records a timed-out run. The Phase 19 worker is HTTP-invoked and intentionally does not ship a cron deployment so hosting remains provider-neutral. Job history cleanup retains failures/retries for audit; only old successful, skipped, and cancelled runs are removed.

@@ -1,12 +1,33 @@
 import "server-only";
 import {createServiceClient} from "@/lib/supabase/service";
+import {runPool} from "./pool";
 import {ensureRegisteredJobs} from "./registry";
 import {executeJob} from "./runner";
+
+/** Stop starting jobs after this long; the dispatch route's maxDuration is 300 seconds. */
+export const DISPATCH_BUDGET_MS = 240_000;
+/** Don't start a job with less time than this left in the budget. */
+export const MIN_JOB_WINDOW_MS = 15_000;
+export const MAX_JOBS_PER_DISPATCH = 100;
+export const DEFAULT_CONCURRENCY = 4;
+
+export const clampConcurrency = (value: unknown) => {
+  const n = Math.trunc(Number(value));
+  return Number.isFinite(n) && n >= 1 ? Math.min(8, n) : DEFAULT_CONCURRENCY;
+};
+
 export async function dispatchDueJobs(
-  options: {limit?: number; organisationId?: string; workerId?: string} = {},
+  options: {
+    organisationId?: string;
+    workerId?: string;
+    concurrency?: number;
+    budgetMs?: number;
+  } = {},
 ) {
-  const client = createServiceClient(),
-    limit = Math.max(1, Math.min(20, options.limit ?? 5)),
+  const startedAt = Date.now(),
+    deadline = startedAt + (options.budgetMs ?? DISPATCH_BUDGET_MS),
+    client = createServiceClient(),
+    concurrency = clampConcurrency(options.concurrency),
     workerId = options.workerId ?? `worker-${crypto.randomUUID()}`;
   let orgQuery = client.from("organisations").select("id,created_by").limit(1000);
   if (options.organisationId) orgQuery = orgQuery.eq("id", options.organisationId);
@@ -19,16 +40,32 @@ export async function dispatchDueJobs(
     .eq("enabled", true)
     .lte("next_run_at", new Date().toISOString())
     .order("next_run_at")
-    .limit(limit);
+    .limit(MAX_JOBS_PER_DISPATCH);
   if (options.organisationId) query = query.eq("organisation_id", options.organisationId);
   const {data: jobs, error} = await query;
   if (error) throw error;
-  const results = [];
-  for (const job of jobs ?? [])
-    results.push({
-      jobId: job.id,
-      jobKey: job.job_key,
-      ...(await executeJob(client, job, workerId)),
-    });
-  return {workerId, discovered: jobs?.length ?? 0, results};
+  // Most jobs wait on network I/O, so a few run side by side. Per-job locks prevent a job
+  // overlapping itself. Jobs not started before the deadline stay due for the next dispatch.
+  const {results, notRun} = await runPool(jobs ?? [], concurrency, async (job) => {
+    const remaining = deadline - Date.now();
+    if (remaining < MIN_JOB_WINDOW_MS) return null;
+    try {
+      return {
+        jobId: job.id,
+        jobKey: job.job_key,
+        ...(await executeJob(client, job, workerId, remaining)),
+      };
+    } catch (jobError) {
+      console.error("Background job could not be executed", job.job_key, jobError);
+      return {jobId: job.id, jobKey: job.job_key, status: "error" as const};
+    }
+  });
+  return {
+    workerId,
+    discovered: jobs?.length ?? 0,
+    deferred: notRun,
+    concurrency,
+    durationMs: Date.now() - startedAt,
+    results,
+  };
 }

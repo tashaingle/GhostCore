@@ -193,7 +193,13 @@ async function handle(client: SupabaseClient<Database>, job: Job): Promise<JobMe
   }
   throw new Error(`Configuration contains unsupported job type ${job.job_type}.`);
 }
-export async function executeJob(client: SupabaseClient<Database>, job: Job, workerId: string) {
+export async function executeJob(
+  client: SupabaseClient<Database>,
+  job: Job,
+  workerId: string,
+  /** Remaining dispatch budget; the job's own timeout is capped to it. */
+  maxMs = Infinity,
+) {
   if (!job.enabled) return {status: "skipped" as const};
   if (job.cancel_requested_at) {
     await client
@@ -229,13 +235,17 @@ export async function executeJob(client: SupabaseClient<Database>, job: Job, wor
       })
       .select("id")
       .single();
+  let timer: ReturnType<typeof setTimeout> | undefined;
   try {
     const metrics = await Promise.race([
         handle(client, job),
-        new Promise<never>((_, reject) =>
-          setTimeout(() => reject(new Error("Job timed out.")), job.timeout_seconds * 1000),
-        ),
-      ]),
+        new Promise<never>((_, reject) => {
+          timer = setTimeout(
+            () => reject(new Error("Job timed out.")),
+            Math.min(job.timeout_seconds * 1000, maxMs),
+          );
+        }),
+      ]).finally(() => clearTimeout(timer)),
       finished = new Date().toISOString(),
       duration = Date.now() - started;
     await client

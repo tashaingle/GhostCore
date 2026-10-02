@@ -148,22 +148,22 @@ export async function ensureRegisteredJobs(
       }),
     ],
     now = new Date().toISOString();
-  for (const d of definitions)
-    await client.from("background_jobs").upsert(
-      {
-        organisation_id: organisationId,
-        integration_id: d.integrationId ?? null,
-        job_key: d.key,
-        job_type: d.type,
-        provider: d.provider ?? null,
-        schedule_type: d.scheduleType,
-        schedule_value: d.scheduleValue ?? null,
-        next_run_at: d.scheduleType === "manual" ? null : now,
-        timeout_seconds: d.timeout ?? 120,
-        configuration: d.configuration ?? {},
-        created_by: createdBy ?? null,
-      },
-      {onConflict: "organisation_id,job_key", ignoreDuplicates: true},
-    );
+  // One round trip per organisation; existing jobs are left untouched.
+  await client.from("background_jobs").upsert(
+    definitions.map((d) => ({
+      organisation_id: organisationId,
+      integration_id: d.integrationId ?? null,
+      job_key: d.key,
+      job_type: d.type,
+      provider: d.provider ?? null,
+      schedule_type: d.scheduleType,
+      schedule_value: d.scheduleValue ?? null,
+      next_run_at: d.scheduleType === "manual" ? null : now,
+      timeout_seconds: d.timeout ?? 120,
+      configuration: d.configuration ?? {},
+      created_by: createdBy ?? null,
+    })),
+    {onConflict: "organisation_id,job_key", ignoreDuplicates: true},
+  );
   return definitions.length;
 }

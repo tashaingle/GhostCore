@@ -37,7 +37,7 @@ async function dispatch(request: Request) {
   try {
     return Response.json(
       await dispatchDueJobs({
-        limit: Number(process.env.BACKGROUND_JOB_BATCH_SIZE ?? 5),
+        concurrency: Number(process.env.BACKGROUND_JOB_CONCURRENCY ?? 4),
       }),
     );
   } catch (error) {

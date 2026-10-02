@@ -143,4 +143,7 @@ describe("Facebook Page metrics", () => {
     expect(FB_PAGE_DAY_METRICS).not.toContain("page_impressions_unique");
     expect(FB_PAGE_DAY_METRICS).toContain("page_media_view");
   });
+  it("requests read_insights, without which Page Insights return no data", () => {
+    expect(META_SOCIAL_PERMISSIONS_DEFAULT).toContain("read_insights");
+  });
 });

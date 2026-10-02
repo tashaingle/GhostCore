@@ -12,14 +12,15 @@ export const META_SOCIAL_DEFAULT_VERSION = "v25.0";
  * supports Page list/engagement; Instagram scopes need the Instagram product.
  *
  * Override with META_SOCIAL_SCOPES (comma-separated) after enabling products:
- * pages_show_list,pages_read_engagement,pages_read_user_content,instagram_basic,instagram_manage_insights,business_management
+ * pages_show_list,pages_read_engagement,pages_read_user_content,instagram_basic,instagram_manage_insights,read_insights,business_management
  *
- * Page Insights work with pages_read_engagement alone; read_insights is not needed and is rejected
- * as an invalid scope by apps without a matching use case.
+ * read_insights is required: without it Page Insights calls succeed but return no data. Add it to
+ * the app's "Manage everything on your Page" use case, or Meta rejects it as an invalid scope.
  */
 export const META_SOCIAL_PERMISSIONS_DEFAULT = [
   "pages_show_list",
   "pages_read_engagement",
+  "read_insights",
   "business_management",
 ] as const;
 
@@ -30,6 +31,7 @@ export const META_SOCIAL_PERMISSIONS_WITH_INSTAGRAM = [
   "pages_read_user_content",
   "instagram_basic",
   "instagram_manage_insights",
+  "read_insights",
   "business_management",
 ] as const;
 

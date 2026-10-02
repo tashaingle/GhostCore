@@ -65,7 +65,7 @@ export default async function SearchConsoleProperties() {
               ))}
               <div className="card grid gap-3 sm:grid-cols-2">
                 <label>
-                  Change threshold %
+                  Tell me when clicks change by at least (%)
                   <input
                     className="input mt-1"
                     type="number"
@@ -74,9 +74,12 @@ export default async function SearchConsoleProperties() {
                     name="thresholdPercent"
                     defaultValue={Number(settings.thresholdPercent ?? 25)}
                   />
+                  <span className="mt-1 block text-sm text-zinc-500">
+                    Compared with the previous period. 25% suits most sites.
+                  </span>
                 </label>
                 <label>
-                  Minimum clicks
+                  Ignore pages and searches with fewer clicks than
                   <input
                     className="input mt-1"
                     type="number"
@@ -85,9 +88,12 @@ export default async function SearchConsoleProperties() {
                     name="minimumClicks"
                     defaultValue={Number(settings.minimumClicks ?? 10)}
                   />
+                  <span className="mt-1 block text-sm text-zinc-500">
+                    Stops tiny numbers looking dramatic, like 2 clicks falling to 1.
+                  </span>
                 </label>
               </div>
-              <button className="button">Save selected properties</button>
+              <button className="button">Save</button>
             </form>
           );
         })

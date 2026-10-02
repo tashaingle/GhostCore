@@ -347,3 +347,19 @@ Migration `202607290015_email_outbox.sql` adds `email_outbox`, which only the se
 Recipients follow the existing notification preferences. Alert emails are opt-in: email must be enabled, the digest mode must be `immediate`, and the alert must meet the minimum severity. Approval emails go to the named approver or to every active member with the approver role, and are on by default. People can opt out with the "Assignment-related" preference. Daily and weekly digests, assignment emails and watcher emails are not implemented yet.
 
 Delivery is disabled until both `RESEND_API_KEY` and `EMAIL_FROM` are set; the job then reports `configured: false` and queues nothing, so enabling it never sends a backlog. To enable it: install Resend from the Vercel Marketplace with the sending domain (`vercel integration add resend/resend-email -m domain=<domain> -m region=eu-west-1`), add the DNS records Resend shows, set `EMAIL_FROM` in Vercel to an address on that domain, apply the migration and redeploy.
+
+# Commerce, payments and advertising insights
+
+Eight deterministic rules extend the Intelligence Engine. All thresholds live in `lib/intelligence/config.ts`; shared window helpers are in `lib/intelligence/windows.ts`.
+
+- `commerce.shopify_order_decline`: orders down 30% or more week on week per store (critical at 60%), with at least 10 orders the previous week.
+- `commerce.shopify_refund_rate`: 10% or more of orders placed in the last 14 days refunded, with at least 3 refunds. Each order is counted once.
+- `payments.stripe_failure_rate`: 15% or more of live payments failed and were not recovered in 7 days, with at least 5 failures (critical at 30%).
+- `payments.stripe_revenue_decline`: successful live payment value down 30% or more week on week per currency, with at least 10 payments the previous week.
+- `payments.stripe_dispute_needs_response` and `payments.stripe_payout_failed`: one critical insight per live dispute awaiting a response or failed payout in the last 30 days.
+- `advertising.meta_return_decline`: Meta-attributed purchase value down 30% or more while spend is steady or rising, using only the latest revision of each account-level day and excluding today.
+- `cross_provider.ad_spend_up_orders_down`: Meta spend up 20% or more while Shopify orders fall 20% or more. Skipped when ad accounts use different currencies.
+
+Week-on-week rules require data from before the previous window, so new connections and truncated histories never look like declines. Trend insights are keyed by ISO week: a persisting problem updates one insight, and a recurrence in a later week creates a new one even if an earlier one was dismissed. Rules receive `{now}` through `evaluateRules`. Stripe rules ignore test-mode data.
+
+The `intelligence.evaluate` background job runs every rule hourly per organisation, so insights no longer depend on someone clicking "Run intelligence" or manually syncing. Insights do not yet create Action Centre notifications or emails.

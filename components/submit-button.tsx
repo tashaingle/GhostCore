@@ -6,14 +6,23 @@ export function SubmitButton({
   children,
   pendingLabel,
   className = "button",
+  disabled = false,
+  title,
 }: {
   children: React.ReactNode;
   pendingLabel: string;
   className?: string;
+  disabled?: boolean;
+  title?: string;
 }) {
   const {pending} = useFormStatus();
   return (
-    <button className={className} disabled={pending} aria-disabled={pending}>
+    <button
+      className={className}
+      disabled={pending || disabled}
+      aria-disabled={pending || disabled}
+      title={title}
+    >
       {pending ? pendingLabel : children}
     </button>
   );

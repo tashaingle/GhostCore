@@ -13,6 +13,7 @@ import type {IntelligenceEvent} from "@/lib/intelligence/types";
 import {runIntelligenceAction} from "@/app/intelligence-actions";
 import {Notice} from "@/components/notice";
 import {GettingStarted} from "@/components/getting-started";
+import {AutoRefresh} from "@/components/auto-refresh";
 import {
   InsightCard,
   ProviderMark,
@@ -266,6 +267,7 @@ export default async function Home({
       </header>
 
       <Notice searchParams={params} />
+      <AutoRefresh active={connections.some((c) => c.state === "syncing")} />
 
       {!connections.length ? (
         <GettingStarted connectedCount={0} eventCount={0} insightCount={0} />

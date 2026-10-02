@@ -48,7 +48,15 @@ export function stripeEnvironment() {
   const redirectUri = process.env.STRIPE_REDIRECT_URI;
   if (!secretKey || !clientId || !redirectUri)
     throw new Error("Stripe server configuration is incomplete.");
-  if (process.env.NODE_ENV === "production" && secretKey.startsWith("sk_test_"))
-    throw new Error("Production cannot use a Stripe test secret key.");
+  // Test keys are refused in production unless explicitly allowed, so test payments are never
+  // mistaken for real revenue by accident. Test-mode data stays labelled and is ignored by insights.
+  if (
+    process.env.NODE_ENV === "production" &&
+    secretKey.startsWith("sk_test_") &&
+    process.env.STRIPE_ALLOW_TEST_MODE !== "true"
+  )
+    throw new Error(
+      "Production cannot use a Stripe test secret key unless STRIPE_ALLOW_TEST_MODE=true.",
+    );
   return {secretKey, clientId, redirectUri};
 }

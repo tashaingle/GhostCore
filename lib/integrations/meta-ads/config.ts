@@ -3,6 +3,7 @@ export const META_DEFAULT_VERSION = "v25.0",
   META_PERMISSIONS = ["ads_read", "business_management"] as const,
   META_LIMITS = {
     accounts: 10,
+    businesses: 10,
     initialDays: 90,
     reconcileDays: 7,
     extendedDays: 28,

@@ -159,34 +159,59 @@ export class MetaAdsClient {
       z.object({permission: z.string(), status: z.string()}),
     );
   }
+  /**
+   * Ad accounts the person can report on: ones assigned to them directly, plus ones owned by or
+   * shared with the businesses they allowed Ghost to see. Business-owned accounts are often not
+   * assigned to anyone personally, so me/adaccounts alone misses them.
+   */
   async accounts(): Promise<MetaAccount[]> {
-    const rows = await this.paginate(
-      "me/adaccounts",
-      {
-        fields:
-          "id,account_id,name,account_status,currency,timezone_name,timezone_offset_hours_utc,business{id,name},disable_reason",
-        limit: "100",
-      },
-      accountSchema,
-    );
+    const fields =
+        "id,account_id,name,account_status,currency,timezone_name,timezone_offset_hours_utc,business{id,name},disable_reason",
+      rows = await this.paginate("me/adaccounts", {fields, limit: "100"}, accountSchema);
+    let businesses: {id: string; name?: string}[] = [];
+    try {
+      businesses = await this.paginate(
+        "me/businesses",
+        {fields: "id,name", limit: "100"},
+        z.object({id: z.string(), name: z.string().optional()}),
+      );
+    } catch {
+      // Without business access Ghost still has the personally assigned accounts.
+    }
+    for (const business of businesses.slice(0, META_LIMITS.businesses))
+      for (const edge of ["owned_ad_accounts", "client_ad_accounts"]) {
+        try {
+          const owned = await this.paginate(
+            `${business.id}/${edge}`,
+            {fields, limit: "100"},
+            accountSchema,
+          );
+          rows.push(...owned.map((row) => ({...row, business: row.business ?? business})));
+        } catch {
+          // One business Ghost can't read shouldn't hide the others.
+        }
+      }
     return [
       ...new Map(
-        rows.map((row) => [
-          row.account_id,
-          {
-            id: `act_${row.account_id.replace(/^act_/, "")}`,
-            accountId: row.account_id.replace(/^act_/, ""),
-            name: row.name,
-            accountStatus: row.account_status,
-            currency: row.currency,
-            timezoneName: row.timezone_name,
-            timezoneOffsetHoursUtc: row.timezone_offset_hours_utc,
-            businessId: row.business?.id,
-            businessName: row.business?.name,
-            disableReason: row.disable_reason,
-            accessState: row.account_status === 1 ? "available" : "disabled",
-          },
-        ]),
+        rows
+          // First listing wins: an account assigned to the person keeps its own details.
+          .filter((row, i) => rows.findIndex((r) => r.account_id === row.account_id) === i)
+          .map((row) => [
+            row.account_id,
+            {
+              id: `act_${row.account_id.replace(/^act_/, "")}`,
+              accountId: row.account_id.replace(/^act_/, ""),
+              name: row.name,
+              accountStatus: row.account_status,
+              currency: row.currency,
+              timezoneName: row.timezone_name,
+              timezoneOffsetHoursUtc: row.timezone_offset_hours_utc,
+              businessId: row.business?.id,
+              businessName: row.business?.name,
+              disableReason: row.disable_reason,
+              accessState: row.account_status === 1 ? "available" : "disabled",
+            },
+          ]),
       ).values(),
     ];
   }

@@ -43,14 +43,10 @@ export default async function Approvals({
           ["Rejected", rows?.filter((x) => x.status === "rejected").length ?? 0],
           [
             "Overdue",
-            rows?.filter(
-              (x) => x.status === "pending" && x.due_at && new Date(x.due_at) < now,
-            ).length ?? 0,
+            rows?.filter((x) => x.status === "pending" && x.due_at && new Date(x.due_at) < now)
+              .length ?? 0,
           ],
-          [
-            "Assigned to me",
-            rows?.filter((x) => x.approver_user_id === ctx.user.id).length ?? 0,
-          ],
+          ["Assigned to me", rows?.filter((x) => x.approver_user_id === ctx.user.id).length ?? 0],
         ].map(([k, v]) => (
           <div className="card" key={String(k)}>
             <p className="text-sm text-zinc-500">{k}</p>
@@ -80,7 +76,11 @@ export default async function Approvals({
           <div className="card text-zinc-500">No approvals match these filters.</div>
         ) : (
           rows.map((x) => (
-            <Link className="card card-interactive block" href={`/app/approvals/${x.id}`} key={x.id}>
+            <Link
+              className="card card-interactive block"
+              href={`/app/approvals/${x.id}`}
+              key={x.id}
+            >
               <div className="flex justify-between gap-2">
                 <strong>Workflow approval</strong>
                 <span className="badge badge-muted">{titleCase(x.status)}</span>

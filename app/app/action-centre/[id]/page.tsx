@@ -5,11 +5,7 @@ import {hasPermission, type OrganisationRole} from "@/lib/auth/permissions";
 import {Notice} from "@/components/notice";
 import {SeverityBadge} from "@/components/severity-badge";
 import {notificationAction} from "@/app/notification-actions";
-import {
-  humanCategory,
-  humanizeNotificationDisplay,
-  titleCase,
-} from "@/lib/ui/labels";
+import {humanCategory, humanizeNotificationDisplay, titleCase} from "@/lib/ui/labels";
 
 const json = (value: unknown) => JSON.stringify(value, null, 2);
 
@@ -79,17 +75,12 @@ export default async function NotificationDetail({
 
   if (!item) notFound();
 
-  const names = new Map(
-    (profiles ?? []).map((x) => [x.id, x.full_name ?? x.id.slice(0, 8)]),
-  );
+  const names = new Map((profiles ?? []).map((x) => [x.id, x.full_name ?? x.id.slice(0, 8)]));
   const jobById = new Map(
     (jobs ?? []).map((j) => [j.id, {job_key: j.job_key, provider: j.provider}]),
   );
   const integrationById = new Map(
-    (integrations ?? []).map((i) => [
-      i.id,
-      {provider: i.provider, name: i.provider_account_name},
-    ]),
+    (integrations ?? []).map((i) => [i.id, {provider: i.provider, name: i.provider_account_name}]),
   );
 
   const display = humanizeNotificationDisplay({
@@ -178,9 +169,7 @@ export default async function NotificationDetail({
         <div className="space-y-6 lg:col-span-2">
           <article className="card">
             <h3 className="font-semibold">What this means</h3>
-            <p className="mt-2 text-zinc-700">
-              {display.explanation ?? item.explanation}
-            </p>
+            <p className="mt-2 text-zinc-700">{display.explanation ?? item.explanation}</p>
             <p className="mt-4 rounded-lg bg-violet-50 p-3 text-sm font-medium text-violet-950">
               What to do: {display.recommendedAction}
             </p>
@@ -263,11 +252,7 @@ export default async function NotificationDetail({
                   Snooze
                 </button>
                 {item.status === "snoozed" ? (
-                  <button
-                    className="button button-secondary w-full"
-                    name="action"
-                    value="unsnooze"
-                  >
+                  <button className="button button-secondary w-full" name="action" value="unsnooze">
                     Unsnooze
                   </button>
                 ) : null}
@@ -288,11 +273,7 @@ export default async function NotificationDetail({
                   Assign
                 </button>
                 {item.assigned_user_id ? (
-                  <button
-                    className="button button-secondary w-full"
-                    name="action"
-                    value="unassign"
-                  >
+                  <button className="button button-secondary w-full" name="action" value="unassign">
                     Unassign
                   </button>
                 ) : null}
@@ -314,20 +295,12 @@ export default async function NotificationDetail({
                   </button>
                 ) : null}
                 {canDismiss && item.status !== "dismissed" ? (
-                  <button
-                    className="button button-secondary w-full"
-                    name="action"
-                    value="dismiss"
-                  >
+                  <button className="button button-secondary w-full" name="action" value="dismiss">
                     Dismiss
                   </button>
                 ) : null}
                 {canResolve && ["resolved", "dismissed"].includes(item.status) ? (
-                  <button
-                    className="button button-secondary w-full"
-                    name="action"
-                    value="reopen"
-                  >
+                  <button className="button button-secondary w-full" name="action" value="reopen">
                     Reopen
                   </button>
                 ) : null}

@@ -45,16 +45,10 @@ export async function listStripeEvents(
   const started = Date.now();
 
   try {
-    const typeChunks = chunkTypes(
-      STRIPE_SUPPORTED_EVENTS,
-      STRIPE_MAX_TYPES_PER_REQUEST,
-    );
+    const typeChunks = chunkTypes(STRIPE_SUPPORTED_EVENTS, STRIPE_MAX_TYPES_PER_REQUEST);
 
     for (const types of typeChunks) {
-      if (
-        byId.size >= STRIPE_MAX_EVENTS ||
-        Date.now() - started >= STRIPE_MAX_RUNTIME_MS
-      ) {
+      if (byId.size >= STRIPE_MAX_EVENTS || Date.now() - started >= STRIPE_MAX_RUNTIME_MS) {
         truncated = true;
         break;
       }
@@ -92,9 +86,7 @@ export async function listStripeEvents(
     }
 
     truncated =
-      truncated ||
-      byId.size >= STRIPE_MAX_EVENTS ||
-      Date.now() - started >= STRIPE_MAX_RUNTIME_MS;
+      truncated || byId.size >= STRIPE_MAX_EVENTS || Date.now() - started >= STRIPE_MAX_RUNTIME_MS;
 
     const events = [...byId.values()]
       .sort((a, b) => a.created - b.created)

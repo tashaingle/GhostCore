@@ -63,7 +63,8 @@ export class MetaSocialConnector implements IntegrationConnector {
     const end = new Date(this.now());
     const start = new Date(end);
     start.setUTCDate(
-      start.getUTCDate() - (initial ? META_SOCIAL_LIMITS.initialDays : META_SOCIAL_LIMITS.reconcileDays),
+      start.getUTCDate() -
+        (initial ? META_SOCIAL_LIMITS.initialDays : META_SOCIAL_LIMITS.reconcileDays),
     );
     const since = day(start);
     const until = day(end);

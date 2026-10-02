@@ -34,23 +34,12 @@ export function AuthForm({
           {register ? (
             <label className="label">
               Full name
-              <input
-                className="field"
-                name="fullName"
-                autoComplete="name"
-                required
-              />
+              <input className="field" name="fullName" autoComplete="name" required />
             </label>
           ) : null}
           <label className="label">
             Email
-            <input
-              className="field"
-              name="email"
-              type="email"
-              autoComplete="email"
-              required
-            />
+            <input className="field" name="email" type="email" autoComplete="email" required />
           </label>
           <label className="label">
             Password
@@ -63,9 +52,7 @@ export function AuthForm({
               required
             />
           </label>
-          <button className="button w-full">
-            {register ? "Create account" : "Sign in"}
-          </button>
+          <button className="button w-full">{register ? "Create account" : "Sign in"}</button>
         </form>
 
         <p className="text-center text-sm text-zinc-600">

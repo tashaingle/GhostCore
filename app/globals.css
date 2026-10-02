@@ -11,20 +11,31 @@
   --accent: #5b21b6;
 }
 
-* { box-sizing: border-box; }
+* {
+  box-sizing: border-box;
+}
 
 body {
   margin: 0;
   background: var(--background);
   color: var(--foreground);
-  font-feature-settings: "ss01" on, "cv11" on;
+  font-feature-settings:
+    "ss01" on,
+    "cv11" on;
 }
 
-button, input, select, textarea { font: inherit; }
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
 
 /* Do not force color:inherit on all anchors - it overrides Tailwind
    text-white on dark buttons/tabs (e.g. Work "Assigned to me"). */
-a { text-decoration: none; }
+a {
+  text-decoration: none;
+}
 
 .field {
   width: 100%;
@@ -32,7 +43,9 @@ a { text-decoration: none; }
   border-radius: 0.625rem;
   background: white;
   padding: 0.7rem 0.85rem;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 .field:focus {
@@ -62,11 +75,17 @@ a { text-decoration: none; }
   font-weight: 600;
   font-size: 0.9rem;
   cursor: pointer;
-  transition: opacity 0.15s ease, transform 0.05s ease;
+  transition:
+    opacity 0.15s ease,
+    transform 0.05s ease;
 }
 
-.button:hover { opacity: 0.92; }
-.button:active { transform: translateY(1px); }
+.button:hover {
+  opacity: 0.92;
+}
+.button:active {
+  transform: translateY(1px);
+}
 .button:disabled {
   opacity: 0.45;
   cursor: not-allowed;
@@ -79,7 +98,10 @@ a { text-decoration: none; }
   border: 1px solid var(--border);
 }
 
-.button-secondary:hover { background: #fafafa; opacity: 1; }
+.button-secondary:hover {
+  background: #fafafa;
+  opacity: 1;
+}
 
 .button-ghost {
   background: transparent;
@@ -96,7 +118,9 @@ a { text-decoration: none; }
 }
 
 .card-interactive {
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 .card-interactive:hover {
@@ -142,12 +166,30 @@ a { text-decoration: none; }
   text-transform: uppercase;
 }
 
-.badge-critical { background: #fef2f2; color: #b91c1c; }
-.badge-warning { background: #fffbeb; color: #b45309; }
-.badge-info { background: #eff6ff; color: #1d4ed8; }
-.badge-good { background: #f0fdf4; color: #15803d; }
-.badge-insight { background: #f5f3ff; color: #6d28d9; }
-.badge-muted { background: #f4f4f5; color: #52525b; }
+.badge-critical {
+  background: #fef2f2;
+  color: #b91c1c;
+}
+.badge-warning {
+  background: #fffbeb;
+  color: #b45309;
+}
+.badge-info {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+.badge-good {
+  background: #f0fdf4;
+  color: #15803d;
+}
+.badge-insight {
+  background: #f5f3ff;
+  color: #6d28d9;
+}
+.badge-muted {
+  background: #f4f4f5;
+  color: #52525b;
+}
 
 .nav-link {
   display: flex;
@@ -157,7 +199,9 @@ a { text-decoration: none; }
   padding: 0.55rem 0.75rem;
   font-size: 0.9rem;
   color: #3f3f46;
-  transition: background 0.12s ease, color 0.12s ease;
+  transition:
+    background 0.12s ease,
+    color 0.12s ease;
 }
 
 .nav-link:hover {
@@ -189,5 +233,10 @@ a { text-decoration: none; }
   font-size: 0.95rem;
 }
 
-.muted { color: var(--muted); }
-.prose-sm { font-size: 0.875rem; line-height: 1.5; }
+.muted {
+  color: var(--muted);
+}
+.prose-sm {
+  font-size: 0.875rem;
+  line-height: 1.5;
+}

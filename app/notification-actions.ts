@@ -34,9 +34,7 @@ function isNextControlFlow(error: unknown): error is {digest: string} {
 function back(path: string, message: string, error = false): never {
   revalidatePath("/app/action-centre");
   revalidatePath("/app/command-centre");
-  redirect(
-    `${path}?${error ? "error" : "success"}=${encodeURIComponent(message)}`,
-  );
+  redirect(`${path}?${error ? "error" : "success"}=${encodeURIComponent(message)}`);
 }
 
 export async function notificationAction(form: FormData) {

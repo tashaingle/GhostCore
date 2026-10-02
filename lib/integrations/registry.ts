@@ -1,27 +1,284 @@
-import type {IntegrationCapability,SyncSchedule} from "./connector";
-export type ProviderId="github"|"google_analytics"|"google_search_console"|"gmail"|"google_calendar"|"stripe"|"shopify"|"meta_ads"|"meta_social"|"linkedin"|"manual"|"notion"|"slack";
-export type ProviderDefinition={
-  id:ProviderId;displayName:string;icon:string;colour:string;category:string;
-  oauth:boolean;sync:boolean;capabilities:readonly IntegrationCapability[];
-  schedule:SyncSchedule;recommendedFrequency:string;connector:"github"|"google_analytics"|"google_search_console"|"gmail"|"google_calendar"|"stripe"|"shopify"|"meta_ads"|"meta_social"|"linkedin"|"manual"|"notion"|"slack"|null;
-  description?:string;healthSupport?:boolean;propertySelection?:boolean;
-  oauthProvider?:string;oauthScopes?:string;callbackPath?:string;connectPath?:string;configurationPath?:string;
+import type {IntegrationCapability, SyncSchedule} from "./connector";
+export type ProviderId =
+  | "github"
+  | "google_analytics"
+  | "google_search_console"
+  | "gmail"
+  | "google_calendar"
+  | "stripe"
+  | "shopify"
+  | "meta_ads"
+  | "meta_social"
+  | "linkedin"
+  | "manual"
+  | "notion"
+  | "slack";
+export type ProviderDefinition = {
+  id: ProviderId;
+  displayName: string;
+  icon: string;
+  colour: string;
+  category: string;
+  oauth: boolean;
+  sync: boolean;
+  capabilities: readonly IntegrationCapability[];
+  schedule: SyncSchedule;
+  recommendedFrequency: string;
+  connector:
+    | "github"
+    | "google_analytics"
+    | "google_search_console"
+    | "gmail"
+    | "google_calendar"
+    | "stripe"
+    | "shopify"
+    | "meta_ads"
+    | "meta_social"
+    | "linkedin"
+    | "manual"
+    | "notion"
+    | "slack"
+    | null;
+  description?: string;
+  healthSupport?: boolean;
+  propertySelection?: boolean;
+  oauthProvider?: string;
+  oauthScopes?: string;
+  callbackPath?: string;
+  connectPath?: string;
+  configurationPath?: string;
 };
-export const providerRegistry={
-  github:{id:"github",displayName:"GitHub",icon:"GH",colour:"#24292f",category:"Development",oauth:true,sync:true,capabilities:["oauth","polling","webhooks","read_only"],schedule:"hourly",recommendedFrequency:"Hourly",connector:"github",oauthProvider:"github",oauthScopes:"read:user repo",callbackPath:"/auth/github/callback"},
-  google_analytics:{id:"google_analytics",displayName:"Google Analytics 4",icon:"GA",colour:"#f9ab00",category:"Analytics",description:"Meaningful aggregate website performance changes.",oauth:true,sync:true,capabilities:["oauth","polling","read_only"],schedule:"daily",recommendedFrequency:"Daily",connector:"google_analytics",healthSupport:true,propertySelection:true,connectPath:"/api/integrations/google-analytics/connect",configurationPath:"/app/integrations/google-analytics/properties"},
-  google_search_console:{id:"google_search_console",displayName:"Google Search Console",icon:"SC",colour:"#4285f4",category:"Marketing",description:"Deterministic search performance, indexing and sitemap activity.",oauth:true,sync:true,capabilities:["oauth","polling","read_only"],schedule:"daily",recommendedFrequency:"Daily",connector:"google_search_console",healthSupport:true,propertySelection:true,connectPath:"/api/integrations/google-search-console/connect",configurationPath:"/app/integrations/google-search-console/properties"},
-  gmail:{id:"gmail",displayName:"Gmail",icon:"GM",colour:"#ea4335",category:"Communication",description:"Bring privacy-limited email activity into your organisation timeline.",oauth:true,sync:true,capabilities:["oauth","polling","read_only"],schedule:"hourly",recommendedFrequency:"Hourly",connector:"gmail",connectPath:"/api/integrations/gmail/connect",configurationPath:"/app/integrations/gmail/settings"},
-  google_calendar:{id:"google_calendar",displayName:"Google Calendar",icon:"GC",colour:"#4285f4",category:"Productivity",description:"Bring reliable calendar activity into the organisation timeline.",oauth:true,sync:true,capabilities:["oauth","polling","read_only"],schedule:"hourly",recommendedFrequency:"Hourly",connector:"google_calendar",connectPath:"/api/integrations/google-calendar/connect",configurationPath:"/app/integrations/google-calendar/settings"},
-  stripe:{id:"stripe",displayName:"Stripe",icon:"ST",colour:"#635bff",category:"Finance",description:"Bring read-only payments, invoices, subscriptions, refunds and payouts into your organisation timeline.",oauth:true,sync:true,capabilities:["oauth","polling","webhooks","read_only"],schedule:"webhook",recommendedFrequency:"Webhooks + 72-hour reconciliation",connector:"stripe",connectPath:"/api/integrations/stripe/connect",configurationPath:"/app/integrations/stripe/settings"},
-  shopify:{id:"shopify",displayName:"Shopify",icon:"SH",colour:"#95bf47",category:"Commerce",description:"Read-only orders, products, inventory, collections and discounts.",oauth:true,sync:true,capabilities:["oauth","polling","read_only"],schedule:"hourly",recommendedFrequency:"Hourly",connector:"shopify",connectPath:"/api/integrations/shopify/connect",configurationPath:"/app/integrations/shopify/settings"},
-  meta_ads:{id:"meta_ads",displayName:"Meta Ads",icon:"MA",colour:"#0866ff",category:"Advertising",description:"Read-only campaign structure and deterministic daily advertising reporting.",oauth:true,sync:true,capabilities:["oauth","polling","read_only"],schedule:"daily",recommendedFrequency:"Daily with 7-day reconciliation",connector:"meta_ads",connectPath:"/api/integrations/meta-ads/connect",configurationPath:"/app/integrations/meta-ads/settings",healthSupport:true,propertySelection:true},
-  meta_social:{id:"meta_social",displayName:"Meta Social",icon:"MS",colour:"#1877f2",category:"Marketing",description:"Organic Facebook Page and Instagram professional insights: followers, reach, views and engagement.",oauth:true,sync:true,capabilities:["oauth","polling","read_only"],schedule:"daily",recommendedFrequency:"Daily with 7-day reconciliation",connector:"meta_social",connectPath:"/api/integrations/meta-social/connect",configurationPath:"/app/integrations/meta-social/settings",healthSupport:true,propertySelection:true},
-  linkedin:{id:"linkedin",displayName:"LinkedIn",icon:"LI",colour:"#0a66c2",category:"Marketing",description:"Read-only LinkedIn advertising and Company Page aggregate reporting.",oauth:true,sync:true,capabilities:["oauth","polling","read_only"],schedule:"daily",recommendedFrequency:"Daily with 7-day reconciliation",connector:"linkedin",connectPath:"/api/integrations/linkedin/connect",configurationPath:"/app/integrations/linkedin/settings",healthSupport:true,propertySelection:true},
-  manual:{id:"manual",displayName:"Manual",icon:"MN",colour:"#52525b",category:"Internal",description:"Structured first-party records, evidence references and deterministic CSV imports.",oauth:false,sync:false,capabilities:["manual","read_write"],schedule:"manual",recommendedFrequency:"On demand",connector:"manual",connectPath:"/api/integrations/manual/connect",configurationPath:"/app/integrations/manual"},
-  notion:{id:"notion",displayName:"Notion",icon:"NO",colour:"#000000",category:"Productivity",description:"Read-only structured operational changes from selected Notion databases.",oauth:true,sync:true,capabilities:["oauth","polling","read_only"],schedule:"hourly",recommendedFrequency:"Hourly incremental",connector:"notion",connectPath:"/api/integrations/notion/connect",configurationPath:"/app/integrations/notion/settings",healthSupport:true,propertySelection:true},
-  slack:{id:"slack",displayName:"Slack",icon:"SL",colour:"#4a154b",category:"Communication",description:"Import selected Slack channel activity into Ghost Core.",oauth:true,sync:true,capabilities:["oauth","polling","read_only"],schedule:"hourly",recommendedFrequency:"Resumable polling",connector:"slack",connectPath:"/api/integrations/slack/connect",configurationPath:"/app/integrations/slack/settings",healthSupport:true,propertySelection:true},
-} as const satisfies Record<ProviderId,ProviderDefinition>;
-export const providers=Object.values(providerRegistry);
-export function getProvider(id:string):ProviderDefinition|undefined{return providers.find(provider=>provider.id===id)}
-export function hasCapability(provider:ProviderDefinition,capability:IntegrationCapability){return provider.capabilities.includes(capability)}
+export const providerRegistry = {
+  github: {
+    id: "github",
+    displayName: "GitHub",
+    icon: "GH",
+    colour: "#24292f",
+    category: "Development",
+    oauth: true,
+    sync: true,
+    capabilities: ["oauth", "polling", "webhooks", "read_only"],
+    schedule: "hourly",
+    recommendedFrequency: "Hourly",
+    connector: "github",
+    oauthProvider: "github",
+    oauthScopes: "read:user repo",
+    callbackPath: "/auth/github/callback",
+  },
+  google_analytics: {
+    id: "google_analytics",
+    displayName: "Google Analytics 4",
+    icon: "GA",
+    colour: "#f9ab00",
+    category: "Analytics",
+    description: "Meaningful aggregate website performance changes.",
+    oauth: true,
+    sync: true,
+    capabilities: ["oauth", "polling", "read_only"],
+    schedule: "daily",
+    recommendedFrequency: "Daily",
+    connector: "google_analytics",
+    healthSupport: true,
+    propertySelection: true,
+    connectPath: "/api/integrations/google-analytics/connect",
+    configurationPath: "/app/integrations/google-analytics/properties",
+  },
+  google_search_console: {
+    id: "google_search_console",
+    displayName: "Google Search Console",
+    icon: "SC",
+    colour: "#4285f4",
+    category: "Marketing",
+    description: "Deterministic search performance, indexing and sitemap activity.",
+    oauth: true,
+    sync: true,
+    capabilities: ["oauth", "polling", "read_only"],
+    schedule: "daily",
+    recommendedFrequency: "Daily",
+    connector: "google_search_console",
+    healthSupport: true,
+    propertySelection: true,
+    connectPath: "/api/integrations/google-search-console/connect",
+    configurationPath: "/app/integrations/google-search-console/properties",
+  },
+  gmail: {
+    id: "gmail",
+    displayName: "Gmail",
+    icon: "GM",
+    colour: "#ea4335",
+    category: "Communication",
+    description: "Bring privacy-limited email activity into your organisation timeline.",
+    oauth: true,
+    sync: true,
+    capabilities: ["oauth", "polling", "read_only"],
+    schedule: "hourly",
+    recommendedFrequency: "Hourly",
+    connector: "gmail",
+    connectPath: "/api/integrations/gmail/connect",
+    configurationPath: "/app/integrations/gmail/settings",
+  },
+  google_calendar: {
+    id: "google_calendar",
+    displayName: "Google Calendar",
+    icon: "GC",
+    colour: "#4285f4",
+    category: "Productivity",
+    description: "Bring reliable calendar activity into the organisation timeline.",
+    oauth: true,
+    sync: true,
+    capabilities: ["oauth", "polling", "read_only"],
+    schedule: "hourly",
+    recommendedFrequency: "Hourly",
+    connector: "google_calendar",
+    connectPath: "/api/integrations/google-calendar/connect",
+    configurationPath: "/app/integrations/google-calendar/settings",
+  },
+  stripe: {
+    id: "stripe",
+    displayName: "Stripe",
+    icon: "ST",
+    colour: "#635bff",
+    category: "Finance",
+    description:
+      "Bring read-only payments, invoices, subscriptions, refunds and payouts into your organisation timeline.",
+    oauth: true,
+    sync: true,
+    capabilities: ["oauth", "polling", "webhooks", "read_only"],
+    schedule: "webhook",
+    recommendedFrequency: "Webhooks + 72-hour reconciliation",
+    connector: "stripe",
+    connectPath: "/api/integrations/stripe/connect",
+    configurationPath: "/app/integrations/stripe/settings",
+  },
+  shopify: {
+    id: "shopify",
+    displayName: "Shopify",
+    icon: "SH",
+    colour: "#95bf47",
+    category: "Commerce",
+    description: "Read-only orders, products, inventory, collections and discounts.",
+    oauth: true,
+    sync: true,
+    capabilities: ["oauth", "polling", "read_only"],
+    schedule: "hourly",
+    recommendedFrequency: "Hourly",
+    connector: "shopify",
+    connectPath: "/api/integrations/shopify/connect",
+    configurationPath: "/app/integrations/shopify/settings",
+  },
+  meta_ads: {
+    id: "meta_ads",
+    displayName: "Meta Ads",
+    icon: "MA",
+    colour: "#0866ff",
+    category: "Advertising",
+    description: "Read-only campaign structure and deterministic daily advertising reporting.",
+    oauth: true,
+    sync: true,
+    capabilities: ["oauth", "polling", "read_only"],
+    schedule: "daily",
+    recommendedFrequency: "Daily with 7-day reconciliation",
+    connector: "meta_ads",
+    connectPath: "/api/integrations/meta-ads/connect",
+    configurationPath: "/app/integrations/meta-ads/settings",
+    healthSupport: true,
+    propertySelection: true,
+  },
+  meta_social: {
+    id: "meta_social",
+    displayName: "Meta Social",
+    icon: "MS",
+    colour: "#1877f2",
+    category: "Marketing",
+    description:
+      "Organic Facebook Page and Instagram professional insights: followers, reach, views and engagement.",
+    oauth: true,
+    sync: true,
+    capabilities: ["oauth", "polling", "read_only"],
+    schedule: "daily",
+    recommendedFrequency: "Daily with 7-day reconciliation",
+    connector: "meta_social",
+    connectPath: "/api/integrations/meta-social/connect",
+    configurationPath: "/app/integrations/meta-social/settings",
+    healthSupport: true,
+    propertySelection: true,
+  },
+  linkedin: {
+    id: "linkedin",
+    displayName: "LinkedIn",
+    icon: "LI",
+    colour: "#0a66c2",
+    category: "Marketing",
+    description: "Read-only LinkedIn advertising and Company Page aggregate reporting.",
+    oauth: true,
+    sync: true,
+    capabilities: ["oauth", "polling", "read_only"],
+    schedule: "daily",
+    recommendedFrequency: "Daily with 7-day reconciliation",
+    connector: "linkedin",
+    connectPath: "/api/integrations/linkedin/connect",
+    configurationPath: "/app/integrations/linkedin/settings",
+    healthSupport: true,
+    propertySelection: true,
+  },
+  manual: {
+    id: "manual",
+    displayName: "Manual",
+    icon: "MN",
+    colour: "#52525b",
+    category: "Internal",
+    description:
+      "Structured first-party records, evidence references and deterministic CSV imports.",
+    oauth: false,
+    sync: false,
+    capabilities: ["manual", "read_write"],
+    schedule: "manual",
+    recommendedFrequency: "On demand",
+    connector: "manual",
+    connectPath: "/api/integrations/manual/connect",
+    configurationPath: "/app/integrations/manual",
+  },
+  notion: {
+    id: "notion",
+    displayName: "Notion",
+    icon: "NO",
+    colour: "#000000",
+    category: "Productivity",
+    description: "Read-only structured operational changes from selected Notion databases.",
+    oauth: true,
+    sync: true,
+    capabilities: ["oauth", "polling", "read_only"],
+    schedule: "hourly",
+    recommendedFrequency: "Hourly incremental",
+    connector: "notion",
+    connectPath: "/api/integrations/notion/connect",
+    configurationPath: "/app/integrations/notion/settings",
+    healthSupport: true,
+    propertySelection: true,
+  },
+  slack: {
+    id: "slack",
+    displayName: "Slack",
+    icon: "SL",
+    colour: "#4a154b",
+    category: "Communication",
+    description: "Import selected Slack channel activity into Ghost Core.",
+    oauth: true,
+    sync: true,
+    capabilities: ["oauth", "polling", "read_only"],
+    schedule: "hourly",
+    recommendedFrequency: "Resumable polling",
+    connector: "slack",
+    connectPath: "/api/integrations/slack/connect",
+    configurationPath: "/app/integrations/slack/settings",
+    healthSupport: true,
+    propertySelection: true,
+  },
+} as const satisfies Record<ProviderId, ProviderDefinition>;
+export const providers = Object.values(providerRegistry);
+export function getProvider(id: string): ProviderDefinition | undefined {
+  return providers.find((provider) => provider.id === id);
+}
+export function hasCapability(provider: ProviderDefinition, capability: IntegrationCapability) {
+  return provider.capabilities.includes(capability);
+}

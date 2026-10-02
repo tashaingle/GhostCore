@@ -1,2 +1,17 @@
-import {createHash} from "node:crypto";import type{CorrelationDirection}from"./types";
-export function correlationFingerprint(organisationId:string,ruleKey:string,version:number,sourceId:string,targetId:string,relationshipType:string,direction:CorrelationDirection){const [a,b]=direction==="undirected"&&sourceId>targetId?[targetId,sourceId]:[sourceId,targetId];return createHash("sha256").update([organisationId,ruleKey,version,a,b,relationshipType].join("\0")).digest("hex")}
+import {createHash} from "node:crypto";
+import type {CorrelationDirection} from "./types";
+export function correlationFingerprint(
+  organisationId: string,
+  ruleKey: string,
+  version: number,
+  sourceId: string,
+  targetId: string,
+  relationshipType: string,
+  direction: CorrelationDirection,
+) {
+  const [a, b] =
+    direction === "undirected" && sourceId > targetId ? [targetId, sourceId] : [sourceId, targetId];
+  return createHash("sha256")
+    .update([organisationId, ruleKey, version, a, b, relationshipType].join("\0"))
+    .digest("hex");
+}

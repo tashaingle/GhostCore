@@ -36,9 +36,7 @@ function back(path: string, message: string, error = false): never {
   ]) {
     revalidatePath(p);
   }
-  redirect(
-    `${path}?${error ? "error" : "success"}=${encodeURIComponent(message)}`,
-  );
+  redirect(`${path}?${error ? "error" : "success"}=${encodeURIComponent(message)}`);
 }
 
 function parse(form: FormData) {
@@ -75,16 +73,8 @@ export async function saveWorkflow(form: FormData) {
           input,
           String(form.get("reason") ?? "Workflow updated."),
         )
-      : await createWorkflowDefinition(
-          service,
-          ctx.organisation.id,
-          ctx.user.id,
-          input,
-        );
-    return back(
-      `/app/workflows/${workflowId || result.id}`,
-      "Workflow version saved.",
-    );
+      : await createWorkflowDefinition(service, ctx.organisation.id, ctx.user.id, input);
+    return back(`/app/workflows/${workflowId || result.id}`, "Workflow version saved.");
   } catch (error) {
     if (isNextControlFlow(error)) throw error;
     return back(
@@ -111,10 +101,7 @@ export async function createFromTemplate(form: FormData) {
       template.definition,
       `Created from template ${template.key}.`,
     );
-    return back(
-      `/app/workflows/${workflow.id}`,
-      "Workflow created from template.",
-    );
+    return back(`/app/workflows/${workflow.id}`, "Workflow created from template.");
   } catch (error) {
     if (isNextControlFlow(error)) throw error;
     return back(
@@ -174,9 +161,7 @@ export async function runWorkflow(form: FormData) {
     });
     return back(
       `/app/workflow-runs/${result.runId}`,
-      result.duplicate
-        ? "This trigger was already executed."
-        : "Workflow run started.",
+      result.duplicate ? "This trigger was already executed." : "Workflow run started.",
     );
   } catch (error) {
     if (isNextControlFlow(error)) throw error;
@@ -201,11 +186,7 @@ export async function workflowRunAction(form: FormData) {
         ? "workflow.cancel"
         : "workflow.run";
   if (!hasPermission(role, permission)) {
-    return back(
-      `/app/workflow-runs/${runId.data}`,
-      "You cannot perform this run action.",
-      true,
-    );
+    return back(`/app/workflow-runs/${runId.data}`, "You cannot perform this run action.", true);
   }
   const service = createServiceClient();
   const {data: run} = await service
@@ -245,9 +226,7 @@ export async function approvalAction(form: FormData) {
     return back("/app/approvals", "You cannot decide approvals.", true);
   }
   const approvalId = id.safeParse(String(form.get("id") ?? ""));
-  const decision = z
-    .enum(["approved", "rejected"])
-    .safeParse(String(form.get("decision") ?? ""));
+  const decision = z.enum(["approved", "rejected"]).safeParse(String(form.get("decision") ?? ""));
   if (!approvalId.success || !decision.success) {
     return back("/app/approvals", "Invalid approval decision.", true);
   }
@@ -259,10 +238,7 @@ export async function approvalAction(form: FormData) {
       decision: decision.data,
       comment: String(form.get("comment") ?? ""),
     });
-    return back(
-      `/app/workflow-runs/${result.runId}`,
-      `Approval ${decision.data}.`,
-    );
+    return back(`/app/workflow-runs/${result.runId}`, `Approval ${decision.data}.`);
   } catch (error) {
     if (isNextControlFlow(error)) throw error;
     return back(

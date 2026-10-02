@@ -4,21 +4,14 @@ import {hasPermission, type OrganisationRole} from "@/lib/auth/permissions";
 import {Notice} from "@/components/notice";
 import {PageHeader} from "@/components/page-header";
 import {SeverityBadge} from "@/components/severity-badge";
-import {
-  notificationAction,
-  evaluateNotificationsAction,
-} from "@/app/notification-actions";
+import {notificationAction, evaluateNotificationsAction} from "@/app/notification-actions";
 import {
   notificationCategories,
   notificationSeverities,
   notificationStatuses,
 } from "@/lib/notifications/types";
 import {sortNotifications} from "@/lib/notifications/status";
-import {
-  humanCategory,
-  humanizeNotificationDisplay,
-  titleCase,
-} from "@/lib/ui/labels";
+import {humanCategory, humanizeNotificationDisplay, titleCase} from "@/lib/ui/labels";
 
 export default async function ActionCentre({
   searchParams,
@@ -42,10 +35,7 @@ export default async function ActionCentre({
     .from("notifications")
     .select("*")
     .eq("organisation_id", ctx.organisation.id)
-    .gte(
-      "last_detected_at",
-      new Date(now.getTime() - days * 86400000).toISOString(),
-    )
+    .gte("last_detected_at", new Date(now.getTime() - days * 86400000).toISOString())
     .order("last_detected_at", {ascending: false})
     .limit(200);
 
@@ -100,17 +90,12 @@ export default async function ActionCentre({
       .eq("organisation_id", ctx.organisation.id),
   ]);
 
-  const profileMap = new Map(
-    (profiles ?? []).map((x) => [x.id, x.full_name ?? x.id.slice(0, 8)]),
-  );
+  const profileMap = new Map((profiles ?? []).map((x) => [x.id, x.full_name ?? x.id.slice(0, 8)]));
   const jobById = new Map(
     (jobs ?? []).map((j) => [j.id, {job_key: j.job_key, provider: j.provider}]),
   );
   const integrationById = new Map(
-    (integrations ?? []).map((i) => [
-      i.id,
-      {provider: i.provider, name: i.provider_account_name},
-    ]),
+    (integrations ?? []).map((i) => [i.id, {provider: i.provider, name: i.provider_account_name}]),
   );
   const counts = new Map<string, number>();
   for (const e of evidence ?? []) {
@@ -131,9 +116,7 @@ export default async function ActionCentre({
     return {...item, display};
   });
 
-  const open = (all ?? []).filter((x) =>
-    ["open", "acknowledged", "snoozed"].includes(x.status),
-  );
+  const open = (all ?? []).filter((x) => ["open", "acknowledged", "snoozed"].includes(x.status));
   const recent = new Date(now.getTime() - 7 * 86400000);
   const role = ctx.membership.role as OrganisationRole;
   const canAcknowledge = hasPermission(role, "notifications.acknowledge");
@@ -141,9 +124,7 @@ export default async function ActionCentre({
   const canDismiss = hasPermission(role, "notifications.dismiss");
   const canAssign = hasPermission(role, "notifications.assign");
   const canEvaluate = hasPermission(role, "notifications.rules.manage");
-  const rules = [
-    ...new Set((rows ?? []).map((x) => x.rule_key).filter(Boolean)),
-  ];
+  const rules = [...new Set((rows ?? []).map((x) => x.rule_key).filter(Boolean))];
 
   return (
     <section className="space-y-6">
@@ -168,8 +149,8 @@ export default async function ActionCentre({
       <div className="info-banner">
         <strong>Not sure what an item means?</strong> Click the title. Ghost will explain what
         happened and what to do next. Items about &quot;behind schedule&quot; usually mean an
-        automatic background task has not run - open Background Jobs and click Run now, or
-        dismiss if you only sync tools yourself.
+        automatic background task has not run - open Background Jobs and click Run now, or dismiss
+        if you only sync tools yourself.
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-7">
@@ -183,10 +164,7 @@ export default async function ActionCentre({
           [
             "Resolved recently",
             (all ?? []).filter(
-              (x) =>
-                x.status === "resolved" &&
-                x.resolved_at &&
-                new Date(x.resolved_at) >= recent,
+              (x) => x.status === "resolved" && x.resolved_at && new Date(x.resolved_at) >= recent,
             ).length,
           ],
         ].map(([label, n]) => (
@@ -303,9 +281,7 @@ export default async function ActionCentre({
                     <div className="flex flex-wrap items-center gap-2">
                       <SeverityBadge value={item.severity} />
                       <span className="badge badge-muted">{titleCase(item.status)}</span>
-                      <span className="badge badge-muted">
-                        {humanCategory(item.category)}
-                      </span>
+                      <span className="badge badge-muted">{humanCategory(item.category)}</span>
                     </div>
                     <Link
                       className="mt-2 block text-lg font-semibold hover:underline"

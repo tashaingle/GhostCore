@@ -16,7 +16,8 @@ export async function GET(request: Request) {
   const store = await cookies();
   const raw = store.get("ghost_meta_social_oauth")?.value;
   store.delete("ghost_meta_social_oauth");
-  if (url.searchParams.get("error")) return back(url, "error", "Meta Social authorization was denied.");
+  if (url.searchParams.get("error"))
+    return back(url, "error", "Meta Social authorization was denied.");
 
   let state:
     | {
@@ -84,7 +85,9 @@ export async function GET(request: Request) {
       .eq("provider_account_id", identity.id)
       .maybeSingle();
     const old =
-      existing?.settings && typeof existing.settings === "object" && !Array.isArray(existing.settings)
+      existing?.settings &&
+      typeof existing.settings === "object" &&
+      !Array.isArray(existing.settings)
         ? (existing.settings as Record<string, Json>)
         : {};
     const previous = Array.isArray(old.assets)
@@ -141,6 +144,10 @@ export async function GET(request: Request) {
       state.returnTo,
     );
   } catch (error) {
-    return back(url, "error", error instanceof Error ? error.message : "Meta Social connection failed.");
+    return back(
+      url,
+      "error",
+      error instanceof Error ? error.message : "Meta Social connection failed.",
+    );
   }
 }

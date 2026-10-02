@@ -57,9 +57,7 @@ const jobStale: NotificationRuleDefinition = {
   defaultSeverity: "warning",
   async evaluate(c) {
     const multiplier = Number(
-      c.configuration.staleMultiplier ??
-        process.env.NOTIFICATION_STALE_INTERVAL_MULTIPLIER ??
-        2,
+      c.configuration.staleMultiplier ?? process.env.NOTIFICATION_STALE_INTERVAL_MULTIPLIER ?? 2,
     );
     const cutoff = new Date(c.now.getTime() - 15 * 60000).toISOString();
     const {data} = await c.client
@@ -76,8 +74,7 @@ const jobStale: NotificationRuleDefinition = {
         const label = humanJobLabel(job.job_key, job.provider);
         return candidate(c, jobStale, {
           severity:
-            job.next_run_at &&
-            c.now.getTime() - Date.parse(job.next_run_at) > multiplier * 3600000
+            job.next_run_at && c.now.getTime() - Date.parse(job.next_run_at) > multiplier * 3600000
               ? "critical"
               : "warning",
           title: `${label.title} is behind schedule`,
@@ -129,8 +126,7 @@ const integrationError: NotificationRuleDefinition = {
         severity: x.status === "expired" || x.status === "error" ? "critical" : "warning",
         title: `${providerLabel(x.provider)} needs attention`,
         summary:
-          safe(x.last_sync_error) ||
-          `Connection status is “${x.status.replaceAll("_", " ")}”.`,
+          safe(x.last_sync_error) || `Connection status is “${x.status.replaceAll("_", " ")}”.`,
         explanation: `Ghost cannot use this connected tool until it is fixed (status: ${x.status}).`,
         recommendedAction:
           x.status === "disconnected" || x.status === "expired"
@@ -164,8 +160,7 @@ const integrationCredentials: NotificationRuleDefinition = {
   key: "integration_credentials_expiring",
   version: 1,
   name: "Provider credential expiring",
-  description:
-    "A connection may lose access soon when no refresh token can renew it.",
+  description: "A connection may lose access soon when no refresh token can renew it.",
   category: "credential",
   defaultSeverity: "warning",
   async evaluate(c) {
@@ -184,9 +179,7 @@ const integrationCredentials: NotificationRuleDefinition = {
       .map((x) =>
         candidate(c, integrationCredentials, {
           severity:
-            Date.parse(x.token_expires_at!) - c.now.getTime() < 86400000
-              ? "critical"
-              : "warning",
+            Date.parse(x.token_expires_at!) - c.now.getTime() < 86400000 ? "critical" : "warning",
           title: `${providerLabel(x.provider)} access is expiring`,
           summary: `Access may stop working after ${formatWhen(x.token_expires_at)}.`,
           explanation:
@@ -267,9 +260,7 @@ const correlationReview: NotificationRuleDefinition = {
     const score = Number(c.configuration.minimumCorrelationScore ?? 80);
     const {data} = await c.client
       .from("event_correlations")
-      .select(
-        "id,rule_key,rule_version,score,strength,source_provider,target_provider,occurred_at",
-      )
+      .select("id,rule_key,rule_version,score,strength,source_provider,target_provider,occurred_at")
       .eq("organisation_id", c.organisationId)
       .eq("active", true)
       .gte("score", score)
@@ -280,8 +271,10 @@ const correlationReview: NotificationRuleDefinition = {
         severity: x.score >= 95 ? "critical" : "warning",
         title: `Review possible link: ${providerLabel(x.source_provider)} ↔ ${providerLabel(x.target_provider)}`,
         summary: `Ghost found a ${x.strength} match (score ${x.score}/100). This is not proof of cause.`,
-        explanation: "A correlation means two things look related in the data - not that one caused the other.",
-        recommendedAction: "Open the correlation, check the evidence, then resolve or dismiss this item.",
+        explanation:
+          "A correlation means two things look related in the data - not that one caused the other.",
+        recommendedAction:
+          "Open the correlation, check the evidence, then resolve or dismiss this item.",
         sourceType: "correlation",
         sourceId: x.id,
         condition: "requires_review",

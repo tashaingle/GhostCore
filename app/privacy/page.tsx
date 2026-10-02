@@ -33,14 +33,14 @@ export default function PrivacyPage() {
 
         <p>
           This Privacy Policy describes how <strong>Ghost Core</strong> (“Ghost”, “we”, “us”)
-          collects, uses, stores, and shares information when you use our website and application
-          at <strong>ghost-core-two.vercel.app</strong> (the “Service”).
+          collects, uses, stores, and shares information when you use our website and application at{" "}
+          <strong>ghost-core-two.vercel.app</strong> (the “Service”).
         </p>
 
         <h2>1. Who we are</h2>
         <p>
-          Ghost Core is a multi-tenant operations and integrations platform. Organisation owners
-          and members connect third-party business tools so activity can be normalised into an
+          Ghost Core is a multi-tenant operations and integrations platform. Organisation owners and
+          members connect third-party business tools so activity can be normalised into an
           organisation-scoped timeline, insights, and workflows.
         </p>
         <p>
@@ -59,9 +59,9 @@ export default function PrivacyPage() {
 
         <h3>2.2 Integration and provider data</h3>
         <p>
-          When an organisation administrator connects a provider (for example Meta, Google,
-          Stripe, Shopify, GitHub, Slack, Notion), we receive only what that provider returns under
-          the scopes the admin approved. Depending on the connector, that may include:
+          When an organisation administrator connects a provider (for example Meta, Google, Stripe,
+          Shopify, GitHub, Slack, Notion), we receive only what that provider returns under the
+          scopes the admin approved. Depending on the connector, that may include:
         </p>
         <ul>
           <li>Account or Page identifiers and display names</li>
@@ -109,8 +109,8 @@ export default function PrivacyPage() {
             database/auth (Supabase)
           </li>
           <li>
-            <strong>Connected providers</strong> you choose to authorise (Meta, Google,
-            etc.), only via their OAuth/API flows
+            <strong>Connected providers</strong> you choose to authorise (Meta, Google, etc.), only
+            via their OAuth/API flows
           </li>
           <li>Authorities if required by law</li>
         </ul>
@@ -148,10 +148,10 @@ export default function PrivacyPage() {
 
         <h2>9. Meta (Facebook / Instagram) specific notes</h2>
         <p>
-          When you connect <strong>Meta Social</strong> or <strong>Meta Ads</strong>, Ghost
-          requests only the permissions shown on the Meta consent screen. Organic social access is
-          used to import Page and Instagram professional aggregate insights for the organisation
-          that connected the account. Ghost does not post or message on Facebook or Instagram.
+          When you connect <strong>Meta Social</strong> or <strong>Meta Ads</strong>, Ghost requests
+          only the permissions shown on the Meta consent screen. Organic social access is used to
+          import Page and Instagram professional aggregate insights for the organisation that
+          connected the account. Ghost does not post or message on Facebook or Instagram.
         </p>
         <p>
           You can disconnect these integrations at any time in Ghost. You should also remove Ghost
@@ -159,7 +159,10 @@ export default function PrivacyPage() {
         </p>
 
         <h2>10. Children</h2>
-        <p>The Service is not directed to children under 16, and we do not knowingly collect their data.</p>
+        <p>
+          The Service is not directed to children under 16, and we do not knowingly collect their
+          data.
+        </p>
 
         <h2>11. Changes</h2>
         <p>

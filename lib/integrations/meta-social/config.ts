@@ -89,7 +89,9 @@ export function metaSocialEnv() {
     process.env.META_SOCIAL_GRAPH_API_VERSION ||
     process.env.META_GRAPH_API_VERSION ||
     META_SOCIAL_DEFAULT_VERSION;
-  if (!appId || !appSecret) throw new Error("Meta Social OAuth is not configured (META_APP_ID / META_APP_SECRET).");
-  if (!/^v\d+\.\d+$/.test(version)) throw new Error("META_SOCIAL_GRAPH_API_VERSION must look like v25.0.");
+  if (!appId || !appSecret)
+    throw new Error("Meta Social OAuth is not configured (META_APP_ID / META_APP_SECRET).");
+  if (!/^v\d+\.\d+$/.test(version))
+    throw new Error("META_SOCIAL_GRAPH_API_VERSION must look like v25.0.");
   return {appId, appSecret, redirectUri, version};
 }

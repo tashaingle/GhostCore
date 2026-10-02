@@ -9,12 +9,7 @@ import {
 import type {SocialAsset, SocialMetric} from "./types";
 
 export type MetaSocialErrorKind =
-  | "unauthorized"
-  | "permission"
-  | "rate_limit"
-  | "invalid_parameter"
-  | "unavailable"
-  | "malformed";
+  "unauthorized" | "permission" | "rate_limit" | "invalid_parameter" | "unavailable" | "malformed";
 
 export class MetaSocialError extends Error {
   constructor(
@@ -50,8 +45,7 @@ function dayMetrics(
   const out: Record<string, number | null> = {};
   for (const row of rows) {
     const match =
-      row.values.find((v) => v.end_time?.startsWith(date)) ??
-      row.values[row.values.length - 1];
+      row.values.find((v) => v.end_time?.startsWith(date)) ?? row.values[row.values.length - 1];
     if (!match) {
       out[row.name] = null;
       continue;
@@ -61,7 +55,9 @@ function dayMetrics(
       const total = num((match.value as Record<string, unknown>).total);
       if (total != null) out[row.name] = total;
       else {
-        const first = Object.values(match.value).map(num).find((n) => n != null);
+        const first = Object.values(match.value)
+          .map(num)
+          .find((n) => n != null);
         out[row.name] = first ?? null;
       }
     } else out[row.name] = num(match.value);
@@ -120,14 +116,16 @@ export class MetaSocialClient {
     }
     if (asArray) {
       const parsed = z.array(schema).safeParse(body.data ?? []);
-      if (!parsed.success) throw new MetaSocialError("malformed", "Meta returned an unsupported list shape.");
+      if (!parsed.success)
+        throw new MetaSocialError("malformed", "Meta returned an unsupported list shape.");
       return parsed.data;
     }
     const parsed = schema.safeParse(body.data !== undefined ? body : body);
     if (!parsed.success) {
       // some endpoints return object at root
       const root = schema.safeParse(body);
-      if (!root.success) throw new MetaSocialError("malformed", "Meta returned an unsupported response shape.");
+      if (!root.success)
+        throw new MetaSocialError("malformed", "Meta returned an unsupported response shape.");
       return root.data;
     }
     return parsed.data;
@@ -138,7 +136,9 @@ export class MetaSocialClient {
     const url = new URL(`https://graph.facebook.com/${env.version}/me`);
     url.search = new URLSearchParams({fields: "id,name", access_token: this.token}).toString();
     const response = await this.request(url, {signal: AbortSignal.timeout(15_000)});
-    const parsed = z.object({id: z.string(), name: z.string().default("Meta user")}).safeParse(await response.json());
+    const parsed = z
+      .object({id: z.string(), name: z.string().default("Meta user")})
+      .safeParse(await response.json());
     if (!response.ok || !parsed.success) {
       throw new MetaSocialError("unauthorized", "Meta identity could not be verified.");
     }
@@ -350,7 +350,10 @@ export class MetaSocialClient {
         },
       }));
     } catch (error) {
-      if (error instanceof MetaSocialError && (error.kind === "permission" || error.kind === "invalid_parameter")) {
+      if (
+        error instanceof MetaSocialError &&
+        (error.kind === "permission" || error.kind === "invalid_parameter")
+      ) {
         return [];
       }
       throw error;
@@ -359,10 +362,7 @@ export class MetaSocialClient {
     }
   }
 
-  async instagramRecentMedia(
-    igUserId: string,
-    pageToken: string,
-  ): Promise<SocialMetric[]> {
+  async instagramRecentMedia(igUserId: string, pageToken: string): Promise<SocialMetric[]> {
     const prev = this.token;
     this.token = pageToken;
     try {

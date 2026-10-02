@@ -4,12 +4,7 @@ import {Notice} from "@/components/notice";
 import {PageHeader} from "@/components/page-header";
 import {jobAction} from "@/app/job-actions";
 import {jobMetrics, jobHealth} from "@/lib/jobs/metrics";
-import {
-  humanJobLabel,
-  humanJobState,
-  humanScheduleLabel,
-  providerLabel,
-} from "@/lib/ui/labels";
+import {humanJobLabel, humanJobState, humanScheduleLabel, providerLabel} from "@/lib/ui/labels";
 
 export default async function JobsPage({
   searchParams,
@@ -46,8 +41,7 @@ export default async function JobsPage({
   const filtered = (jobs ?? []).filter((j) => {
     const label = humanJobLabel(j.job_key, j.provider).title.toLowerCase();
     const matchesSearch =
-      !search ||
-      `${j.job_key} ${j.provider ?? ""} ${label}`.toLowerCase().includes(search);
+      !search || `${j.job_key} ${j.provider ?? ""} ${label}`.toLowerCase().includes(search);
     const matchesStatus = !status || jobHealth(j, locked.has(j.id)) === status;
     return matchesSearch && matchesStatus;
   });
@@ -61,9 +55,9 @@ export default async function JobsPage({
       <Notice searchParams={params} />
 
       <div className="info-banner">
-        <strong>What is this page?</strong> Think of it as Ghost’s night shift. If a job is
-        “Behind schedule”, either click <strong>Run now</strong> or wait for the daily
-        automatic dispatcher (cron).
+        <strong>What is this page?</strong> Think of it as Ghost’s night shift. If a job is “Behind
+        schedule”, either click <strong>Run now</strong> or wait for the daily automatic dispatcher
+        (cron).
       </div>
 
       <form className="card flex flex-wrap gap-3">
@@ -88,7 +82,10 @@ export default async function JobsPage({
         {[
           ["Scheduled", jobs?.filter((j) => j.enabled && j.next_run_at).length ?? 0],
           ["Running now", locked.size],
-          ["Failed runs", runs?.filter((r) => ["failed", "timed_out"].includes(r.status)).length ?? 0],
+          [
+            "Failed runs",
+            runs?.filter((r) => ["failed", "timed_out"].includes(r.status)).length ?? 0,
+          ],
           ["Retrying", runs?.filter((r) => r.status === "retrying").length ?? 0],
         ].map(([label, value]) => (
           <div className="card" key={String(label)}>
@@ -144,9 +141,7 @@ export default async function JobsPage({
                     </span>
                   </td>
                   <td>
-                    {job.last_run_at
-                      ? new Date(job.last_run_at).toLocaleString()
-                      : "Never run"}
+                    {job.last_run_at ? new Date(job.last_run_at).toLocaleString() : "Never run"}
                     <p className="text-xs text-zinc-500">
                       Next:{" "}
                       {job.next_run_at
@@ -168,13 +163,8 @@ export default async function JobsPage({
                           <button className="button button-secondary" name="action" value="run">
                             Run now
                           </button>
-                          {history[0] &&
-                          ["failed", "timed_out"].includes(history[0].status) ? (
-                            <button
-                              className="button button-secondary"
-                              name="action"
-                              value="retry"
-                            >
+                          {history[0] && ["failed", "timed_out"].includes(history[0].status) ? (
+                            <button className="button button-secondary" name="action" value="retry">
                               Retry
                             </button>
                           ) : null}
@@ -205,9 +195,7 @@ export default async function JobsPage({
 
       <div className="card overflow-auto">
         <h3 className="font-semibold">Execution history and logs</h3>
-        <p className="mt-1 text-sm text-zinc-500">
-          Recent run history for each automatic task.
-        </p>
+        <p className="mt-1 text-sm text-zinc-500">Recent run history for each automatic task.</p>
         <table className="mt-3 w-full min-w-[800px] text-left text-sm">
           <thead>
             <tr className="text-zinc-500">

@@ -1,2 +1,17 @@
-export type TimelineItem={id:string;kind:"event"|"insight"|"correlation";title:string;summary:string|null;severity:string;timestamp:string;href?:string;label:string};
-export function mergeTimelineItems(...input:(TimelineItem[]|number)[]){const limit=typeof input.at(-1)==="number"?input.pop() as number:50;return(input as TimelineItem[][]).flat().sort((a,b)=>new Date(b.timestamp).getTime()-new Date(a.timestamp).getTime()).slice(0,limit)}
+export type TimelineItem = {
+  id: string;
+  kind: "event" | "insight" | "correlation";
+  title: string;
+  summary: string | null;
+  severity: string;
+  timestamp: string;
+  href?: string;
+  label: string;
+};
+export function mergeTimelineItems(...input: (TimelineItem[] | number)[]) {
+  const limit = typeof input.at(-1) === "number" ? (input.pop() as number) : 50;
+  return (input as TimelineItem[][])
+    .flat()
+    .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+    .slice(0, limit);
+}

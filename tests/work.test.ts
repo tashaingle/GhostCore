@@ -7,7 +7,7 @@ import {
   requireTransition,
   sortUnifiedWork,
 } from "@/lib/work/status";
-import {wouldCreateCycle} from "@/lib/work/dependencies";
+import {dependencyEdge, wouldCreateCycle} from "@/lib/work/dependencies";
 import {sourceFingerprint, recurrenceFingerprint} from "@/lib/work/fingerprints";
 import {calculateSla} from "@/lib/work/sla";
 import {nextOccurrence, recurrenceScheduleSchema} from "@/lib/work/recurrence";
@@ -32,6 +32,13 @@ describe("deterministic work management", () => {
     expect(
       wouldCreateCycle([{taskId: "b", dependsOnTaskId: "a", dependencyType: "blocks"}], "a", "b"),
     ).toBe(true));
+  it("detects cycles from database-shaped dependency rows", () => {
+    const rows = [
+      {task_id: "b", depends_on_task_id: "c", dependency_type: "blocks"},
+      {task_id: "c", depends_on_task_id: "a", dependency_type: "required"},
+    ];
+    expect(wouldCreateCycle(rows.map(dependencyEdge), "a", "b")).toBe(true);
+  });
   it("permits acyclic dependencies", () =>
     expect(
       wouldCreateCycle([{taskId: "a", dependsOnTaskId: "b", dependencyType: "blocks"}], "b", "c"),

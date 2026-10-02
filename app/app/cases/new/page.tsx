@@ -18,7 +18,7 @@ export default async function NewCase({
     <section className="mx-auto max-w-4xl space-y-6">
       <Link href="/app/cases">← Cases</Link>
       <div>
-        <h2 className="text-2xl font-bold">Create case</h2>
+        <h1 className="text-3xl font-semibold tracking-tight text-zinc-950">Create case</h1>
         <p className="text-zinc-600">
           Open a durable operational record backed by explicit evidence.
         </p>

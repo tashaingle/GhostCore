@@ -1,4 +1,6 @@
 import {getActiveOrganisation} from "@/lib/organisations/active";
+import {PageHeader} from "@/components/page-header";
+import {ROLE_DESCRIPTIONS} from "@/lib/ui/labels";
 import {hasPermission, type OrganisationRole, ORGANISATION_ROLES} from "@/lib/auth/permissions";
 import {inviteMember, updateInvitation, updateMember} from "@/app/organisation-actions";
 import {Notice} from "@/components/notice";
@@ -31,28 +33,47 @@ export default async function Team({
     profileMap = new Map(profiles.map((profile) => [profile.id, profile]));
   return (
     <section className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold">Team</h2>
-        <p className="text-zinc-600">Members and invitations for {ctx.organisation.name}.</p>
-      </div>
+      <PageHeader
+        title="Team"
+        description={`People who can use ${ctx.organisation.name}, and what they're allowed to do.`}
+      />
       <Notice searchParams={await searchParams} />
       {canInvite && (
-        <form action={inviteMember} className="card grid gap-3 sm:grid-cols-[1fr_180px_auto]">
-          <input
-            className="field"
-            name="email"
-            type="email"
-            placeholder="person@example.com"
-            required
-          />
-          <select className="field" name="role" defaultValue="member">
-            <option value="admin">Admin</option>
-            <option value="manager">Manager</option>
-            <option value="member">Member</option>
-            <option value="viewer">Viewer</option>
-          </select>
-          <button className="button">Send invitation</button>
-        </form>
+        <div className="card space-y-4">
+          <div>
+            <h2 className="font-semibold text-zinc-950">Invite someone</h2>
+            <p className="text-sm text-zinc-500">They&apos;ll get an email with a link to join.</p>
+          </div>
+          <form action={inviteMember} className="grid gap-3 sm:grid-cols-[1fr_180px_auto]">
+            <input
+              className="field"
+              name="email"
+              type="email"
+              placeholder="person@example.com"
+              required
+            />
+            <select className="field" name="role" defaultValue="member">
+              <option value="admin">Admin</option>
+              <option value="manager">Manager</option>
+              <option value="member">Member</option>
+              <option value="viewer">Viewer</option>
+            </select>
+            <button className="button">Send invitation</button>
+          </form>
+          <details className="text-sm">
+            <summary className="cursor-pointer text-zinc-600 hover:text-zinc-950">
+              What each role can do
+            </summary>
+            <dl className="mt-3 grid gap-2 sm:grid-cols-[110px_1fr]">
+              {Object.entries(ROLE_DESCRIPTIONS).map(([role, text]) => (
+                <div key={role} className="contents">
+                  <dt className="font-medium capitalize text-zinc-900">{role}</dt>
+                  <dd className="text-zinc-600">{text}</dd>
+                </div>
+              ))}
+            </dl>
+          </details>
+        </div>
       )}
       <div className="card overflow-auto">
         <h3 className="mb-4 font-semibold">Members</h3>
@@ -75,7 +96,9 @@ export default async function Team({
                     {profile?.full_name ??
                       (member.user_id === ctx.user.id ? "You" : member.user_id.slice(0, 8))}
                   </td>
-                  <td className="capitalize">{member.role}</td>
+                  <td className="capitalize" title={ROLE_DESCRIPTIONS[member.role]}>
+                    {member.role}
+                  </td>
                   <td className="capitalize">{member.status}</td>
                   <td>{new Date(member.created_at).toLocaleDateString()}</td>
                   <td>

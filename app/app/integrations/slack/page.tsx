@@ -57,7 +57,7 @@ export default async function SlackDashboard({
     <section className="space-y-6">
       <div className="flex justify-between">
         <div>
-          <h2 className="text-2xl font-bold">Slack activity</h2>
+          <h1 className="text-3xl font-semibold tracking-tight text-zinc-950">Slack activity</h1>
           <p className="text-zinc-600">
             Evidence from selected authorised channels. No sentiment, summaries or employee scoring.
           </p>

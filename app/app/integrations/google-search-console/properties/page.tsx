@@ -15,7 +15,9 @@ export default async function SearchConsoleProperties() {
   return (
     <section className="mx-auto max-w-3xl space-y-6">
       <div>
-        <h2 className="text-2xl font-bold">Search Console properties</h2>
+        <h1 className="text-3xl font-semibold tracking-tight text-zinc-950">
+          Search Console properties
+        </h1>
         <p className="text-zinc-600">
           Select up to ten properties. Domain and URL-prefix properties remain scoped to this
           organisation.

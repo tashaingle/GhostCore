@@ -38,7 +38,9 @@ export default async function Settings({
   return (
     <section className="max-w-2xl space-y-6">
       <div>
-        <h2 className="text-2xl font-bold">Organisation Settings</h2>
+        <h1 className="text-3xl font-semibold tracking-tight text-zinc-950">
+          Organisation Settings
+        </h1>
         <p className="text-zinc-600">
           Settings for {ctx.organisation.name}. Your role is {ctx.membership.role}.
         </p>

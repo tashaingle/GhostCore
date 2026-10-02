@@ -16,7 +16,7 @@ export default async function Developer({
   return (
     <section className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold">Developer tools</h2>
+        <h1 className="text-3xl font-semibold tracking-tight text-zinc-950">Developer tools</h1>
         <p className="text-zinc-600">Generate normalised test events for this organisation.</p>
       </div>
       <Notice searchParams={await searchParams} />

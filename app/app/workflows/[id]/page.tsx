@@ -64,7 +64,7 @@ export default async function WorkflowDetail({
       <div className="card">
         <div className="flex justify-between">
           <div>
-            <h2 className="text-2xl font-bold">{item.name}</h2>
+            <h1 className="text-3xl font-semibold tracking-tight text-zinc-950">{item.name}</h1>
             <p>{item.description}</p>
             <p className="text-sm text-zinc-500">
               {item.trigger_type} · v{item.current_version} · {item.status}

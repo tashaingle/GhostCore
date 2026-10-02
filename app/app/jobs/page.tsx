@@ -55,9 +55,9 @@ export default async function JobsPage({
       <Notice searchParams={params} />
 
       <div className="info-banner">
-        <strong>What is this page?</strong> Think of it as Ghost’s night shift. If a job is “Behind
-        schedule”, either click <strong>Run now</strong> or wait for the daily automatic dispatcher
-        (cron).
+        <strong>What is this page?</strong> Think of it as Ghost’s night shift. Ghost checks every
+        five minutes for jobs that are due. If one is “Behind schedule”, click{" "}
+        <strong>Run now</strong> or give it a few minutes.
       </div>
 
       <form className="card flex flex-wrap gap-3">

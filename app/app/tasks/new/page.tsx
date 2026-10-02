@@ -26,7 +26,7 @@ export default async function NewTask({
     <section className="mx-auto max-w-4xl space-y-6">
       <Link href="/app/tasks">← Tasks</Link>
       <div>
-        <h2 className="text-2xl font-bold">Create task</h2>
+        <h1 className="text-3xl font-semibold tracking-tight text-zinc-950">Create task</h1>
         <p className="text-zinc-600">
           Create bounded work from a blank form or a deterministic source reference.
         </p>

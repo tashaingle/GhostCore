@@ -25,7 +25,7 @@ export default async function GoogleAnalyticsProperties({
   if (!integration?.access_token_encrypted)
     return (
       <section className="space-y-4">
-        <h2 className="text-2xl font-bold">Choose GA4 property</h2>
+        <h1 className="text-3xl font-semibold tracking-tight text-zinc-950">Choose GA4 property</h1>
         <p className="error">Connect Google Analytics before selecting a property.</p>
         <Link className="button" href="/api/integrations/google-analytics/connect">
           Connect Google Analytics
@@ -50,7 +50,9 @@ export default async function GoogleAnalyticsProperties({
   return (
     <section className="mx-auto max-w-3xl space-y-6">
       <div>
-        <h2 className="text-2xl font-bold">Choose Google Analytics 4 property</h2>
+        <h1 className="text-3xl font-semibold tracking-tight text-zinc-950">
+          Choose Google Analytics 4 property
+        </h1>
         <p className="text-zinc-600">
           Select one GA4 property for this organisation. Universal Analytics properties are not
           shown.

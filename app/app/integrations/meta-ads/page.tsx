@@ -71,7 +71,9 @@ export default async function MetaAdsDashboard({
     <section className="space-y-6">
       <div className="flex justify-between">
         <div>
-          <h2 className="text-2xl font-bold">Meta Ads reporting</h2>
+          <h1 className="text-3xl font-semibold tracking-tight text-zinc-950">
+            Meta Ads reporting
+          </h1>
           <p className="text-zinc-600">
             Meta unified attribution: 7-day click, 1-day view. This does not prove incremental
             impact.

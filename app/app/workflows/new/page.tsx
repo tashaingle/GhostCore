@@ -18,7 +18,7 @@ export default async function NewWorkflow({
     <section className="space-y-6">
       <Link href="/app/workflows">← Workflows</Link>
       <div>
-        <h2 className="text-2xl font-bold">Workflow builder</h2>
+        <h1 className="text-3xl font-semibold tracking-tight text-zinc-950">Workflow builder</h1>
         <p className="text-zinc-600">
           Drag steps to reorder. Every save creates an immutable version.
         </p>

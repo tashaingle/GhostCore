@@ -318,3 +318,31 @@ export function humanizeNotificationDisplay(input: {
     explanation,
   };
 }
+
+const triggerLabels: Record<string, string> = {
+  "notification.created": "When an Action Centre item is raised",
+  "notification.resolved": "When an Action Centre item is resolved",
+  "correlation.created": "When Ghost links related events",
+  "background_job.failed": "When a background task fails",
+  "integration.error": "When a connection stops working",
+  "integration.reconnected": "When a connection is fixed",
+  "csv_import.completed": "When a spreadsheet import finishes",
+  "csv_import.failed": "When a spreadsheet import fails",
+  "organisation.created": "When the organisation is created",
+  manual: "When you run it",
+  scheduled: "On a schedule",
+  webhook: "When another app calls it",
+};
+
+/** Plain-English description of when an automation runs. */
+export const triggerLabel = (trigger: string) =>
+  triggerLabels[trigger] ?? trigger.replaceAll(/[._]/g, " ");
+
+/** What each organisation role can do, for the Team page. */
+export const ROLE_DESCRIPTIONS: Record<string, string> = {
+  owner: "Everything, including billing, deleting the organisation and managing owners.",
+  admin: "Connect tools, change settings and manage the team (except owners).",
+  manager: "Handle alerts, tasks, approvals and automations day to day.",
+  member: "See everything and work on tasks and approvals assigned to them.",
+  viewer: "Read-only access.",
+};

@@ -1,6 +1,7 @@
 import {beforeEach, describe, expect, it} from "vitest";
 import {providerRegistry} from "@/lib/integrations/registry";
 import {
+  FB_PAGE_DAY_METRICS,
   META_SOCIAL_DEFAULT_VERSION,
   META_SOCIAL_PERMISSIONS_DEFAULT,
   META_SOCIAL_PERMISSIONS_WITH_INSTAGRAM,
@@ -38,8 +39,8 @@ const pageMetric: SocialMetric = {
   entityName: "Acme Page",
   date: "2026-08-03",
   metrics: {
-    page_impressions: 1200,
-    page_impressions_unique: 900,
+    page_media_view: 1200,
+    page_total_media_view_unique: 900,
     page_follows: 12,
     followers: 4400,
   },
@@ -99,7 +100,7 @@ describe("Meta Social deterministic events", () => {
     const event = translateMetaSocial(pageMetric, ctx, metaSocialFingerprint(pageMetric));
     expect(event.source).toBe("meta_social");
     expect(event.eventType).toBe("meta_social.facebook.performance.daily_recorded");
-    expect(event.metadata?.metrics).toMatchObject({page_impressions: 1200, followers: 4400});
+    expect(event.metadata?.metrics).toMatchObject({page_media_view: 1200, followers: 4400});
     expect(event.metadata?.surface).toBe("organic_social");
   });
 
@@ -133,5 +134,13 @@ describe("Meta Social deterministic events", () => {
     const event = translateMetaSocial(media, ctx, metaSocialFingerprint(media));
     expect(event.eventType).toBe("meta_social.media.performance_recorded");
     expect(event.metadata?.metrics).toMatchObject({views: 9000});
+  });
+});
+
+describe("Facebook Page metrics", () => {
+  it("never requests metrics Meta has retired", () => {
+    expect(FB_PAGE_DAY_METRICS).not.toContain("page_impressions");
+    expect(FB_PAGE_DAY_METRICS).not.toContain("page_impressions_unique");
+    expect(FB_PAGE_DAY_METRICS).toContain("page_media_view");
   });
 });

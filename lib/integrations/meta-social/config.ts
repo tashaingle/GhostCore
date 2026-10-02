@@ -12,12 +12,14 @@ export const META_SOCIAL_DEFAULT_VERSION = "v25.0";
  * supports Page list/engagement; Instagram scopes need the Instagram product.
  *
  * Override with META_SOCIAL_SCOPES (comma-separated) after enabling products:
- * pages_show_list,pages_read_engagement,pages_read_user_content,instagram_basic,instagram_manage_insights,read_insights,business_management
+ * pages_show_list,pages_read_engagement,pages_read_user_content,instagram_basic,instagram_manage_insights,business_management
+ *
+ * Page Insights work with pages_read_engagement alone; read_insights is not needed and is rejected
+ * as an invalid scope by apps without a matching use case.
  */
 export const META_SOCIAL_PERMISSIONS_DEFAULT = [
   "pages_show_list",
   "pages_read_engagement",
-  "read_insights",
   "business_management",
 ] as const;
 
@@ -28,7 +30,6 @@ export const META_SOCIAL_PERMISSIONS_WITH_INSTAGRAM = [
   "pages_read_user_content",
   "instagram_basic",
   "instagram_manage_insights",
-  "read_insights",
   "business_management",
 ] as const;
 
@@ -59,10 +60,14 @@ export const META_SOCIAL_LIMITS = {
   rows: 2_000,
 } as const;
 
-/** Facebook Page Insights metrics (period=day) that are widely available. */
+/**
+ * Facebook Page Insights metrics (period=day). Requesting a retired metric makes Meta reject the
+ * whole call, so retired names must be removed: page_impressions and page_impressions_unique were
+ * replaced by page_media_view (views) and page_total_media_view_unique (people reached).
+ */
 export const FB_PAGE_DAY_METRICS = [
-  "page_impressions",
-  "page_impressions_unique",
+  "page_media_view",
+  "page_total_media_view_unique",
   "page_post_engagements",
   "page_follows",
   "page_daily_follows",

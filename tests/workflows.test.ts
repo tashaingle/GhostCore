@@ -134,7 +134,7 @@ describe("permissions and background integration", () => {
 });
 describe("migration and UI regression", () => {
   const sql = readFileSync("supabase/migrations/202607290012_workflows.sql", "utf8"),
-    sidebar = readFileSync("app/app/layout.tsx", "utf8"),
+    sidebar = readFileSync("components/sidebar-nav.tsx", "utf8"),
     builder = readFileSync("components/workflow-builder.tsx", "utf8"),
     run = readFileSync("app/app/workflow-runs/[id]/page.tsx", "utf8"),
     approval = readFileSync("app/app/approvals/[id]/page.tsx", "utf8");
@@ -162,8 +162,8 @@ describe("migration and UI regression", () => {
     expect(sql).toContain("unique(organisation_id,execution_fingerprint)"));
   it("exposes drag ordering and operational routes", () => {
     expect(builder).toContain("draggable");
-    expect(sidebar).toContain("Workflows");
-    expect(sidebar).toContain("Approvals");
+    expect(sidebar).toContain(`href: "/app/workflows"`);
+    expect(sidebar).toContain(`href: "/app/approvals"`);
     expect(run).toContain("Execution logs");
     expect(approval).toContain("Approve");
   });

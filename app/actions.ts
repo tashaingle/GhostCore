@@ -30,7 +30,7 @@ export async function signIn(form: FormData) {
   const supabase = await createClient();
   const {error} = await supabase.auth.signInWithPassword(parsed.data);
   if (error) redirect(messageUrl("/login", "error", "Sign-in failed. Check your credentials."));
-  redirect("/app/command-centre");
+  redirect("/app");
 }
 export async function signUp(form: FormData) {
   const parsed = z
@@ -65,7 +65,7 @@ export async function signUp(form: FormData) {
     redirect(
       messageUrl("/login", "success", "Check your email to confirm your account, then sign in."),
     );
-  redirect("/app/command-centre");
+  redirect("/app");
 }
 export async function signOut() {
   const supabase = await createClient();
@@ -89,7 +89,7 @@ export async function createOrganisation(form: FormData) {
         "Could not create the organisation. Apply the Supabase migration and try again.",
       ),
     );
-  redirect("/app/command-centre");
+  redirect("/app");
 }
 export async function addIntegration(form: FormData) {
   const schema = z.object({

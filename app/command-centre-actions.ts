@@ -41,7 +41,7 @@ export async function saveCommandCentreLayout(form: FormData) {
   );
   if (error)
     redirect(
-      "/app/command-centre?error=Dashboard%20layout%20could%20not%20be%20saved.%20Apply%20the%20Phase%2018%20migration.",
+      "/app/command-centre?error=Your%20dashboard%20layout%20couldn%E2%80%99t%20be%20saved.%20Please%20try%20again.",
     );
   revalidatePath("/app/command-centre");
   redirect("/app/command-centre?success=Dashboard%20layout%20saved.");

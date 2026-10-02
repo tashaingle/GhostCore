@@ -2,6 +2,8 @@ import {afterEach, describe, expect, it, vi} from "vitest";
 import {createVerify, generateKeyPairSync} from "node:crypto";
 import {
   appJwt,
+  authorizeUrl,
+  userInstallations,
   githubAppEnv,
   installUrl,
   manageUrl,
@@ -11,6 +13,11 @@ import {
 import {GitHubAppConnector, GITHUB_APP_LIMITS} from "@/lib/integrations/github/app-connector";
 import {GitHubApiError} from "@/lib/integrations/github/api";
 import {loadConnector} from "@/lib/integrations/loader";
+import {
+  initialSelection,
+  selectedRepositories,
+  trackedRepositories,
+} from "@/lib/integrations/github/selection";
 
 const {privateKey, publicKey} = generateKeyPairSync("rsa", {
   modulusLength: 2048,
@@ -142,5 +149,86 @@ describe("connector selection", () => {
       GitHubAppConnector,
     );
     expect(loadConnector("github", {accessToken: "gho_x"})).not.toBeInstanceOf(GitHubAppConnector);
+  });
+});
+
+describe("GitHub repositories per organisation", () => {
+  const api = (read: string[]) => async () => ({
+    installationRepositories: async () => ["xufu/britanica", "tasha/unhinged-clothing"],
+    repositoryActivity: async (repo: string) => {
+      read.push(repo);
+      return [];
+    },
+    workflowRuns: async () => [],
+  });
+
+  it("only syncs the repositories this organisation ticked", async () => {
+    const read: string[] = [];
+    await new GitHubAppConnector(api(read), ["tasha/unhinged-clothing"]).sync({
+      organisationId: "o",
+      integrationId: "i",
+    });
+    expect(read).toEqual(["tasha/unhinged-clothing"]);
+  });
+
+  it("syncs nothing until a choice is made, and everything for older connections", async () => {
+    const none: string[] = [],
+      all: string[] = [];
+    await new GitHubAppConnector(api(none), []).sync({organisationId: "o", integrationId: "i"});
+    await new GitHubAppConnector(api(all)).sync({organisationId: "o", integrationId: "i"});
+    expect(none).toEqual([]);
+    expect(all).toEqual(["xufu/britanica", "tasha/unhinged-clothing"]);
+  });
+
+  it("passes the saved choice through the loader", () => {
+    expect(selectedRepositories({repositories: ["a/b", 3]})).toEqual(["a/b"]);
+    expect(selectedRepositories({})).toBeUndefined();
+    vi.stubEnv("GITHUB_APP_ID", env.GITHUB_APP_ID);
+    vi.stubEnv("GITHUB_APP_SLUG", env.GITHUB_APP_SLUG);
+    vi.stubEnv("GITHUB_APP_CLIENT_ID", env.GITHUB_APP_CLIENT_ID);
+    vi.stubEnv("GITHUB_APP_CLIENT_SECRET", env.GITHUB_APP_CLIENT_SECRET);
+    vi.stubEnv("GITHUB_APP_PRIVATE_KEY", env.GITHUB_APP_PRIVATE_KEY);
+    const connector = loadConnector("github", {
+      settings: {installationId: "7", repositories: ["a/b"]},
+    });
+    expect((connector as unknown as {selection: string[]}).selection).toEqual(["a/b"]);
+    vi.unstubAllEnvs();
+  });
+
+  it("starts a new connection with the previous choice, the only repository, or nothing", () => {
+    const repos = ["xufu/britanica", "tasha/unhinged-clothing"];
+    expect(initialSelection(repos, null, "7")).toEqual([]);
+    expect(initialSelection(["tasha/unhinged-clothing"], null, "7")).toEqual([
+      "tasha/unhinged-clothing",
+    ]);
+    expect(
+      initialSelection(
+        repos,
+        {installationId: "7", repositories: ["xufu/britanica", "gone/x"]},
+        "7",
+      ),
+    ).toEqual(["xufu/britanica"]);
+    // A different installation doesn't inherit the old choice.
+    expect(initialSelection(repos, {installationId: "8", repositories: repos}, "7")).toEqual([]);
+    expect(trackedRepositories(repos, undefined)).toEqual(repos);
+  });
+
+  it("lists the user's installations and signs in through GitHub", async () => {
+    const request = (async () =>
+      new Response(
+        JSON.stringify({
+          installations: [
+            {id: 1, account: {login: "tashaingle", type: "User"}},
+            {id: 2, account: {login: "xufu", type: "Organization"}},
+          ],
+        }),
+      )) as typeof fetch;
+    expect(await userInstallations("t", request)).toEqual([
+      {id: "1", login: "tashaingle", type: "User"},
+      {id: "2", login: "xufu", type: "Organization"},
+    ]);
+    expect(authorizeUrl("Iv1.abc", "https://x.test/cb", "s")).toBe(
+      "https://github.com/login/oauth/authorize?client_id=Iv1.abc&redirect_uri=https%3A%2F%2Fx.test%2Fcb&state=s",
+    );
   });
 });

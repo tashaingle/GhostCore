@@ -2,26 +2,27 @@ export const builtInWorkTemplates = [
   {
     key: "integration-reconnect",
     type: "task",
-    name: "Reconnect integration",
-    description: "Reconnect an expired or disconnected provider integration.",
+    name: "Reconnect a tool",
+    description:
+      "Get a connected tool working again after its login expired or it was disconnected.",
     priority: "high",
     configuration: {
-      title: "Reconnect integration",
+      title: "Reconnect a tool",
       checklist: [
-        {label: "Confirm affected integration", required: true},
-        {label: "Reconnect provider authorization", required: true},
-        {label: "Run and verify a sync", required: true},
+        {label: "Check which tool stopped working", required: true},
+        {label: "Reconnect it from Connections", required: true},
+        {label: "Click Sync now and check new data arrives", required: true},
       ],
     },
   },
   {
     key: "failed-job-investigation",
     type: "case_with_tasks",
-    name: "Failed background job investigation",
-    description: "Investigate and remediate a repeatedly failing job.",
+    name: "Background task keeps failing",
+    description: "Find out why a background task keeps failing and fix it.",
     priority: "high",
     configuration: {
-      title: "Investigate failed background job",
+      title: "Investigate a failing background task",
       tasks: [
         "Review recent run evidence",
         "Correct deterministic configuration",
@@ -32,11 +33,11 @@ export const builtInWorkTemplates = [
   {
     key: "data-import-remediation",
     type: "case_with_tasks",
-    name: "Data import remediation",
-    description: "Resolve rejected or duplicate imported rows.",
+    name: "Fix a spreadsheet import",
+    description: "Fix rows from a spreadsheet import that were rejected or duplicated.",
     priority: "normal",
     configuration: {
-      title: "Data import remediation",
+      title: "Fix a spreadsheet import",
       tasks: ["Review rejected rows", "Correct source data", "Re-import and verify"],
     },
   },

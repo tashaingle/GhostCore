@@ -13,7 +13,7 @@ export async function createManualRecordAction(form: FormData) {
     !hasPermission(ctx.membership.role as OrganisationRole, "event.create") ||
     ctx.membership.role === "member"
   )
-    go("error", "Owner, admin or manager access is required.");
+    go("error", "Only owners, admins and managers can do this.");
   try {
     const occurred = new Date(String(form.get("occurredAt"))),
       result = await createManualRecord(ctx.supabase, ctx.user.id, ctx.organisation.id, {

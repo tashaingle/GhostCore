@@ -28,7 +28,7 @@ export async function syncIntegration(form: FormData) {
     .eq("id", integrationId)
     .eq("organisation_id", ctx.organisation.id)
     .maybeSingle();
-  if (!integration) redirect(destination("error", "Integration was not found."));
+  if (!integration) redirect(destination("error", "That connection no longer exists."));
   const name = getProvider(integration.provider)?.displayName ?? integration.provider;
   await ctx.supabase
     .from("integrations")
@@ -80,7 +80,7 @@ export async function disconnectIntegration(form: FormData) {
     .eq("id", integrationId)
     .eq("organisation_id", ctx.organisation.id)
     .maybeSingle();
-  if (!integration) redirect(destination("error", "Integration was not found."));
+  if (!integration) redirect(destination("error", "That connection no longer exists."));
   try {
     const credential = integration.access_token_encrypted
       ? decryptToken(integration.access_token_encrypted)
@@ -97,7 +97,8 @@ export async function disconnectIntegration(form: FormData) {
       organisationId: ctx.organisation.id,
       integrationId: integration.id,
     });
-    if (!result.ok) throw new Error(result.message ?? "The provider could not be disconnected.");
+    if (!result.ok)
+      throw new Error(result.message ?? "This tool couldn't be disconnected. Please try again.");
     const {error} = await ctx.supabase
       .from("integrations")
       .update({
@@ -123,7 +124,9 @@ export async function disconnectIntegration(form: FormData) {
     redirect(
       destination(
         "error",
-        error instanceof Error ? error.message : "Integration could not be disconnected.",
+        error instanceof Error
+          ? error.message
+          : "This tool couldn't be disconnected. Please try again.",
       ),
     );
   }

@@ -18,10 +18,7 @@ export default async function SearchConsoleProperties() {
         <h1 className="text-3xl font-semibold tracking-tight text-zinc-950">
           Search Console properties
         </h1>
-        <p className="text-zinc-600">
-          Select up to ten properties. Domain and URL-prefix properties remain scoped to this
-          organisation.
-        </p>
+        <p className="text-zinc-600">Choose up to ten websites to track in Google Search.</p>
       </div>
       {!integrations?.length ? (
         <div className="card">

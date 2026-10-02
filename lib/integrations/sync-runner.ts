@@ -90,7 +90,7 @@ export async function runIntegrationSync(input: RunnerInput): Promise<SyncSummar
     .eq("id", input.integrationId)
     .eq("organisation_id", input.organisationId)
     .maybeSingle();
-  if (loadError || !integration) throw new Error("Integration was not found.");
+  if (loadError || !integration) throw new Error("That connection no longer exists.");
   const credential = integration.access_token_encrypted
     ? decryptToken(integration.access_token_encrypted)
     : undefined;
@@ -217,7 +217,7 @@ export async function runIntegrationSync(input: RunnerInput): Promise<SyncSummar
       (error instanceof ShopifyError && error.kind === "unauthorized") ||
       (error instanceof MetaAdsError && error.kind === "unauthorized") ||
       (error instanceof LinkedInError && error.kind === "unauthorized");
-    const message = error instanceof Error ? error.message : "Integration sync failed.";
+    const message = error instanceof Error ? error.message : "Sync failed. Please try again.";
     await input.supabase
       .from("integrations")
       .update({

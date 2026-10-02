@@ -123,7 +123,7 @@ export default async function RunDetail({
           )}
           {run.linked_correlation_id && (
             <Link className="underline" href={`/app/correlations/${run.linked_correlation_id}`}>
-              Linked correlation
+              Related events
             </Link>
           )}
           {run.linked_job_id && (
@@ -173,7 +173,7 @@ export default async function RunDetail({
         </div>
       </div>
       <div className="card">
-        <h3 className="font-semibold">Execution logs</h3>
+        <h3 className="font-semibold">Activity log</h3>
         {logs?.map((x) => (
           <div className="border-t py-2 text-sm" key={x.id}>
             <time>{new Date(x.created_at).toLocaleString()}</time> · <strong>{x.event_type}</strong>{" "}

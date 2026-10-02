@@ -21,7 +21,7 @@ export async function runCorrelationsAction(form: FormData) {
   } catch (error) {
     if (error && typeof error === "object" && "digest" in error) throw error;
     redirect(
-      `/app/correlations?error=${encodeURIComponent(error instanceof Error ? error.message : "Correlation run failed.")}`,
+      `/app/correlations?error=${encodeURIComponent(error instanceof Error ? error.message : "Checking for related events failed. Please try again.")}`,
     );
   }
 }

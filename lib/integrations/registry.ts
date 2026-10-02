@@ -66,6 +66,7 @@ export const providerRegistry = {
     oauthProvider: "github",
     oauthScopes: "read:user repo",
     callbackPath: "/auth/github/callback",
+    configurationPath: "/app/integrations/github/settings",
   },
   google_analytics: {
     id: "google_analytics",

@@ -67,7 +67,8 @@ export async function ensureManualIntegration(
     })
     .select("id")
     .single();
-  if (error || !data) throw new Error("Manual provider could not be enabled.");
+  if (error || !data)
+    throw new Error("Adding data by hand couldn't be switched on. Please try again.");
   return data.id;
 }
 export async function createManualRecord(

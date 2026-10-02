@@ -95,7 +95,7 @@ async function event(
     category: "operations",
     eventType: `${kind}.${change}`,
     title: `${kind === "task" ? "Task" : "Case"} ${change}: ${item.title}`,
-    description: `Deterministic work record ${item.id} changed.`,
+    description: `${kind === "task" ? "Task" : "Case"} updated.`,
     severity:
       item.priority === "critical"
         ? "critical"

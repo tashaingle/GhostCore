@@ -29,7 +29,10 @@ export async function signIn(form: FormData) {
     );
   const supabase = await createClient();
   const {error} = await supabase.auth.signInWithPassword(parsed.data);
-  if (error) redirect(messageUrl("/login", "error", "Sign-in failed. Check your credentials."));
+  if (error)
+    redirect(
+      messageUrl("/login", "error", "That email and password don't match. Please try again."),
+    );
   redirect("/app");
 }
 export async function signUp(form: FormData) {
@@ -59,7 +62,11 @@ export async function signUp(form: FormData) {
   });
   if (error)
     redirect(
-      messageUrl("/register", "error", "Registration failed. The account may already exist."),
+      messageUrl(
+        "/register",
+        "error",
+        "Your account couldn't be created. You may already have one, so try signing in.",
+      ),
     );
   if (!data.session) redirect("/check-email");
   redirect("/welcome");
@@ -117,7 +124,7 @@ export async function createOrganisation(form: FormData) {
       messageUrl(
         "/app/onboarding",
         "error",
-        "Could not create the organisation. Apply the Supabase migration and try again.",
+        "Your workspace couldn't be created. Please try again.",
       ),
     );
   redirect("/app");
@@ -130,7 +137,7 @@ export async function addIntegration(form: FormData) {
   });
   const parsed = schema.safeParse(Object.fromEntries(form));
   if (!parsed.success)
-    redirect(messageUrl("/app/integrations", "error", "Check the integration fields."));
+    redirect(messageUrl("/app/integrations", "error", "Check the details and try again."));
   const ctx = await getActiveOrganisation();
   if (!ctx) redirect("/app/onboarding");
   requirePermission(ctx.membership.role, "integration.manage");

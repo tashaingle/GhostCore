@@ -5,6 +5,7 @@ import {PlaceholderConnector} from "./placeholder-connector";
 import {GitHubConnector} from "./github/connector";
 import {GitHubApi} from "./github/api";
 import {GitHubAppConnector} from "./github/app-connector";
+import {selectedRepositories} from "./github/selection";
 import {githubAppEnv, installationToken} from "./github/app";
 import {GoogleAnalyticsConnector, type GoogleAnalyticsSettings} from "./google-analytics/connector";
 import {GoogleAnalyticsClient} from "./google-analytics/client";
@@ -58,6 +59,7 @@ export function loadConnector(
       if (!env) throw new Error("GitHub App configuration is incomplete.");
       return new GitHubAppConnector(
         async () => new GitHubApi(await installationToken(env, installationId)),
+        selectedRepositories(credentials.settings),
       );
     }
     if (!credentials.accessToken) throw new Error("GitHub credentials are missing.");

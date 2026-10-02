@@ -15,11 +15,7 @@ type Item = UnifiedWork & {
 export function WorkList({items}: {items: Item[]}) {
   const sorted = sortUnifiedWork(items) as Item[];
   if (!sorted.length)
-    return (
-      <div className="card text-zinc-500">
-        No operational work matches these deterministic filters.
-      </div>
-    );
+    return <div className="card text-zinc-500">Nothing matches these filters.</div>;
   return (
     <div className="overflow-auto rounded-xl border bg-white">
       <table className="w-full min-w-[1000px] text-left text-sm">

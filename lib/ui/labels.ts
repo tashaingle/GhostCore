@@ -71,6 +71,9 @@ export function configureIntegrationLabel(providerId: string, configurationRequi
   ) {
     return configurationRequired ? "Choose account" : "Settings";
   }
+  if (providerId === "github") {
+    return configurationRequired ? "Choose repositories" : "Repositories";
+  }
   if (providerId === "notion") {
     return configurationRequired ? "Choose databases" : "Databases";
   }
@@ -114,7 +117,7 @@ export function humanJobLabel(
   }
   if (jobKey.startsWith("integration.")) {
     return {
-      title: `Integration task: ${jobKey.replace("integration.", "").replaceAll("_", " ")}`,
+      title: `Connection task: ${jobKey.replace("integration.", "").replaceAll("_", " ")}`,
       detail: jobKey,
     };
   }

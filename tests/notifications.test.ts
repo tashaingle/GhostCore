@@ -140,8 +140,8 @@ describe("schema, routes and immutable audit", () => {
   });
   it("provides inbox, bulk actions, evidence and sidebar navigation", () => {
     expect(list).toContain("Apply to selected");
-    expect(detail).toContain("Structured evidence");
-    expect(detail).toContain("Immutable history");
+    expect(detail).toContain("What Ghost saw");
+    expect(detail).toContain(">History<");
     expect(sidebar).toContain(`href: "/app/action-centre"`);
   });
   it("links Command Centre metrics to Action Centre filters", () => {

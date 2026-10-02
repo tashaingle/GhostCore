@@ -43,9 +43,9 @@ export default async function NotionDashboard({
     <section className="space-y-6">
       <div className="flex justify-between">
         <div>
-          <h1 className="text-3xl font-semibold tracking-tight text-zinc-950">Notion operations</h1>
+          <h1 className="text-3xl font-semibold tracking-tight text-zinc-950">Notion</h1>
           <p className="text-zinc-600">
-            Structured, read-only evidence from selected Notion databases.
+            Changes in the Notion databases you chose, like tasks moving to done. Read-only.
           </p>
         </div>
         <Link className="button button-secondary" href="/app/integrations/notion/settings">

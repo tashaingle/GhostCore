@@ -20,10 +20,12 @@ export default async function NotionSettings() {
         <Link className="text-sm text-zinc-500" href="/app/integrations">
           ← Integrations
         </Link>
-        <h2 className="mt-2 text-2xl font-bold">Notion workspaces and databases</h2>
+        <h1 className="mt-2 text-3xl font-semibold tracking-tight text-zinc-950">
+          Notion databases
+        </h1>
         <p className="text-zinc-600">
-          Select explicitly shared data sources. Ghost reads structured properties only and never
-          fetches page bodies.
+          Choose which shared databases to track. Ghost reads database fields only, never the text
+          inside your pages.
         </p>
       </div>
       {!items?.length ? (
@@ -63,8 +65,7 @@ export default async function NotionSettings() {
               </div>
               {!sources.length && (
                 <div className="card">
-                  No databases are accessible. Share a database with the Notion connection, then
-                  reconnect.
+                  No databases found. In Notion, share a database with Ghost Core, then reconnect.
                 </div>
               )}
               {sources.map((d) => (

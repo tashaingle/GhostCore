@@ -114,7 +114,7 @@ const retrying: NotificationRuleDefinition = {
   key: "background_job_retrying",
   version: 1,
   name: "Background job retrying",
-  description: "The latest run for a job is waiting for deterministic retry.",
+  description: "A background task failed and Ghost will retry it automatically.",
   category: "background_job",
   defaultSeverity: "warning",
   async evaluate(c) {

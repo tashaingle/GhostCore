@@ -13,7 +13,7 @@ export default async function WorkTemplates() {
       <div>
         <h1 className="text-3xl font-semibold tracking-tight text-zinc-950">Work templates</h1>
         <p className="text-zinc-600">
-          Versioned, deterministic starting points for tasks and cases.
+          Ready-made tasks and cases you can reuse, with checklists filled in.
         </p>
       </div>
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -37,8 +37,8 @@ export default async function WorkTemplates() {
         ))}
       </div>
       <p className="text-sm text-zinc-500">
-        Organisation template editing is restricted to owners and admins. Built-in templates remain
-        immutable.
+        Only owners and admins can edit templates. Built-in templates can’t be changed, but you can
+        copy them.
       </p>
     </section>
   );

@@ -60,14 +60,14 @@ export function commandAlerts(
       title: insight.title,
       detail: insight.summary,
       href: `/app/insights/${insight.id}`,
-      evidence: "Deterministic intelligence rule",
+      evidence: "Ghost insight",
     });
   for (const run of failedRuns)
     alerts.push({
       id: `rule-${run.id}`,
       severity: "warning",
-      title: "Correlation reconciliation failed",
-      detail: run.error || "A correlation run failed.",
+      title: "Checking for related events failed",
+      detail: run.error || "Ghost couldn’t finish checking for related events.",
       href: "/app/correlations",
       evidence: `Run started ${new Date(run.started_at).toLocaleString()}`,
     });

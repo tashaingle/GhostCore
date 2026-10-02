@@ -27,7 +27,7 @@ export default async function SlackSettings({
         <Link className="text-sm text-zinc-500" href="/app/integrations">
           ← Integrations
         </Link>
-        <h2 className="mt-2 text-2xl font-bold">Slack channels</h2>
+        <h1 className="mt-2 text-3xl font-semibold tracking-tight text-zinc-950">Slack channels</h1>
         <p className="text-zinc-600">
           Select channels explicitly. Ghost never joins channels, imports DMs or sends messages.
         </p>

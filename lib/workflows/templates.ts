@@ -9,26 +9,27 @@ export const workflowTemplates: WorkflowTemplate[] = [
   {
     key: "deployment_failure",
     name: "Deployment failure review",
-    description: "Create evidence, request owner approval and queue the existing GitHub sync job.",
+    description:
+      "When a GitHub build fails: assign someone to look into it, ask an owner to approve, then re-sync GitHub.",
     definition: {
       name: "Deployment failure review",
-      description: "Deterministic deployment recovery with human approval.",
+      description: "Recover from a failed deployment, with an owner's approval.",
       triggerType: "notification.created",
       steps: [
         {
-          name: "Assign investigation",
+          name: "Assign someone to investigate",
           type: "task",
           assignedRole: "manager",
           configuration: {dueHours: 4},
         },
         {
-          name: "Owner approval",
+          name: "Ask an owner to approve",
           type: "approval",
           assignedRole: "owner",
           configuration: {dueHours: 8},
         },
         {
-          name: "Queue provider sync",
+          name: "Re-sync GitHub",
           type: "integration_action",
           configuration: {action: "sync", provider: "github"},
         },
@@ -38,21 +39,21 @@ export const workflowTemplates: WorkflowTemplate[] = [
   },
   {
     key: "integration_reconnect",
-    name: "Integration reconnect",
-    description: "Confirm reconnection and queue a health refresh.",
+    name: "Connection fixed",
+    description: "When a connection is fixed: confirm the right account, then check it's working.",
     definition: {
-      name: "Integration reconnect",
-      description: "Validate a stored reconnection.",
+      name: "Connection fixed",
+      description: "Check a reconnected tool is working.",
       triggerType: "integration.reconnected",
       steps: [
         {
-          name: "Confirm account",
+          name: "Confirm the right account is connected",
           type: "manual_confirmation",
           assignedRole: "admin",
           configuration: {},
         },
         {
-          name: "Queue health refresh",
+          name: "Check the connection",
           type: "background_job",
           configuration: {jobKey: "integration.health"},
         },
@@ -62,21 +63,21 @@ export const workflowTemplates: WorkflowTemplate[] = [
   },
   {
     key: "csv_import_review",
-    name: "CSV import review",
-    description: "Review rejected import rows.",
+    name: "Spreadsheet import review",
+    description: "When rows from a spreadsheet import are rejected: review them and approve a fix.",
     definition: {
-      name: "CSV import review",
-      description: "Human review for persisted CSV results.",
+      name: "Spreadsheet import review",
+      description: "Someone checks the import results.",
       triggerType: "csv_import.failed",
       steps: [
         {
-          name: "Review import evidence",
+          name: "Review the rejected rows",
           type: "task",
           assignedRole: "manager",
           configuration: {dueHours: 24},
         },
         {
-          name: "Approve remediation",
+          name: "Approve the fix",
           type: "approval",
           assignedRole: "admin",
           configuration: {dueHours: 24},
@@ -87,21 +88,21 @@ export const workflowTemplates: WorkflowTemplate[] = [
   },
   {
     key: "correlation_review",
-    name: "Correlation review",
-    description: "Review deterministic correlation evidence.",
+    name: "Related events review",
+    description: "When Ghost links related events: someone checks whether the link makes sense.",
     definition: {
-      name: "Correlation review",
-      description: "Human review without causation claims.",
+      name: "Related events review",
+      description: "Someone checks a link between events. A link isn't proof one caused the other.",
       triggerType: "correlation.created",
       steps: [
         {
-          name: "Inspect evidence",
+          name: "Look at the linked events",
           type: "task",
           assignedRole: "manager",
           configuration: {dueHours: 24},
         },
         {
-          name: "Manual confirmation",
+          name: "Confirm the review is done",
           type: "manual_confirmation",
           assignedRole: "manager",
           configuration: {},
@@ -113,25 +114,29 @@ export const workflowTemplates: WorkflowTemplate[] = [
   {
     key: "background_job_recovery",
     name: "Background job recovery",
-    description: "Approve and queue a failed job retry.",
+    description: "When a background task fails: review the error and approve a retry.",
     definition: {
       name: "Background job recovery",
-      description: "Controlled recovery for a durable job failure.",
+      description: "Retry a failed background task after someone approves.",
       triggerType: "background_job.failed",
       steps: [
         {
-          name: "Review safe error",
+          name: "Review the error",
           type: "task",
           assignedRole: "manager",
           configuration: {dueHours: 2},
         },
         {
-          name: "Approve retry",
+          name: "Approve a retry",
           type: "approval",
           assignedRole: "admin",
           configuration: {dueHours: 4},
         },
-        {name: "Queue retry", type: "background_job", configuration: {jobKeyFromTrigger: "jobKey"}},
+        {
+          name: "Retry the task",
+          type: "background_job",
+          configuration: {jobKeyFromTrigger: "jobKey"},
+        },
         {name: "Complete", type: "complete", configuration: {}},
       ],
     },

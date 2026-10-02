@@ -128,6 +128,25 @@ export async function exchangeUserCode(
   return result.access_token;
 }
 
+export type UserInstallation = {id: string; login: string; type: string};
+
+/** The Ghost Core app installations the signed-in GitHub user can access (their own and orgs'). */
+export async function userInstallations(
+  userToken: string,
+  request: typeof fetch = fetch,
+): Promise<UserInstallation[]> {
+  const result = await call<{installations: GitHubInstallation[]}>(
+    request,
+    `${API}/user/installations?per_page=100`,
+    {headers: headers(userToken)},
+  );
+  return result.installations.map((i) => ({
+    id: String(i.id),
+    login: i.account?.login ?? "GitHub",
+    type: i.account?.type ?? "User",
+  }));
+}
+
 /**
  * Confirms the installation is one the signed-in GitHub user can access, so nobody can attach
  * someone else's installation to their organisation by editing the callback URL.
@@ -137,13 +156,12 @@ export async function userCanAccessInstallation(
   installationId: string,
   request: typeof fetch = fetch,
 ) {
-  const result = await call<{installations: {id: number}[]}>(
-    request,
-    `${API}/user/installations?per_page=100`,
-    {headers: headers(userToken)},
-  );
-  return result.installations.some((i) => String(i.id) === installationId);
+  return (await userInstallations(userToken, request)).some((i) => i.id === installationId);
 }
+
+/** GitHub sign-in that confirms who the user is, so an existing installation can be reused. */
+export const authorizeUrl = (clientId: string, redirectUri: string, state: string) =>
+  `https://github.com/login/oauth/authorize?${new URLSearchParams({client_id: clientId, redirect_uri: redirectUri, state})}`;
 
 export const installUrl = (slug: string, state: string) =>
   `https://github.com/apps/${encodeURIComponent(slug)}/installations/new?state=${encodeURIComponent(state)}`;
@@ -160,6 +178,9 @@ export const manageUrl = (
 
 /** Cookie binding a GitHub App install to the organisation and user that started it. */
 export const GITHUB_APP_COOKIE = "ghost_github_app";
+
+/** Cookie holding the installations a user may pick from when they can access more than one. */
+export const GITHUB_CHOICES_COOKIE = "ghost_github_choices";
 
 export const newState = () => randomBytes(24).toString("base64url");
 export function stateMatches(expected: string | undefined, actual: string | null) {

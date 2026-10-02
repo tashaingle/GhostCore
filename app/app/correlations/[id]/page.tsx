@@ -44,7 +44,9 @@ export default async function CorrelationDetail({params}: {params: Promise<{id: 
         <Link className="text-sm text-zinc-500" href="/app/correlations">
           ← Correlations
         </Link>
-        <h2 className="mt-2 text-2xl font-bold">{item.relationship_type.replaceAll("_", " ")}</h2>
+        <h1 className="mt-2 text-3xl font-semibold tracking-tight text-zinc-950">
+          {item.relationship_type.replaceAll("_", " ")}
+        </h1>
         <p className="text-zinc-600">
           {item.strength} · deterministic score {item.score} · {item.rule_key} v{item.rule_version}{" "}
           · {item.active ? "Active" : "Inactive"}
@@ -66,7 +68,7 @@ export default async function CorrelationDetail({params}: {params: Promise<{id: 
         <div className="hidden self-center md:block">→</div>
       </div>
       <div className="card">
-        <h3 className="font-semibold">Deterministic evidence chain</h3>
+        <h3 className="font-semibold">How these events are linked</h3>
         <p className="mt-1 text-sm text-zinc-500">This relationship was accepted because:</p>
         <ul className="mt-3 space-y-2">
           {evidence
@@ -92,7 +94,7 @@ export default async function CorrelationDetail({params}: {params: Promise<{id: 
         </div>
       )}
       <div className="card">
-        <h3 className="font-semibold">Revision history</h3>
+        <h3 className="font-semibold">History</h3>
         {!revisions?.length ? (
           <p className="mt-2 text-sm text-zinc-500">
             No revisions. First detected {new Date(item.first_detected_at).toLocaleString()}, last

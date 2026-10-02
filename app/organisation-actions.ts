@@ -35,7 +35,7 @@ export async function createWorkspace(form: FormData) {
     })
     .safeParse(Object.fromEntries(form));
   const path = String(form.get("returnPath") || "/app/organisations/new");
-  if (!parsed.success) redirect(message(path, "error", "Check the organisation details and URLs."));
+  if (!parsed.success) redirect(message(path, "error", "Check the details and try again."));
   const {supabase, user} = await requireUser();
   // A repeated submit (e.g. a double click) within a minute reuses the organisation just created.
   const {data: recent} = await supabase
@@ -57,13 +57,7 @@ export async function createWorkspace(form: FormData) {
     organisation_slug: uniqueSlug(parsed.data.name),
   });
   if (error || !id)
-    redirect(
-      message(
-        path,
-        "error",
-        "Could not create the organisation. Apply the latest migration and retry.",
-      ),
-    );
+    redirect(message(path, "error", "Your workspace couldn't be created. Please try again."));
   await supabase
     .from("organisations")
     .update({

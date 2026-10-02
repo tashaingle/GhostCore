@@ -15,10 +15,11 @@ export default async function StripeSettingsPage() {
         <Link className="text-sm text-zinc-500" href="/app/integrations">
           ← Integrations
         </Link>
-        <h2 className="mt-2 text-2xl font-bold">Stripe accounts</h2>
+        <h1 className="mt-2 text-3xl font-semibold tracking-tight text-zinc-950">
+          Stripe accounts
+        </h1>
         <p className="text-zinc-600">
-          Read-only account details and reconciliation health. Sensitive credentials are never
-          shown.
+          Your connected Stripe accounts and whether they’re syncing. Ghost never shows your keys.
         </p>
       </div>
       {!accounts?.length ? (

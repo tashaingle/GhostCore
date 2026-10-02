@@ -20,7 +20,8 @@ export default async function NewCase({
       <div>
         <h1 className="text-3xl font-semibold tracking-tight text-zinc-950">Create case</h1>
         <p className="text-zinc-600">
-          Open a durable operational record backed by explicit evidence.
+          Open a case to track a bigger issue, like a customer complaint or an outage, and the tasks
+          that go with it.
         </p>
       </div>
       <Notice searchParams={p} />

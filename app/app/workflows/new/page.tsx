@@ -18,9 +18,10 @@ export default async function NewWorkflow({
     <section className="space-y-6">
       <Link href="/app/workflows">← Workflows</Link>
       <div>
-        <h1 className="text-3xl font-semibold tracking-tight text-zinc-950">Workflow builder</h1>
+        <h1 className="text-3xl font-semibold tracking-tight text-zinc-950">New automation</h1>
         <p className="text-zinc-600">
-          Drag steps to reorder. Every save creates an immutable version.
+          Add the steps you want, and drag them to change the order. Earlier versions are kept when
+          you save.
         </p>
       </div>
       <Notice searchParams={p} />

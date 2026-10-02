@@ -75,8 +75,8 @@ export default async function MetaAdsDashboard({
             Meta Ads reporting
           </h1>
           <p className="text-zinc-600">
-            Meta unified attribution: 7-day click, 1-day view. This does not prove incremental
-            impact.
+            Results as Meta reports them (within 7 days of a click or 1 day of a view). Meta’s
+            figures don’t prove the ads caused the sales.
           </p>
         </div>
         <Link className="button button-secondary" href="/app/integrations/meta-ads/settings">

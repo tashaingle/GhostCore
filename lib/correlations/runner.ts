@@ -60,7 +60,10 @@ export async function runCorrelations(
       .update({
         status: "failed",
         error_count: 1,
-        error: error instanceof Error ? error.message : "Correlation run failed.",
+        error:
+          error instanceof Error
+            ? error.message
+            : "Checking for related events failed. Please try again.",
         completed_at: new Date().toISOString(),
         duration_ms: Date.now() - started,
       })

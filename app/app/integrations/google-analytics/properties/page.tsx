@@ -50,12 +50,10 @@ export default async function GoogleAnalyticsProperties({
   return (
     <section className="mx-auto max-w-3xl space-y-6">
       <div>
-        <h1 className="text-3xl font-semibold tracking-tight text-zinc-950">
-          Choose Google Analytics 4 property
-        </h1>
+        <h1 className="text-3xl font-semibold tracking-tight text-zinc-950">Choose your website</h1>
         <p className="text-zinc-600">
-          Select one GA4 property for this organisation. Universal Analytics properties are not
-          shown.
+          Pick the Google Analytics property for your website. Only Google Analytics 4 properties
+          are listed.
         </p>
       </div>
       <Notice searchParams={params} />
@@ -63,8 +61,8 @@ export default async function GoogleAnalyticsProperties({
       {!error && !properties.length ? (
         <div className="card space-y-3">
           <p>
-            No GA4 properties are available. Confirm the account has Analytics access and the
-            Analytics Admin API is enabled.
+            No Google Analytics 4 properties were found for this Google account. Check you signed in
+            with the account that has access to your website’s Analytics.
           </p>
           <Link
             className="button button-secondary"

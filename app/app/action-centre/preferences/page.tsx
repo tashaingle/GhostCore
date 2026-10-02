@@ -53,7 +53,7 @@ export default async function Preferences({
           current?.assignment_enabled ?? true,
         ],
         ["email", "Email me alerts (immediate digest mode only)", current?.email_enabled ?? false],
-        ["webhook", "Webhook preference (delivery deferred)", current?.webhook_enabled ?? false],
+        ["webhook", "Webhooks (coming soon)", current?.webhook_enabled ?? false],
       ].map(([name, label, checked]) => (
         <label className="flex gap-2" key={String(name)}>
           <input name={String(name)} type="checkbox" defaultChecked={Boolean(checked)} />

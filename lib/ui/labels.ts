@@ -36,7 +36,12 @@ export const LOW_SIGNAL_EVENT_TYPES = new Set([
 ]);
 
 export function isLowSignalEventType(eventType: string) {
-  return LOW_SIGNAL_EVENT_TYPES.has(eventType) || eventType.endsWith(".push");
+  return (
+    LOW_SIGNAL_EVENT_TYPES.has(eventType) ||
+    eventType.endsWith(".push") ||
+    // Alert lifecycle changes are already shown in the Action Centre.
+    eventType.startsWith("notification.")
+  );
 }
 
 export function humanEventLabel(source: string, _category: string, eventType: string) {

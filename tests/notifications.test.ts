@@ -146,6 +146,6 @@ describe("schema, routes and immutable audit", () => {
   });
   it("links Command Centre metrics to Action Centre filters", () => {
     expect(command).toContain("/app/action-centre?severity=critical");
-    expect(command).toContain("Average resolution");
+    expect(command).toContain("Average time to fix");
   });
 });

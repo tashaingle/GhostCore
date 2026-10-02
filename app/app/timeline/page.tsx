@@ -194,14 +194,14 @@ export default async function Timeline({
         />
         <label className="flex items-center gap-2 text-sm text-zinc-600 md:col-span-2">
           <input type="checkbox" name="noise" value="1" defaultChecked={showNoise} />
-          Show routine noise (pushes, discount updates)
+          Show routine activity (code pushes, discount changes, alert updates)
         </label>
         <button className="button md:col-span-4 md:justify-self-start">Apply filters</button>
       </form>
 
       {!showNoise && hiddenNoise > 0 ? (
         <p className="info-banner">
-          Hiding {hiddenNoise} routine events (for example git pushes and discount updates).{" "}
+          Hiding {hiddenNoise} routine events, such as code pushes and alert updates.{" "}
           <Link className="font-semibold underline" href={url(1, {noise: "1"})}>
             Show them
           </Link>

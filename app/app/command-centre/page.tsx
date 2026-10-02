@@ -13,6 +13,7 @@ import {runCorrelationsAction} from "@/app/correlation-actions";
 import {syncIntegration} from "@/app/integration-actions";
 import {saveCommandCentreLayout} from "@/app/command-centre-actions";
 import {Notice} from "@/components/notice";
+import {humanEventLabel, isLowSignalEventType} from "@/lib/ui/labels";
 import {correlationRules} from "@/lib/correlations/rules";
 const rangeDays = (value: string) => (value === "today" ? 1 : value === "30d" ? 30 : 7);
 function Section({id, title, children}: {id: CommandWidgetId; title: string; children: ReactNode}) {
@@ -142,18 +143,29 @@ export default async function CommandCentre({
     roleCounts = new Map<string, number>();
   for (const member of members ?? [])
     roleCounts.set(member.role, (roleCounts.get(member.role) ?? 0) + 1);
-  const {data: actionItems} = await ctx.supabase
-      .from("notifications")
-      .select(
-        "id,title,summary,severity,category,status,assigned_user_id,first_detected_at,last_detected_at,resolved_at,occurrence_count",
-      )
-      .eq("organisation_id", orgId)
-      .order("first_detected_at")
-      .limit(200),
-    activeActions = (actionItems ?? []).filter((x) =>
-      ["open", "acknowledged", "snoozed"].includes(x.status),
-    ),
-    resolvedActions = (actionItems ?? []).filter((x) => x.status === "resolved" && x.resolved_at),
+  // Open items and resolution history are loaded separately: one capped list of both
+  // silently dropped open items once enough resolved history built up.
+  const actionColumns =
+    "id,title,summary,severity,category,status,assigned_user_id,first_detected_at,last_detected_at,resolved_at,occurrence_count";
+  const [{data: openItems}, {data: resolvedItems}] = await Promise.all([
+      ctx.supabase
+        .from("notifications")
+        .select(actionColumns)
+        .eq("organisation_id", orgId)
+        .in("status", ["open", "acknowledged", "snoozed"])
+        .order("last_detected_at", {ascending: false})
+        .limit(500),
+      ctx.supabase
+        .from("notifications")
+        .select(actionColumns)
+        .eq("organisation_id", orgId)
+        .eq("status", "resolved")
+        .not("resolved_at", "is", null)
+        .order("resolved_at", {ascending: false})
+        .limit(200),
+    ]),
+    activeActions = openItems ?? [],
+    resolvedActions = resolvedItems ?? [],
     resolutionDurations = resolvedActions
       .map((x) => Date.parse(x.resolved_at!) - Date.parse(x.first_detected_at))
       .filter((x) => x >= 0),
@@ -227,6 +239,8 @@ export default async function CommandCentre({
     averageWorkflowDuration = workflowDurations.length
       ? Math.round(workflowDurations.reduce((a, b) => a + b, 0) / workflowDurations.length)
       : 0;
+  const meaningfulEvents = events.filter((event) => !isLowSignalEventType(event.event_type));
+  const userActions = activeActions.filter((x) => x.category !== "background_job");
   const kpis = [
     [
       "Running workflows",
@@ -249,32 +263,32 @@ export default async function CommandCentre({
       workflowRuns?.filter((x) => x.status === "completed").length ?? 0,
       "/app/workflow-runs?status=completed",
     ],
-    ["Open actions", activeActions.length, "/app/action-centre"],
+    ["Open actions", userActions.length, "/app/action-centre"],
     [
-      "Critical actions",
-      activeActions.filter((x) => x.severity === "critical").length,
+      "Urgent actions",
+      userActions.filter((x) => x.severity === "critical").length,
       "/app/action-centre?severity=critical",
     ],
     [
       "Warning actions",
-      activeActions.filter((x) => x.severity === "warning").length,
+      userActions.filter((x) => x.severity === "warning").length,
       "/app/action-centre?severity=warning",
     ],
     [
       "Assigned to me",
-      activeActions.filter((x) => x.assigned_user_id === ctx.user.id).length,
+      userActions.filter((x) => x.assigned_user_id === ctx.user.id).length,
       "/app/action-centre?assignment=me",
     ],
     [
       "Unassigned actions",
-      activeActions.filter((x) => !x.assigned_user_id).length,
+      userActions.filter((x) => !x.assigned_user_id).length,
       "/app/action-centre?assignment=unassigned",
     ],
     ["Resolved actions", resolvedActions.length, "/app/action-centre?status=resolved"],
-    ["Average resolution", `${averageResolution} h`, "/app/action-centre?status=resolved"],
+    ["Average time to fix", `${averageResolution} h`, "/app/action-centre?status=resolved"],
     [
       "Recurrent actions",
-      activeActions.filter((x) => x.occurrence_count > 1).length,
+      userActions.filter((x) => x.occurrence_count > 1).length,
       "/app/action-centre",
     ],
     [
@@ -299,21 +313,71 @@ export default async function CommandCentre({
     ["Meetings today", todayMetrics.meetings, "/app/timeline?source=google_calendar"],
     ["Deployments today", todayMetrics.deployments, "/app/timeline?source=github"],
   ];
+  const kpiByLabel = new Map(kpis.map((k) => [String(k[0]), k])),
+    kpiGroups = [
+      {
+        title: "Business today",
+        labels: ["Revenue today", "Orders today", "Meetings today", "Deployments today"],
+      },
+      {
+        title: "Action Centre",
+        labels: ["Open actions", "Urgent actions", "Assigned to me", "Average time to fix"],
+      },
+      {
+        title: "Automations",
+        labels: [
+          "Running workflows",
+          "Pending approvals",
+          "Failed workflows",
+          "Recent completions",
+        ],
+      },
+    ].map((g) => ({title: g.title, items: g.labels.map((l) => kpiByLabel.get(l)!)})),
+    grouped = new Set(kpiGroups.flatMap((g) => g.items.map((k) => String(k[0])))),
+    behindTheScenes = kpis.filter((k) => !grouped.has(String(k[0])));
   const sections: Record<CommandWidgetId, ReactNode> = {
     overview: (
       <Section id="overview" title="Today’s overview">
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          {kpis.map(([label, value, href]) => (
-            <Link
-              className="card block hover:border-zinc-400"
-              href={String(href)}
-              key={String(label)}
-            >
-              <p className="text-sm text-zinc-500">{label}</p>
-              <p className="mt-2 text-2xl font-bold">{value}</p>
-              <p className="mt-2 text-xs text-zinc-500">Open supporting evidence →</p>
-            </Link>
+        <div className="space-y-6">
+          {kpiGroups.map((group) => (
+            <div key={group.title}>
+              <h3 className="mb-2 text-sm font-medium text-zinc-500">{group.title}</h3>
+              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                {group.items.map(([label, value, href]) => (
+                  <Link
+                    className="rounded-2xl border border-zinc-200/80 bg-white p-4 shadow-sm shadow-zinc-900/[0.03] transition-colors hover:border-zinc-300"
+                    href={String(href)}
+                    key={String(label)}
+                  >
+                    <p className="text-sm text-zinc-500">{label}</p>
+                    <p className="mt-1.5 text-2xl font-semibold tabular-nums text-zinc-950">
+                      {value}
+                    </p>
+                  </Link>
+                ))}
+              </div>
+            </div>
           ))}
+          <details className="group/more rounded-2xl border border-zinc-200/80 bg-white/60 px-4 py-3">
+            <summary className="cursor-pointer list-none text-sm font-medium text-zinc-600 hover:text-zinc-950 [&::-webkit-details-marker]:hidden">
+              Behind the scenes{" "}
+              <span className="font-normal text-zinc-400">
+                · background jobs, timings and other technical numbers
+              </span>
+            </summary>
+            <dl className="mt-3 grid gap-x-6 gap-y-2 sm:grid-cols-2 xl:grid-cols-3">
+              {behindTheScenes.map(([label, value, href]) => (
+                <Link
+                  className="flex items-baseline justify-between gap-3 rounded-lg px-2 py-1.5 text-sm hover:bg-zinc-100"
+                  href={String(href)}
+                  key={String(label)}
+                >
+                  <dt className="text-zinc-500">{label}</dt>
+                  <dd className="font-medium tabular-nums text-zinc-900">{value}</dd>
+                </Link>
+              ))}
+            </dl>
+          </details>
         </div>
       </Section>
     ),
@@ -464,14 +528,23 @@ export default async function CommandCentre({
             <input type="hidden" name="range" value={range} />
             <button className="button">Search</button>
           </form>
-          {!events.length ? (
+          {!meaningfulEvents.length ? (
             <p className="text-zinc-500">
-              {q
-                ? "Nothing matches this exact text search."
-                : "No events yet. Sync a connected provider to import evidence."}
+              {q ? (
+                "Nothing matches this search."
+              ) : events.length ? (
+                <>
+                  Only routine activity in this period.{" "}
+                  <Link className="underline" href="/app/timeline?noise=1">
+                    See everything
+                  </Link>
+                </>
+              ) : (
+                "No activity yet. Sync a connected tool to bring it in."
+              )}
             </p>
           ) : (
-            events.slice(0, 12).map((event) => (
+            meaningfulEvents.slice(0, 12).map((event) => (
               <Link
                 className="block border-t py-3 first:border-t-0"
                 href={`/app/timeline?q=${encodeURIComponent(event.title)}`}
@@ -484,7 +557,7 @@ export default async function CommandCentre({
                   </time>
                 </div>
                 <p className="text-xs text-zinc-500">
-                  {event.source} · {event.event_type}
+                  {humanEventLabel(event.source, "", event.event_type)}
                 </p>
               </Link>
             ))

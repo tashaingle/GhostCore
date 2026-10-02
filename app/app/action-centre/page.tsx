@@ -2,8 +2,16 @@ import Link from "next/link";
 import {getActiveOrganisation} from "@/lib/organisations/active";
 import {hasPermission, type OrganisationRole} from "@/lib/auth/permissions";
 import {Notice} from "@/components/notice";
-import {PageHeader} from "@/components/page-header";
-import {SeverityBadge} from "@/components/severity-badge";
+import {SeverityLabel} from "@/components/home-ui";
+import {timeAgo} from "@/lib/home/connections";
+import {
+  ArrowRight,
+  ChevronDown,
+  CircleCheck,
+  ListFilter,
+  RefreshCw,
+  SlidersHorizontal,
+} from "lucide-react";
 import {notificationAction, evaluateNotificationsAction} from "@/app/notification-actions";
 import {
   notificationCategories,
@@ -66,7 +74,6 @@ export default async function ActionCentre({
   const [
     {data: rows},
     {data: all},
-    {data: evidence},
     {data: members},
     {data: profiles},
     {data: jobs},
@@ -78,11 +85,6 @@ export default async function ActionCentre({
       .select("id,status,severity,category,assigned_user_id,resolved_at,rule_key")
       .eq("organisation_id", ctx.organisation.id)
       .limit(1000),
-    ctx.supabase
-      .from("notification_evidence")
-      .select("notification_id")
-      .eq("organisation_id", ctx.organisation.id)
-      .limit(5000),
     ctx.supabase
       .from("organisation_members")
       .select("user_id")
@@ -106,10 +108,6 @@ export default async function ActionCentre({
   const integrationById = new Map(
     (integrations ?? []).map((i) => [i.id, {provider: i.provider, name: i.provider_account_name}]),
   );
-  const counts = new Map<string, number>();
-  for (const e of evidence ?? []) {
-    counts.set(e.notification_id, (counts.get(e.notification_id) ?? 0) + 1);
-  }
 
   const ordered = sortNotifications(rows ?? []).map((item) => {
     const display = humanizeNotificationDisplay({
@@ -138,41 +136,123 @@ export default async function ActionCentre({
   const canEvaluate = hasPermission(role, "notifications.rules.manage");
   const rules = [...new Set((rows ?? []).map((x) => x.rule_key).filter(Boolean))];
 
+  const keep = showSystem ? "&show=system" : "";
+  const views = [
+    {
+      key: "attention",
+      label: "Needs attention",
+      href: showSystem ? "/app/action-centre?show=system" : "/app/action-centre",
+      count: open.length,
+    },
+    {
+      key: "urgent",
+      label: "Urgent",
+      href: `/app/action-centre?severity=critical${keep}`,
+      count: open.filter((x) => x.severity === "critical").length,
+    },
+    {
+      key: "mine",
+      label: "Assigned to me",
+      href: `/app/action-centre?assignment=me${keep}`,
+      count: open.filter((x) => x.assigned_user_id === ctx.user.id).length,
+    },
+    {
+      key: "resolved",
+      label: "Resolved this week",
+      href: `/app/action-centre?status=resolved${keep}`,
+      count: (all ?? []).filter(
+        (x) => x.status === "resolved" && x.resolved_at && new Date(x.resolved_at) >= recent,
+      ).length,
+    },
+  ];
+  const activeView =
+    status === "resolved"
+      ? "resolved"
+      : assignment === "me"
+        ? "mine"
+        : severity === "critical"
+          ? "urgent"
+          : "attention";
+  // Filters beyond what the tabs already express.
+  const extraFilters = [
+    q,
+    category,
+    rule,
+    source,
+    days !== 30 ? "days" : "",
+    status && status !== "resolved" ? status : "",
+    severity && severity !== "critical" ? severity : "",
+    assignment && assignment !== "me" ? assignment : "",
+  ].filter(Boolean).length;
+  const quietButton =
+    "inline-flex items-center gap-2 rounded-xl border border-zinc-200 bg-white px-3.5 py-2.5 text-sm font-medium text-zinc-700 shadow-sm transition-colors hover:border-zinc-300 hover:text-zinc-950";
+
   return (
-    <section className="space-y-6">
-      <PageHeader
-        title="Action Centre"
-        description="A simple to-do list from Ghost. Each item is something automatic that needs a person to check, fix, or dismiss."
-        actions={
-          <>
-            <Link className="button button-secondary" href="/app/action-centre/preferences">
-              Preferences
-            </Link>
-            {canEvaluate ? (
-              <form action={evaluateNotificationsAction}>
-                <button className="button">Refresh action list</button>
-              </form>
-            ) : null}
-          </>
-        }
-      />
+    <div className="mx-auto max-w-5xl space-y-6 pb-24">
+      <header className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h1 className="text-3xl font-semibold tracking-tight text-zinc-950">Action Centre</h1>
+          <p className="mt-2 max-w-2xl text-base text-zinc-500">
+            Things Ghost needs a person to check, fix or dismiss. Click any item for a full
+            explanation.
+          </p>
+        </div>
+        <div className="flex shrink-0 gap-2">
+          <Link className={quietButton} href="/app/action-centre/preferences">
+            <SlidersHorizontal aria-hidden className="h-4 w-4" />
+            Preferences
+          </Link>
+          {canEvaluate ? (
+            <form action={evaluateNotificationsAction}>
+              <button className={quietButton}>
+                <RefreshCw aria-hidden className="h-4 w-4" />
+                Refresh
+              </button>
+            </form>
+          ) : null}
+        </div>
+      </header>
       <Notice searchParams={p} />
 
-      <div className="info-banner flex flex-wrap items-center justify-between gap-2">
-        <span>
-          <strong>Not sure what an item means?</strong> Click its title and Ghost will explain what
-          happened and what to do next.
-        </span>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <nav
+          aria-label="Action Centre views"
+          className="flex flex-wrap gap-1 rounded-xl bg-zinc-200/60 p-1"
+        >
+          {views.map((v) => (
+            <Link
+              key={v.key}
+              href={v.href}
+              aria-current={v.key === activeView ? "page" : undefined}
+              className={`inline-flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
+                v.key === activeView
+                  ? "bg-white text-zinc-950 shadow-sm"
+                  : "text-zinc-600 hover:text-zinc-950"
+              }`}
+            >
+              {v.label}
+              <span
+                className={`rounded-full px-1.5 text-xs tabular-nums ${
+                  v.key === activeView
+                    ? "bg-zinc-100 text-zinc-700"
+                    : "bg-zinc-300/60 text-zinc-600"
+                }`}
+              >
+                {v.count}
+              </span>
+            </Link>
+          ))}
+        </nav>
         {showSystem ? (
           <Link
-            className="font-medium underline-offset-2 hover:underline"
+            className="text-sm font-medium text-zinc-500 hover:text-zinc-950"
             href="/app/action-centre"
           >
             Hide system alerts
           </Link>
         ) : systemOpen ? (
           <Link
-            className="font-medium underline-offset-2 hover:underline"
+            className="text-sm font-medium text-zinc-500 hover:text-zinc-950"
             href="/app/action-centre?show=system"
             title="Alerts about Ghost's own background tasks running late or retrying. They usually fix themselves."
           >
@@ -181,104 +261,196 @@ export default async function ActionCentre({
         ) : null}
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-7">
-        {[
-          ["Open", open.length],
-          ["Critical", open.filter((x) => x.severity === "critical").length],
-          ["Warning", open.filter((x) => x.severity === "warning").length],
-          ["Acknowledged", open.filter((x) => x.status === "acknowledged").length],
-          ["Snoozed", open.filter((x) => x.status === "snoozed").length],
-          ["Assigned to me", open.filter((x) => x.assigned_user_id === ctx.user.id).length],
-          [
-            "Resolved recently",
-            (all ?? []).filter(
-              (x) => x.status === "resolved" && x.resolved_at && new Date(x.resolved_at) >= recent,
-            ).length,
-          ],
-        ].map(([label, n]) => (
-          <div className="card" key={String(label)}>
-            <p className="text-xs text-zinc-500">{label}</p>
-            <p className="text-2xl font-bold">{n}</p>
+      <details className="group/filters" open={extraFilters > 0 || undefined}>
+        <summary className="inline-flex cursor-pointer list-none items-center gap-2 rounded-xl border border-zinc-200 bg-white px-3.5 py-2 text-sm font-medium text-zinc-700 shadow-sm transition-colors hover:border-zinc-300 hover:text-zinc-950 [&::-webkit-details-marker]:hidden">
+          <ListFilter aria-hidden className="h-4 w-4" />
+          Filter
+          {extraFilters ? (
+            <span className="rounded-full bg-violet-100 px-1.5 text-xs text-violet-700">
+              {extraFilters}
+            </span>
+          ) : null}
+          <ChevronDown
+            aria-hidden
+            className="h-4 w-4 transition-transform group-open/filters:rotate-180"
+          />
+        </summary>
+        <form className="mt-3 grid gap-3 rounded-2xl border border-zinc-200/80 bg-white p-4 shadow-sm sm:grid-cols-2 lg:grid-cols-4">
+          {showSystem ? <input type="hidden" name="show" value="system" /> : null}
+          {source ? <input type="hidden" name="source" value={source} /> : null}
+          <label className="label sm:col-span-2">
+            Search
+            <input
+              className="field"
+              name="q"
+              defaultValue={q}
+              placeholder="Words in the title or summary"
+            />
+          </label>
+          <label className="label">
+            Status
+            <select className="field" name="status" defaultValue={status}>
+              <option value="">Needs attention</option>
+              {notificationStatuses.map((x) => (
+                <option key={x} value={x}>
+                  {titleCase(x)}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="label">
+            Importance
+            <select className="field" name="severity" defaultValue={severity}>
+              <option value="">Any</option>
+              {notificationSeverities.map((x) => (
+                <option key={x} value={x}>
+                  {titleCase(x)}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="label">
+            Category
+            <select className="field" name="category" defaultValue={category}>
+              <option value="">Any</option>
+              {notificationCategories.map((x) => (
+                <option key={x} value={x}>
+                  {humanCategory(x)}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="label">
+            Assigned
+            <select className="field" name="assignment" defaultValue={assignment}>
+              <option value="">Anyone</option>
+              <option value="me">Me</option>
+              <option value="unassigned">Nobody yet</option>
+            </select>
+          </label>
+          <label className="label">
+            Type
+            <select className="field" name="rule" defaultValue={rule}>
+              <option value="">Any</option>
+              {rules.map((x) => (
+                <option key={x} value={x}>
+                  {titleCase(String(x).replaceAll(".", " "))}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="label">
+            Period
+            <select className="field" name="days" defaultValue={String(days)}>
+              {[7, 30, 90, 365].map((x) => (
+                <option key={x} value={x}>
+                  Last {x} days
+                </option>
+              ))}
+            </select>
+          </label>
+          <div className="flex items-end gap-2 sm:col-span-2 lg:col-span-4">
+            <button className="button">Apply</button>
+            {extraFilters ? (
+              <Link className="button button-ghost" href={views[0].href}>
+                Clear filters
+              </Link>
+            ) : null}
           </div>
-        ))}
-      </div>
-
-      <form className="card grid gap-2 md:grid-cols-4 xl:grid-cols-8">
-        {showSystem ? <input type="hidden" name="show" value="system" /> : null}
-        <input className="field" name="q" defaultValue={q} placeholder="Search" />
-        <select className="field" name="status" defaultValue={status}>
-          <option value="">Active attention</option>
-          {notificationStatuses.map((x) => (
-            <option key={x} value={x}>
-              {titleCase(x)}
-            </option>
-          ))}
-        </select>
-        <select className="field" name="severity" defaultValue={severity}>
-          <option value="">All severities</option>
-          {notificationSeverities.map((x) => (
-            <option key={x} value={x}>
-              {titleCase(x)}
-            </option>
-          ))}
-        </select>
-        <select className="field" name="category" defaultValue={category}>
-          <option value="">All categories</option>
-          {notificationCategories.map((x) => (
-            <option key={x} value={x}>
-              {humanCategory(x)}
-            </option>
-          ))}
-        </select>
-        <select className="field" name="assignment" defaultValue={assignment}>
-          <option value="">All assignments</option>
-          <option value="me">Assigned to me</option>
-          <option value="unassigned">Unassigned</option>
-        </select>
-        <select className="field" name="rule" defaultValue={rule}>
-          <option value="">All types</option>
-          {rules.map((x) => (
-            <option key={x} value={x}>
-              {titleCase(String(x).replaceAll(".", " "))}
-            </option>
-          ))}
-        </select>
-        <input className="field" name="source" defaultValue={source} placeholder="Source type" />
-        <select className="field" name="days" defaultValue={String(days)}>
-          {[7, 30, 90, 365].map((x) => (
-            <option key={x} value={x}>
-              Last {x} days
-            </option>
-          ))}
-        </select>
-        <button className="button xl:col-span-8">Apply filters</button>
-      </form>
+        </form>
+      </details>
 
       {!ordered.length ? (
-        <div className="card text-zinc-500">
-          {severity === "critical"
-            ? "No critical issues detected"
-            : Object.values(p).some(Boolean)
-              ? "No notifications match these filters"
-              : "No open actions. Nice work."}
+        <div className="flex flex-col items-center rounded-2xl border border-dashed border-zinc-200 bg-white/60 px-6 py-14 text-center">
+          <span className="grid h-11 w-11 place-items-center rounded-2xl bg-emerald-50 text-emerald-600">
+            <CircleCheck aria-hidden className="h-5 w-5" />
+          </span>
+          <p className="mt-3 font-medium text-zinc-900">
+            {activeView === "attention" && !extraFilters
+              ? "You're all caught up"
+              : "Nothing matches this view"}
+          </p>
+          <p className="mt-1 text-sm text-zinc-500">
+            {activeView === "attention" && !extraFilters
+              ? "New alerts will appear here when Ghost spots something."
+              : "Try another tab or clear your filters."}
+          </p>
         </div>
       ) : (
-        <form action={notificationAction} className="space-y-3">
-          <div className="card flex flex-wrap items-end gap-2">
-            <label className="text-sm">
-              Bulk action
-              <select className="field ml-2" name="action" required>
-                <option value="">Choose</option>
-                {canAcknowledge ? <option value="acknowledge">Acknowledge</option> : null}
-                {canAssign ? <option value="assign">Assign</option> : null}
-                {canAcknowledge ? <option value="snooze">Snooze</option> : null}
-                {canResolve ? <option value="resolve">Resolve</option> : null}
-                {canDismiss ? <option value="dismiss">Dismiss</option> : null}
-              </select>
-            </label>
+        <form action={notificationAction} className="group/bulk">
+          <ul className="overflow-hidden rounded-2xl border border-zinc-200/80 bg-white shadow-sm shadow-zinc-900/[0.03]">
+            {ordered.map((item) => (
+              <li
+                key={item.id}
+                className="flex gap-4 border-b border-zinc-100 px-5 py-4 transition-colors last:border-0 hover:bg-zinc-50/70 has-[.bulk-select:checked]:bg-violet-50/60"
+              >
+                <input
+                  className="bulk-select mt-1.5 h-4 w-4 shrink-0 accent-violet-600"
+                  aria-label={`Select ${item.display.title}`}
+                  name="ids"
+                  type="checkbox"
+                  value={item.id}
+                />
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                    <SeverityLabel severity={item.severity} />
+                    <span className="text-xs text-zinc-400">{humanCategory(item.category)}</span>
+                    {item.status !== "open" ? (
+                      <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs text-zinc-600">
+                        {titleCase(item.status)}
+                      </span>
+                    ) : null}
+                  </div>
+                  <Link
+                    className="mt-1.5 block font-semibold text-zinc-950 hover:underline"
+                    href={`/app/action-centre/${item.id}`}
+                  >
+                    {item.display.title}
+                  </Link>
+                  <p className="mt-0.5 text-sm text-zinc-600">{item.display.summary}</p>
+                  {item.display.recommendedAction ? (
+                    <p className="mt-2 text-sm text-zinc-800">
+                      <span className="font-medium">What to do:</span>{" "}
+                      {item.display.recommendedAction}
+                    </p>
+                  ) : null}
+                  <p className="mt-2 text-xs text-zinc-400">
+                    {item.assigned_user_id
+                      ? `Assigned to ${profileMap.get(item.assigned_user_id) ?? "a teammate"}`
+                      : "Not assigned"}{" "}
+                    · First seen {timeAgo(item.first_detected_at, now)}
+                    {item.occurrence_count > 1 ? ` · Seen ${item.occurrence_count} times` : ""}
+                  </p>
+                </div>
+                <Link
+                  href={`/app/action-centre/${item.id}`}
+                  aria-label={`Open ${item.display.title}`}
+                  className="hidden self-center text-zinc-300 transition-colors hover:text-zinc-600 sm:block"
+                >
+                  <ArrowRight aria-hidden className="h-4 w-4" />
+                </Link>
+              </li>
+            ))}
+          </ul>
+
+          {/* Only shown once at least one item is ticked; stays in view while scrolling. */}
+          <div className="sticky bottom-4 z-10 mt-4 hidden flex-wrap items-center gap-2 rounded-2xl border border-zinc-200 bg-white/95 p-3 shadow-lg shadow-zinc-900/10 backdrop-blur group-has-[.bulk-select:checked]/bulk:flex">
+            <select
+              className="field w-auto"
+              name="action"
+              required
+              aria-label="Action for selected items"
+            >
+              <option value="">Choose an action…</option>
+              {canAcknowledge ? <option value="acknowledge">Acknowledge</option> : null}
+              {canAssign ? <option value="assign">Assign to…</option> : null}
+              {canAcknowledge ? <option value="snooze">Snooze until…</option> : null}
+              {canResolve ? <option value="resolve">Resolve</option> : null}
+              {canDismiss ? <option value="dismiss">Dismiss</option> : null}
+            </select>
             {canAssign ? (
-              <select className="field" name="assignedUserId">
-                <option value="">Select assignee</option>
+              <select className="field w-auto" name="assignedUserId" aria-label="Assign to">
+                <option value="">Assign to (if assigning)</option>
                 {(members ?? []).map((x) => (
                   <option key={x.user_id} value={x.user_id}>
                     {profileMap.get(x.user_id) ?? x.user_id.slice(0, 8)}
@@ -286,60 +458,22 @@ export default async function ActionCentre({
                 ))}
               </select>
             ) : null}
-            <input className="field" name="snoozedUntil" type="datetime-local" />
             <input
-              className="field min-w-64 flex-1"
+              className="field w-auto"
+              name="snoozedUntil"
+              type="datetime-local"
+              aria-label="Snooze until (if snoozing)"
+              title="Snooze until (if snoozing)"
+            />
+            <input
+              className="field min-w-48 flex-1"
               name="reason"
-              placeholder="Reason (required for resolve/dismiss)"
+              placeholder="Reason (needed to resolve or dismiss)"
             />
             <button className="button">Apply to selected</button>
           </div>
-
-          <div className="space-y-3">
-            {ordered.map((item) => (
-              <article className="card card-interactive" key={item.id}>
-                <div className="flex flex-wrap items-start gap-3">
-                  <input
-                    className="mt-1"
-                    aria-label={`Select ${item.display.title}`}
-                    name="ids"
-                    type="checkbox"
-                    value={item.id}
-                  />
-                  <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <SeverityBadge value={item.severity} />
-                      <span className="badge badge-muted">{titleCase(item.status)}</span>
-                      <span className="badge badge-muted">{humanCategory(item.category)}</span>
-                    </div>
-                    <Link
-                      className="mt-2 block text-lg font-semibold hover:underline"
-                      href={`/app/action-centre/${item.id}`}
-                    >
-                      {item.display.title}
-                    </Link>
-                    <p className="mt-1 text-sm text-zinc-700">{item.display.summary}</p>
-                    <p className="mt-2 text-sm font-medium text-zinc-800">
-                      What to do: {item.display.recommendedAction}
-                    </p>
-                    <p className="mt-2 text-xs text-zinc-500">
-                      {item.assigned_user_id
-                        ? `Assigned to ${profileMap.get(item.assigned_user_id) ?? "teammate"}`
-                        : "Unassigned"}{" "}
-                      · First seen {new Date(item.first_detected_at).toLocaleString()} ·{" "}
-                      {counts.get(item.id) ?? 0} evidence item
-                      {(counts.get(item.id) ?? 0) === 1 ? "" : "s"} ·{" "}
-                      <Link className="underline" href={`/app/action-centre/${item.id}`}>
-                        Open full details
-                      </Link>
-                    </p>
-                  </div>
-                </div>
-              </article>
-            ))}
-          </div>
         </form>
       )}
-    </section>
+    </div>
   );
 }

@@ -1,5 +1,6 @@
 import {jobStateNotificationRules} from "./job-state-rules";
 import {extraNotificationRules} from "./extra-rules";
+import {insightNotificationRules} from "./insight-rules";
 import type {
   NotificationCandidate,
   NotificationRuleContext,
@@ -405,6 +406,7 @@ export const notificationRuleRegistry = [
   ...jobStateNotificationRules,
   jobStale,
   ...extraNotificationRules,
+  ...insightNotificationRules,
   integrationError,
   integrationCredentials,
   rateLimited,

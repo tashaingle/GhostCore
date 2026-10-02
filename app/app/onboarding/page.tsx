@@ -1,5 +1,6 @@
 import {createWorkspace} from "@/app/organisation-actions";
 import {Notice} from "@/components/notice";
+import {SubmitButton} from "@/components/submit-button";
 import {getActiveOrganisation} from "@/lib/organisations/active";
 import {redirect} from "next/navigation";
 export default async function Onboarding({
@@ -68,7 +69,9 @@ function WorkspaceForm({
             placeholder="E‑commerce, SaaS…"
           />
         </label>
-        <button className="button w-full">Create organisation</button>
+        <SubmitButton className="button w-full" pendingLabel="Creating…">
+          Create organisation
+        </SubmitButton>
       </form>
     </section>
   );

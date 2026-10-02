@@ -61,12 +61,29 @@ export function ConnectProviderButton(props: Props) {
         setFailure(classifyGitHubOAuthError(identitiesError, development));
         return;
       }
-      if (identities.identities.some((identity) => identity.provider === props.oauthProvider)) {
-        setFailure({
-          kind: "already_linked",
-          message: `${props.displayName} is already linked to this Ghost user, but no usable integration token exists.`,
-        });
-        return;
+      // The provider can only be linked to a Ghost login once, and its token is only issued while
+      // linking. Each organisation stores its own copy of the token, so to connect another
+      // organisation the existing link is removed and created again. Earlier organisations keep
+      // working with their stored tokens.
+      const existing = identities.identities.find(
+        (identity) => identity.provider === props.oauthProvider,
+      );
+      if (existing) {
+        if (identities.identities.length < 2) {
+          setFailure({
+            kind: "already_linked",
+            message: `${props.displayName} is how you sign in to Ghost, so it can't be re-linked here. Add an email sign-in to your account first, then try again.`,
+          });
+          return;
+        }
+        const {error: unlinkError} = await supabase.auth.unlinkIdentity(existing);
+        if (unlinkError) {
+          setFailure({
+            kind: "already_linked",
+            message: `${props.displayName} is already linked to your Ghost login and couldn't be refreshed. Please try again.`,
+          });
+          return;
+        }
       }
       const {data, error} = await supabase.auth.linkIdentity({
         provider: props.oauthProvider as "github",

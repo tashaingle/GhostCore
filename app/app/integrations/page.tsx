@@ -8,6 +8,7 @@ import {
 } from "@/lib/integrations/registry";
 import {connectionStatus, reconnectHref, type ConnectionState} from "@/lib/home/connections";
 import {ProviderMark} from "@/components/home-ui";
+import {githubAppEnv, manageUrl} from "@/lib/integrations/github/app";
 import {disconnectIntegration, syncIntegration} from "@/app/integration-actions";
 import {ConnectProviderButton} from "@/components/connect-provider-button";
 import {Notice} from "@/components/notice";
@@ -101,7 +102,27 @@ function Controls({
           {configureIntegrationLabel(provider.id, configurationRequired)}
         </Link>
       ) : null}
-      {provider.connectPath ? (
+      {provider.id === "github" && provider.connectPath ? (
+        typeof settings.installationId === "string" ? (
+          <a
+            className="button button-secondary"
+            href={manageUrl(
+              settings.accountType as string | undefined,
+              settings.accountLogin as string | undefined,
+              settings.installationId,
+            )}
+            target="_blank"
+            rel="noreferrer"
+          >
+            Manage repositories
+          </a>
+        ) : (
+          // Older OAuth connections see every repository; upgrading lets the user pick.
+          <Link className="button button-secondary" href={provider.connectPath}>
+            Choose repositories
+          </Link>
+        )
+      ) : provider.connectPath ? (
         <Link className="button button-secondary" href={provider.connectPath}>
           Reconnect
         </Link>
@@ -156,6 +177,7 @@ export default async function Integrations({
   ]);
 
   const now = new Date();
+  const githubAppReady = githubAppEnv() !== null;
   const byProvider = new Map(
     integrations?.map((integration) => [integration.provider, integration]),
   );
@@ -209,7 +231,16 @@ export default async function Integrations({
           </div>
         ) : null}
         <div className="mt-auto flex flex-wrap gap-2">
-          <Controls provider={provider} integration={integration} siteUrl={siteUrl} />
+          <Controls
+            provider={
+              // With the GitHub App configured, GitHub connects like other tools via its own route.
+              provider.id === "github" && githubAppReady
+                ? {...provider, connectPath: "/api/integrations/github/connect"}
+                : provider
+            }
+            integration={integration}
+            siteUrl={siteUrl}
+          />
         </div>
       </article>
     );

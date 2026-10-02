@@ -43,3 +43,6 @@ next-env.d.ts
 
 # vercel
 .vercel
+
+# private keys (e.g. the GitHub App key)
+*.pem

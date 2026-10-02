@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck -- generated Supabase overloads cannot narrow the validated runtime task/case table union.
 import "server-only";
 import type {SupabaseClient} from "@supabase/supabase-js";
 import type {Database, Json} from "@/types/database";
@@ -15,9 +13,12 @@ import {
 } from "./schema";
 import {caseClosureBlockers, completionBlockers, requireTransition} from "./status";
 import {sourceFingerprint} from "./fingerprints";
-import {wouldCreateCycle} from "./dependencies";
+import {dependencyEdge, wouldCreateCycle} from "./dependencies";
 type Client = SupabaseClient<Database>;
 type Kind = "task" | "case";
+type Tables = Database["public"]["Tables"];
+type TaskUpdate = Tables["work_tasks"]["Update"];
+type CaseUpdate = Tables["work_cases"]["Update"];
 async function member(client: Client, org: string, user: string) {
   const {data} = await client
     .from("organisation_members")
@@ -327,12 +328,13 @@ export async function assignWork(
       assigned_by: user,
       reason,
     });
-  const {error} = await client
-    .from(table)
-    .update({
-      assigned_user_id: assignedUserId,
-      ...(kind === "task" ? {assigned_role: assignedRole} : {}),
-    })
+  const {error} = await (
+    kind === "task"
+      ? client
+          .from("work_tasks")
+          .update({assigned_user_id: assignedUserId, assigned_role: assignedRole})
+      : client.from("work_cases").update({assigned_user_id: assignedUserId})
+  )
     .eq("id", id)
     .eq("organisation_id", org);
   if (error) throw new Error("Assignment could not be saved.");
@@ -453,30 +455,39 @@ export async function transitionWork(
     const blockers = caseClosureBlockers(open ?? 0, pending, critical);
     if (blockers.length) throw new Error(`Case cannot be closed: ${blockers.join(" ")}`);
   }
-  const now = new Date().toISOString(),
-    update: Record<string, unknown> = {status: x.status, updated_at: now};
+  const now = new Date().toISOString();
+  let query;
   if (kind === "task") {
-    if (x.status === "in_progress" && !item.started_at) update.started_at = now;
+    const update: TaskUpdate = {status: x.status, updated_at: now};
+    if (x.status === "in_progress" && "started_at" in item && !item.started_at)
+      update.started_at = now;
     if (x.status === "completed")
       Object.assign(update, {
         completed_at: now,
         completion_summary: x.summary,
         actual_minutes: x.actualMinutes ?? null,
-      });
+      } satisfies TaskUpdate);
     if (x.status === "cancelled") update.cancelled_at = now;
     if (x.status === "blocked") update.blocked_reason = x.reason;
     if (x.status === "waiting") update.waiting_reason = x.reason;
-    if (x.status === "open") Object.assign(update, {completed_at: null, cancelled_at: null});
+    if (x.status === "open")
+      Object.assign(update, {completed_at: null, cancelled_at: null} satisfies TaskUpdate);
+    query = client.from("work_tasks").update(update);
   } else {
-    if (x.status === "investigating" && !item.first_response_at) update.first_response_at = now;
+    const update: CaseUpdate = {status: x.status, updated_at: now};
+    if (x.status === "investigating" && "first_response_at" in item && !item.first_response_at)
+      update.first_response_at = now;
     if (x.status === "resolved")
-      Object.assign(update, {resolved_at: now, resolution_summary: x.summary});
+      Object.assign(update, {
+        resolved_at: now,
+        resolution_summary: x.summary,
+      } satisfies CaseUpdate);
     if (x.status === "closed") update.closed_at = now;
-    if (x.status === "investigating") Object.assign(update, {closed_at: null, resolved_at: null});
+    if (x.status === "investigating")
+      Object.assign(update, {closed_at: null, resolved_at: null} satisfies CaseUpdate);
+    query = client.from("work_cases").update(update);
   }
-  const {data: updated, error} = await client
-    .from(table)
-    .update(update)
+  const {data: updated, error} = await query
     .eq("id", id)
     .eq("organisation_id", org)
     .select("*")
@@ -577,7 +588,10 @@ export async function addDependency(client: Client, org: string, user: string, r
     .select("task_id,depends_on_task_id,dependency_type")
     .eq("organisation_id", org)
     .limit(1000);
-  if (x.dependencyType !== "related" && wouldCreateCycle(edges ?? [], x.taskId, x.dependsOnTaskId))
+  if (
+    x.dependencyType !== "related" &&
+    wouldCreateCycle((edges ?? []).map(dependencyEdge), x.taskId, x.dependsOnTaskId)
+  )
     throw new Error("This dependency would create a circular dependency.");
   const {error} = await client.from("work_dependencies").insert({
     organisation_id: org,
@@ -624,7 +638,7 @@ export async function addComment(
   if (error || !data) throw new Error("Comment could not be added.");
   const rev = await revision(client, org, kind, id, "comment_added", user, {
     commentId: data.id,
-    commentType: x.commentType,
+    commentType: x.comment_type,
   });
   await event(client, user, item, kind, "comment_added", rev);
   return data;

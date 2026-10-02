@@ -1,4 +1,10 @@
 export type DependencyEdge = {taskId: string; dependsOnTaskId: string; dependencyType: string};
+export type DependencyRow = {task_id: string; depends_on_task_id: string; dependency_type: string};
+export const dependencyEdge = (row: DependencyRow): DependencyEdge => ({
+  taskId: row.task_id,
+  dependsOnTaskId: row.depends_on_task_id,
+  dependencyType: row.dependency_type,
+});
 export function wouldCreateCycle(
   edges: DependencyEdge[],
   taskId: string,

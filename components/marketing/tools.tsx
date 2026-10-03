@@ -68,8 +68,8 @@ export function Tools() {
           <Reveal delay={0.15}>
             <p className="max-w-md text-lg leading-relaxed text-ink/65">
               Connect with one click and pick what matters: which shop, which ad account, which
-              channels. Metric Mage only ever asks to <em className="font-serif text-xl">read</em>,
-              so it can&apos;t change a thing.
+              channels. Metric Mage only ever <em className="font-serif text-xl">reads</em>. It
+              never posts, spends or deletes anything.
             </p>
           </Reveal>
         </div>

@@ -13,6 +13,9 @@ import {GmailConnector} from "./gmail/connector";
 import {GmailClient} from "./gmail/client";
 import type {GmailSettings} from "./gmail/types";
 import {OutlookConnector} from "./outlook/connector";
+import {MailchimpConnector} from "./mailchimp/connector";
+import {MailchimpClient} from "./mailchimp/client";
+import type {MailchimpSettings} from "./mailchimp/types";
 import {OutlookClient} from "./outlook/client";
 import type {OutlookSettings} from "./outlook/types";
 import {GoogleCalendarConnector} from "./google-calendar/connector";
@@ -88,6 +91,15 @@ export function loadConnector(
         expiresAt: credentials.expiresAt,
       }),
       credentials.settings as SearchConsoleSettings,
+    );
+  }
+  if (provider.connector === "mailchimp") {
+    const settings = (credentials.settings ?? {}) as MailchimpSettings;
+    if (!credentials.accessToken || !settings.apiEndpoint)
+      throw new Error("Mailchimp credentials are missing. Connect Mailchimp again.");
+    return new MailchimpConnector(
+      new MailchimpClient(credentials.accessToken, settings.apiEndpoint),
+      settings,
     );
   }
   if (provider.connector === "outlook") {

@@ -6,8 +6,8 @@ import {Reveal, SetType} from "./motion";
 // Each claim is true of the product today; keep it that way.
 const PROMISES = [
   {
-    big: "Read-only",
-    body: "Metric Mage asks every tool for permission to read, never to post, spend, refund or delete. It can't change anything even if it wanted to.",
+    big: "Only reads",
+    body: "Metric Mage never posts, sends, spends, refunds or deletes anything. Wherever a tool offers read-only access, that's all it asks for.",
   },
   {
     big: "Encrypted",

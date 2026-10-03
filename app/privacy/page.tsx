@@ -61,8 +61,9 @@ export default function PrivacyPage() {
         <h3>2.2 Integration and provider data</h3>
         <p>
           When an organisation administrator connects a provider (for example Meta, Google,
-          Microsoft, Stripe, Shopify, GitHub, Slack, Notion), we receive only what that provider
-          returns under the scopes the admin approved. Depending on the connector, that may include:
+          Microsoft, Mailchimp, Stripe, Shopify, GitHub, Slack, Notion), we receive only what that
+          provider returns under the scopes the admin approved. Depending on the connector, that may
+          include:
         </p>
         <ul>
           <li>Account or Page identifiers and display names</li>
@@ -142,7 +143,11 @@ export default function PrivacyPage() {
           <li>TLS in transit for production traffic</li>
           <li>Provider tokens encrypted at rest with server-side keys</li>
           <li>Organisation-scoped access control and database row-level security</li>
-          <li>Least-privilege, read-only OAuth scopes for social connectors where possible</li>
+          <li>
+            Least-privilege, read-only access wherever a provider offers it. Some providers (for
+            example Mailchimp) only offer access to the whole account; Metric Mage only ever reads
+            from them.
+          </li>
         </ul>
 
         <h2>8. Your rights</h2>

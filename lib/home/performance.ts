@@ -46,6 +46,8 @@ export const PERFORMANCE_EVENT_TYPES = [
   "meta_ads.performance.daily_recorded",
   "meta_social.facebook.performance.daily_recorded",
   "google_search_console.performance_summary",
+  "mailchimp.audience.daily_recorded",
+  "mailchimp.campaign.results_recorded",
 ];
 
 const DAY = 86_400_000;
@@ -279,8 +281,58 @@ export function performanceMetrics(input: {
     });
   }
 
+  // Mailchimp: subscribers across audiences at the end of each period (newest snapshot per
+  // audience), and the average open rate of campaigns whose results settled in the period.
+  const audienceDays = ofType("mailchimp.audience.daily_recorded");
+  if (audienceDays.length) {
+    const total = (list: IntelligenceEvent[]) => {
+        const latest = new Map<string, IntelligenceEvent>();
+        for (const e of list) {
+          const id = String(meta(e, "audienceId") ?? "");
+          const seen = latest.get(id);
+          if (!seen || e.occurredAt > seen.occurredAt) latest.set(id, e);
+        }
+        return latest.size
+          ? sum([...latest.values()].map((e) => num(meta(e, "subscribers")) ?? 0))
+          : null;
+      },
+      now = total(audienceDays.filter(inCurrent)),
+      before = total(audienceDays.filter(inPrevious));
+    if (now !== null)
+      metrics.push({
+        key: "emailSubscribers",
+        group: "Marketing",
+        label: "Email subscribers",
+        value: count(now),
+        change: before !== null ? change(before, now) : null,
+        source: "Mailchimp",
+        higherIsBetter: true,
+        comparable: before !== null,
+      });
+  }
+  const campaignResults = ofType("mailchimp.campaign.results_recorded");
+  if (campaignResults.length) {
+    const average = (list: IntelligenceEvent[]) =>
+        list.length ? sum(list.map((e) => num(meta(e, "openRate")) ?? 0)) / list.length : null,
+      cur = campaignResults.filter(inCurrent),
+      prev = campaignResults.filter(inPrevious),
+      now = average(cur),
+      before = average(prev);
+    if (now !== null)
+      metrics.push({
+        key: "campaignOpenRate",
+        group: "Marketing",
+        label: "Campaign open rate",
+        value: `${now.toFixed(1)}%`,
+        change: before ? change(before, now) : null,
+        source: `Mailchimp, ${cur.length} campaign${cur.length === 1 ? "" : "s"}`,
+        higherIsBetter: true,
+        comparable: before !== null && before > 0,
+      });
+  }
+
   const activity: [keyof ActivityCounts, string, string, boolean | null][] = [
-    ["emails", "New emails", "Gmail", null],
+    ["emails", "New emails", "Gmail and Outlook", null],
     ["meetings", "Meetings booked", "Google Calendar", null],
     ["deployments", "Deployments", "GitHub", null],
     ["failedBuilds", "Failed builds", "GitHub", false],

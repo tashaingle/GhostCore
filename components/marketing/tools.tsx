@@ -8,6 +8,7 @@ const LOGOS: Logo[] = [
   {slug: "google-analytics", name: "Google Analytics", w: 220, h: 160, big: true},
   {slug: "google-search-console", name: "Google Search Console", w: 349, h: 160},
   {slug: "meta-ads", name: "Meta Ads", w: 319, h: 160},
+  {slug: "mailchimp", name: "Mailchimp", w: 160, h: 160, big: true},
   {slug: "gmail", name: "Gmail", w: 491, h: 160},
   {slug: "meta", name: "Facebook and Instagram", w: 520, h: 118},
   {slug: "outlook", name: "Outlook", w: 520, h: 107},
@@ -76,8 +77,8 @@ export function Tools() {
         </div>
       </div>
       <div className="mt-16 space-y-6 md:mt-20">
-        <Row items={LOGOS.slice(0, 6)} />
-        <Row items={LOGOS.slice(6)} reverse />
+        <Row items={LOGOS.slice(0, 7)} />
+        <Row items={LOGOS.slice(7)} reverse />
       </div>
     </section>
   );

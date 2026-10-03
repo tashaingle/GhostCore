@@ -47,6 +47,9 @@ import type {SlackSettings} from "./slack/types";
 import {VercelConnector} from "./vercel/connector";
 import {VercelClient} from "./vercel/client";
 import type {VercelSettings} from "./vercel/types";
+import {TikTokConnector} from "./tiktok/connector";
+import {TikTokClient} from "./tiktok/client";
+import type {TikTokSettings} from "./tiktok/types";
 export type ConnectorCredentials = {
   accessToken?: string;
   refreshToken?: string;
@@ -195,6 +198,17 @@ export function loadConnector(
     return new VercelConnector(
       new VercelClient(credentials.accessToken),
       (credentials.settings ?? {}) as VercelSettings,
+    );
+  }
+  if (provider.connector === "tiktok") {
+    if (!credentials.accessToken) throw new Error("TikTok credentials are missing.");
+    return new TikTokConnector(
+      new TikTokClient({
+        accessToken: credentials.accessToken,
+        refreshToken: credentials.refreshToken,
+        expiresAt: credentials.expiresAt,
+      }),
+      (credentials.settings ?? {}) as TikTokSettings,
     );
   }
   return new PlaceholderConnector(provider.id);

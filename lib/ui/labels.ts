@@ -16,6 +16,7 @@ const providerNames: Record<string, string> = {
   manual: "Manual import",
   notion: "Notion",
   slack: "Slack",
+  vercel: "Vercel",
 };
 
 export function providerLabel(id: string | null | undefined) {
@@ -75,6 +76,9 @@ export function configureIntegrationLabel(providerId: string, configurationRequi
   }
   if (providerId === "github") {
     return configurationRequired ? "Choose repositories" : "Repositories";
+  }
+  if (providerId === "vercel") {
+    return configurationRequired ? "Choose projects" : "Projects";
   }
   if (providerId === "mailchimp") {
     return configurationRequired ? "Choose audiences" : "Audiences";

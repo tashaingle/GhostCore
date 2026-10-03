@@ -15,6 +15,7 @@ import {SearchConsoleError} from "./google-search-console/client";
 import {ShopifyError} from "./shopify/client";
 import {MetaAdsError} from "./meta-ads/client";
 import {LinkedInError} from "./linkedin/client";
+import {VercelError} from "./vercel/client";
 export type SyncSummary = {
   provider: string;
   received: number;
@@ -211,7 +212,8 @@ export async function runIntegrationSync(input: RunnerInput): Promise<SyncSummar
       (error instanceof SearchConsoleError && error.kind === "rate_limit") ||
       (error instanceof ShopifyError && error.kind === "rate_limit") ||
       (error instanceof MetaAdsError && error.kind === "rate_limit") ||
-      (error instanceof LinkedInError && error.kind === "rate_limit");
+      (error instanceof LinkedInError && error.kind === "rate_limit") ||
+      (error instanceof VercelError && error.kind === "rate_limit");
     const expired =
       (error instanceof GitHubApiError && error.kind === "unauthorized") ||
       (error instanceof GoogleAnalyticsError && error.kind === "unauthorized") ||
@@ -222,7 +224,8 @@ export async function runIntegrationSync(input: RunnerInput): Promise<SyncSummar
       (error instanceof SearchConsoleError && error.kind === "unauthorized") ||
       (error instanceof ShopifyError && error.kind === "unauthorized") ||
       (error instanceof MetaAdsError && error.kind === "unauthorized") ||
-      (error instanceof LinkedInError && error.kind === "unauthorized");
+      (error instanceof LinkedInError && error.kind === "unauthorized") ||
+      (error instanceof VercelError && error.kind === "unauthorized");
     const message = error instanceof Error ? error.message : "Sync failed. Please try again.";
     await input.supabase
       .from("integrations")

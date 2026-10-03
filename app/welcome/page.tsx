@@ -23,6 +23,7 @@ const POPULAR = [
   "google_search_console",
   "slack",
   "github",
+  "vercel",
 ];
 
 function connectHref(provider: ProviderDefinition) {

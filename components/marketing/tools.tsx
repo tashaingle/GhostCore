@@ -15,6 +15,7 @@ const LOGOS: Logo[] = [
   {slug: "slack", name: "Slack", w: 520, h: 133},
   {slug: "notion", name: "Notion", w: 467, h: 160},
   {slug: "github", name: "GitHub", w: 177, h: 160, big: true},
+  {slug: "vercel", name: "Vercel", w: 520, h: 104},
 ];
 
 type Logo = {slug: string; name: string; w: number; h: number; big?: boolean};

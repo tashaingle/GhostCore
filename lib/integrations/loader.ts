@@ -44,6 +44,9 @@ import type {NotionSettings} from "./notion/types";
 import {SlackConnector} from "./slack/connector";
 import {SlackClient} from "./slack/client";
 import type {SlackSettings} from "./slack/types";
+import {VercelConnector} from "./vercel/connector";
+import {VercelClient} from "./vercel/client";
+import type {VercelSettings} from "./vercel/types";
 export type ConnectorCredentials = {
   accessToken?: string;
   refreshToken?: string;
@@ -185,6 +188,13 @@ export function loadConnector(
       new SlackClient(credentials.accessToken),
       credentials.settings as SlackSettings,
       credentials.refreshToken,
+    );
+  }
+  if (provider.connector === "vercel") {
+    if (!credentials.accessToken) throw new Error("Vercel credentials are missing.");
+    return new VercelConnector(
+      new VercelClient(credentials.accessToken),
+      (credentials.settings ?? {}) as VercelSettings,
     );
   }
   return new PlaceholderConnector(provider.id);

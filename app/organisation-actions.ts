@@ -7,6 +7,8 @@ import {z} from "zod";
 import {requireUser} from "@/lib/auth/user";
 import {getActiveOrganisation, ACTIVE_ORGANISATION_COOKIE} from "@/lib/organisations/active";
 import {uniqueSlug} from "@/lib/organisations/slug";
+import {emailConfig, sendEmail} from "@/lib/email/resend";
+import {invitationEmail} from "@/lib/email/templates";
 import {
   ORGANISATION_ROLES,
   requirePermission,
@@ -25,6 +27,54 @@ const setActive = async (id: string) => {
   });
 };
 const hash = (token: string) => createHash("sha256").update(token).digest("hex");
+
+type ActiveContext = NonNullable<Awaited<ReturnType<typeof getActiveOrganisation>>>;
+
+/**
+ * Emails an invitation from Metric Mage through Resend. Without email configured, it falls back to
+ * a sign-in link from Supabase, which reaches the person but doesn't mention the organisation.
+ */
+async function deliverInvitation(
+  ctx: ActiveContext,
+  invite: {email: string; role: string; token: string; expiresAt: string},
+): Promise<{ok: true} | {ok: false; reason: string}> {
+  const site = (process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000").replace(/\/+$/, ""),
+    acceptUrl = `${site}/invite/${invite.token}`,
+    config = emailConfig();
+  if (!config) {
+    const {error} = await ctx.supabase.auth.signInWithOtp({
+      email: invite.email,
+      options: {
+        emailRedirectTo: `${site}/auth/callback?next=${encodeURIComponent(`/invite/${invite.token}`)}`,
+        shouldCreateUser: true,
+      },
+    });
+    return error ? {ok: false, reason: error.message} : {ok: true};
+  }
+  const meta = (ctx.user.user_metadata ?? {}) as {full_name?: unknown},
+    inviterName =
+      (typeof meta.full_name === "string" && meta.full_name.trim()) ||
+      ctx.user.email ||
+      "Someone from your team";
+  const email = invitationEmail({
+    organisationName: ctx.organisation.name,
+    inviterName,
+    role: invite.role,
+    acceptUrl,
+    expiresAt: invite.expiresAt,
+  });
+  try {
+    await sendEmail(config, {
+      to: invite.email,
+      ...email,
+      // A new token per send, so a resend is a new email rather than a duplicate.
+      idempotencyKey: `invitation:${hash(invite.token)}`,
+    });
+    return {ok: true};
+  } catch (error) {
+    return {ok: false, reason: error instanceof Error ? error.message : "Email couldn't be sent."};
+  }
+}
 export async function createWorkspace(form: FormData) {
   const parsed = z
     .object({
@@ -149,15 +199,14 @@ export async function inviteMember(form: FormData) {
   if (pending)
     redirect(message("/app/team", "error", "A pending invitation already exists for that email."));
   const token = randomBytes(32).toString("base64url"),
-    site = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
-    acceptUrl = `${site}/invite/${token}`;
+    expiresAt = new Date(Date.now() + 7 * 86400000).toISOString();
   const {error} = await ctx.supabase.from("organisation_invitations").insert({
     organisation_id: ctx.organisation.id,
     email: parsed.data.email,
     role: parsed.data.role,
     token_hash: hash(token),
     invited_by: ctx.user.id,
-    expires_at: new Date(Date.now() + 7 * 86400000).toISOString(),
+    expires_at: expiresAt,
   });
   if (error)
     redirect(
@@ -167,20 +216,19 @@ export async function inviteMember(form: FormData) {
         error.code === "23505" ? "That person is already invited." : error.message,
       ),
     );
-  const delivery = await ctx.supabase.auth.signInWithOtp({
+  const delivery = await deliverInvitation(ctx, {
     email: parsed.data.email,
-    options: {
-      emailRedirectTo: `${site}/auth/callback?next=${encodeURIComponent(`/invite/${token}`)}`,
-      shouldCreateUser: true,
-    },
+    role: parsed.data.role,
+    token,
+    expiresAt,
   });
   redirect(
     message(
       "/app/team",
-      delivery.error ? "error" : "success",
-      delivery.error
-        ? `Invitation saved, but email delivery failed: ${delivery.error.message}`
-        : `Invitation sent. Acceptance link: ${acceptUrl}`,
+      delivery.ok ? "success" : "error",
+      delivery.ok
+        ? `Invitation sent to ${parsed.data.email}.`
+        : `The invitation is saved, but the email couldn't be sent (${delivery.reason}). Click Resend to try again.`,
     ),
   );
 }
@@ -199,27 +247,37 @@ export async function updateInvitation(form: FormData) {
       .eq("organisation_id", ctx.organisation.id);
   else {
     const token = randomBytes(32).toString("base64url"),
-      site = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+      expiresAt = new Date(Date.now() + 7 * 86400000).toISOString();
     const {data: invite} = await ctx.supabase
       .from("organisation_invitations")
       .update({
         token_hash: hash(token),
-        expires_at: new Date(Date.now() + 7 * 86400000).toISOString(),
+        expires_at: expiresAt,
         status: "pending",
         updated_at: new Date().toISOString(),
       })
       .eq("id", id.data)
       .eq("organisation_id", ctx.organisation.id)
-      .select("email")
+      .select("email,role")
       .single();
-    if (invite)
-      await ctx.supabase.auth.signInWithOtp({
+    if (invite) {
+      const delivery = await deliverInvitation(ctx, {
         email: invite.email,
-        options: {
-          emailRedirectTo: `${site}/auth/callback?next=${encodeURIComponent(`/invite/${token}`)}`,
-          shouldCreateUser: true,
-        },
+        role: invite.role,
+        token,
+        expiresAt,
       });
+      revalidatePath("/app/team");
+      redirect(
+        message(
+          "/app/team",
+          delivery.ok ? "success" : "error",
+          delivery.ok
+            ? `Invitation sent again to ${invite.email}.`
+            : `The email couldn't be sent (${delivery.reason}). Try again shortly.`,
+        ),
+      );
+    }
   }
   revalidatePath("/app/team");
 }

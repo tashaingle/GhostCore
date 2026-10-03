@@ -3,6 +3,7 @@ import {notFound} from "next/navigation";
 import {getActiveOrganisation} from "@/lib/organisations/active";
 import {WorkStatus} from "@/components/work-status";
 import {WorkDetailActions} from "@/components/work-detail-actions";
+import {organisationPeople} from "@/lib/organisations/people";
 import {Notice} from "@/components/notice";
 import {calculateSla} from "@/lib/work/sla";
 import type {OrganisationRole} from "@/lib/auth/permissions";
@@ -16,55 +17,45 @@ export default async function CaseDetail({
   const ctx = await getActiveOrganisation(),
     {id} = await params,
     p = await searchParams,
-    [
-      {data: item},
-      {data: tasks},
-      {data: comments},
-      {data: evidence},
-      {data: revisions},
-      {data: members},
-    ] = await Promise.all([
-      ctx.supabase
-        .from("work_cases")
-        .select("*")
-        .eq("id", id)
-        .eq("organisation_id", ctx.organisation.id)
-        .maybeSingle(),
-      ctx.supabase
-        .from("work_tasks")
-        .select("*")
-        .eq("case_id", id)
-        .eq("organisation_id", ctx.organisation.id)
-        .order("created_at")
-        .limit(200),
-      ctx.supabase
-        .from("work_comments")
-        .select("*")
-        .eq("case_id", id)
-        .eq("organisation_id", ctx.organisation.id)
-        .is("deleted_at", null)
-        .order("created_at")
-        .limit(200),
-      ctx.supabase
-        .from("work_evidence")
-        .select("*")
-        .eq("case_id", id)
-        .eq("organisation_id", ctx.organisation.id)
-        .order("created_at", {ascending: false})
-        .limit(100),
-      ctx.supabase
-        .from("work_revisions")
-        .select("*")
-        .eq("case_id", id)
-        .eq("organisation_id", ctx.organisation.id)
-        .order("revision_number", {ascending: false})
-        .limit(100),
-      ctx.supabase
-        .from("organisation_members")
-        .select("user_id")
-        .eq("organisation_id", ctx.organisation.id)
-        .eq("status", "active"),
-    ]);
+    [{data: item}, {data: tasks}, {data: comments}, {data: evidence}, {data: revisions}] =
+      await Promise.all([
+        ctx.supabase
+          .from("work_cases")
+          .select("*")
+          .eq("id", id)
+          .eq("organisation_id", ctx.organisation.id)
+          .maybeSingle(),
+        ctx.supabase
+          .from("work_tasks")
+          .select("*")
+          .eq("case_id", id)
+          .eq("organisation_id", ctx.organisation.id)
+          .order("created_at")
+          .limit(200),
+        ctx.supabase
+          .from("work_comments")
+          .select("*")
+          .eq("case_id", id)
+          .eq("organisation_id", ctx.organisation.id)
+          .is("deleted_at", null)
+          .order("created_at")
+          .limit(200),
+        ctx.supabase
+          .from("work_evidence")
+          .select("*")
+          .eq("case_id", id)
+          .eq("organisation_id", ctx.organisation.id)
+          .order("created_at", {ascending: false})
+          .limit(100),
+        ctx.supabase
+          .from("work_revisions")
+          .select("*")
+          .eq("case_id", id)
+          .eq("organisation_id", ctx.organisation.id)
+          .order("revision_number", {ascending: false})
+          .limit(100),
+      ]);
+  const people = await organisationPeople(ctx.supabase, ctx.organisation.id, ctx.user.id);
   if (!item) notFound();
   let sla = {
     state: "none",
@@ -110,11 +101,11 @@ export default async function CaseDetail({
           </div>
           <div>
             <dt className="text-zinc-500">Assignee</dt>
-            <dd>{item.assigned_user_id ?? "Unassigned"}</dd>
+            <dd>{people.name(item.assigned_user_id)}</dd>
           </div>
           <div>
             <dt className="text-zinc-500">Owner</dt>
-            <dd>{item.owner_user_id ?? "None"}</dd>
+            <dd>{people.name(item.owner_user_id, "None")}</dd>
           </div>
           <div>
             <dt className="text-zinc-500">Response target</dt>
@@ -191,7 +182,8 @@ export default async function CaseDetail({
                 <strong className="capitalize">{x.comment_type.replaceAll("_", " ")}</strong>
                 <p className="whitespace-pre-wrap">{x.body}</p>
                 <p className="text-xs text-zinc-500">
-                  {x.author_user_id} · {new Date(x.created_at).toLocaleString()}
+                  {people.name(x.author_user_id, "Metric Mage")} ·{" "}
+                  {new Date(x.created_at).toLocaleString("en-GB")}
                 </p>
               </div>
             ))}
@@ -212,7 +204,7 @@ export default async function CaseDetail({
           id={id}
           status={item.status}
           role={ctx.membership.role as OrganisationRole}
-          members={members ?? []}
+          members={people.list.map((x) => ({user_id: x.userId, label: x.label}))}
         />
       </div>
     </section>

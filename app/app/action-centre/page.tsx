@@ -1,5 +1,6 @@
 import Link from "next/link";
 import {getActiveOrganisation} from "@/lib/organisations/active";
+import {organisationPeople} from "@/lib/organisations/people";
 import {hasPermission, type OrganisationRole} from "@/lib/auth/permissions";
 import {Notice} from "@/components/notice";
 import {SeverityLabel} from "@/components/home-ui";
@@ -71,37 +72,32 @@ export default async function ActionCentre({
     );
   }
 
-  const [
-    {data: rows},
-    {data: all},
-    {data: members},
-    {data: profiles},
-    {data: jobs},
-    {data: integrations},
-  ] = await Promise.all([
-    query,
-    ctx.supabase
-      .from("notifications")
-      .select("id,status,severity,category,assigned_user_id,resolved_at,rule_key")
-      .eq("organisation_id", ctx.organisation.id)
-      .limit(1000),
-    ctx.supabase
-      .from("organisation_members")
-      .select("user_id")
-      .eq("organisation_id", ctx.organisation.id)
-      .eq("status", "active"),
-    ctx.supabase.from("profiles").select("id,full_name").limit(500),
-    ctx.supabase
-      .from("background_jobs")
-      .select("id,job_key,provider")
-      .eq("organisation_id", ctx.organisation.id),
-    ctx.supabase
-      .from("integrations")
-      .select("id,provider,provider_account_name")
-      .eq("organisation_id", ctx.organisation.id),
-  ]);
+  const [{data: rows}, {data: all}, {data: members}, {data: jobs}, {data: integrations}] =
+    await Promise.all([
+      query,
+      ctx.supabase
+        .from("notifications")
+        .select("id,status,severity,category,assigned_user_id,resolved_at,rule_key")
+        .eq("organisation_id", ctx.organisation.id)
+        .limit(1000),
+      ctx.supabase
+        .from("organisation_members")
+        .select("user_id")
+        .eq("organisation_id", ctx.organisation.id)
+        .eq("status", "active"),
+      ctx.supabase
+        .from("background_jobs")
+        .select("id,job_key,provider")
+        .eq("organisation_id", ctx.organisation.id),
+      ctx.supabase
+        .from("integrations")
+        .select("id,provider,provider_account_name")
+        .eq("organisation_id", ctx.organisation.id),
+    ]);
 
-  const profileMap = new Map((profiles ?? []).map((x) => [x.id, x.full_name ?? x.id.slice(0, 8)]));
+  // Names (or emails, for people without one) for "Assigned to" and the assign menu.
+  const people = await organisationPeople(ctx.supabase, ctx.organisation.id, ctx.user.id),
+    profileMap = new Map(people.list.map((x) => [x.userId, x.label]));
   const jobById = new Map(
     (jobs ?? []).map((j) => [j.id, {job_key: j.job_key, provider: j.provider}]),
   );
@@ -453,7 +449,7 @@ export default async function ActionCentre({
                 <option value="">Assign to (if assigning)</option>
                 {(members ?? []).map((x) => (
                   <option key={x.user_id} value={x.user_id}>
-                    {profileMap.get(x.user_id) ?? x.user_id.slice(0, 8)}
+                    {profileMap.get(x.user_id) ?? "Team member"}
                   </option>
                 ))}
               </select>

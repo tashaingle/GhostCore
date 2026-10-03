@@ -3,6 +3,7 @@ import {notFound} from "next/navigation";
 import {getActiveOrganisation} from "@/lib/organisations/active";
 import {WorkStatus} from "@/components/work-status";
 import {WorkDetailActions} from "@/components/work-detail-actions";
+import {organisationPeople} from "@/lib/organisations/people";
 import {Notice} from "@/components/notice";
 import {checklistAction, dependencyAction} from "@/app/work-actions";
 import type {OrganisationRole} from "@/lib/auth/permissions";
@@ -24,7 +25,6 @@ export default async function TaskDetail({
       {data: comments},
       {data: evidence},
       {data: revisions},
-      {data: members},
       {data: tasks},
       {data: watchers},
     ] = await Promise.all([
@@ -70,11 +70,6 @@ export default async function TaskDetail({
         .order("revision_number", {ascending: false})
         .limit(100),
       ctx.supabase
-        .from("organisation_members")
-        .select("user_id")
-        .eq("organisation_id", ctx.organisation.id)
-        .eq("status", "active"),
-      ctx.supabase
         .from("work_tasks")
         .select("id,title,status")
         .eq("organisation_id", ctx.organisation.id)
@@ -86,6 +81,7 @@ export default async function TaskDetail({
         .eq("task_id", id)
         .eq("organisation_id", ctx.organisation.id),
     ]);
+  const people = await organisationPeople(ctx.supabase, ctx.organisation.id, ctx.user.id);
   if (!item) notFound();
   const role = ctx.membership.role as OrganisationRole;
   return (
@@ -105,11 +101,11 @@ export default async function TaskDetail({
         <dl className="mt-4 grid gap-2 text-sm md:grid-cols-4">
           <div>
             <dt className="text-zinc-500">Assignee</dt>
-            <dd>{item.assigned_user_id ?? "Unassigned"}</dd>
+            <dd>{people.name(item.assigned_user_id)}</dd>
           </div>
           <div>
             <dt className="text-zinc-500">Owner</dt>
-            <dd>{item.owner_user_id ?? "None"}</dd>
+            <dd>{people.name(item.owner_user_id, "None")}</dd>
           </div>
           <div>
             <dt className="text-zinc-500">Due</dt>
@@ -230,7 +226,8 @@ export default async function TaskDetail({
                 <strong className="capitalize">{x.comment_type.replaceAll("_", " ")}</strong>
                 <p className="whitespace-pre-wrap">{x.body}</p>
                 <p className="text-xs text-zinc-500">
-                  {x.author_user_id} · {new Date(x.created_at).toLocaleString()}
+                  {people.name(x.author_user_id, "Metric Mage")} ·{" "}
+                  {new Date(x.created_at).toLocaleString("en-GB")}
                 </p>
               </div>
             ))}
@@ -251,7 +248,7 @@ export default async function TaskDetail({
           id={id}
           status={item.status}
           role={role}
-          members={members ?? []}
+          members={people.list.map((x) => ({user_id: x.userId, label: x.label}))}
         />
       </div>
     </section>

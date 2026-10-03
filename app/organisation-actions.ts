@@ -239,13 +239,15 @@ export async function updateInvitation(form: FormData) {
   const id = z.uuid().safeParse(form.get("id")),
     action = String(form.get("action"));
   if (!id.success || !["cancel", "resend"].includes(action)) return;
-  if (action === "cancel")
+  if (action === "cancel") {
     await ctx.supabase
       .from("organisation_invitations")
       .update({status: "cancelled", updated_at: new Date().toISOString()})
       .eq("id", id.data)
       .eq("organisation_id", ctx.organisation.id);
-  else {
+    revalidatePath("/app/team");
+    redirect(message("/app/team", "success", "Invitation cancelled."));
+  } else {
     const token = randomBytes(32).toString("base64url"),
       expiresAt = new Date(Date.now() + 7 * 86400000).toISOString();
     const {data: invite} = await ctx.supabase
@@ -311,19 +313,37 @@ export async function updateMember(form: FormData) {
       if ((count ?? 0) <= 1)
         redirect(message("/app/team", "error", "The only owner cannot remove themselves."));
     }
-    await ctx.supabase
+    const {error} = await ctx.supabase
       .from("organisation_members")
       .delete()
       .eq("id", id.data)
       .eq("organisation_id", ctx.organisation.id);
+    revalidatePath("/app/team");
+    redirect(
+      message(
+        "/app/team",
+        error ? "error" : "success",
+        error
+          ? "They couldn't be removed. Please try again."
+          : `They've been removed from ${ctx.organisation.name}.`,
+      ),
+    );
   } else if (role.success) {
     if (role.data === "owner" && ctx.membership.role !== "owner")
       redirect(message("/app/team", "error", "Only owners can promote another owner."));
-    await ctx.supabase
+    const {error} = await ctx.supabase
       .from("organisation_members")
       .update({role: role.data})
       .eq("id", id.data)
       .eq("organisation_id", ctx.organisation.id);
+    revalidatePath("/app/team");
+    redirect(
+      message(
+        "/app/team",
+        error ? "error" : "success",
+        error ? "The role couldn't be changed. Please try again." : `Role changed to ${role.data}.`,
+      ),
+    );
   }
   revalidatePath("/app/team");
 }

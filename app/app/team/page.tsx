@@ -4,6 +4,9 @@ import {ROLE_DESCRIPTIONS} from "@/lib/ui/labels";
 import {hasPermission, type OrganisationRole, ORGANISATION_ROLES} from "@/lib/auth/permissions";
 import {inviteMember, updateInvitation, updateMember} from "@/app/organisation-actions";
 import {Notice} from "@/components/notice";
+import {ConfirmSubmit} from "@/components/confirm-submit";
+import {organisationPeople} from "@/lib/organisations/people";
+
 export default async function Team({
   searchParams,
 }: {
@@ -30,7 +33,9 @@ export default async function Team({
       ? ((await ctx.supabase.from("profiles").select("id,full_name,avatar_url").in("id", ids))
           .data ?? [])
       : [],
-    profileMap = new Map(profiles.map((profile) => [profile.id, profile]));
+    profileMap = new Map(profiles.map((profile) => [profile.id, profile])),
+    people = await organisationPeople(ctx.supabase, ctx.organisation.id),
+    emails = new Map(people.list.flatMap((x) => (x.email ? [[x.userId, x.email] as const] : [])));
   return (
     <section className="space-y-6">
       <PageHeader
@@ -89,12 +94,20 @@ export default async function Team({
           </thead>
           <tbody>
             {(members ?? []).map((member) => {
-              const profile = profileMap.get(member.user_id);
+              const profile = profileMap.get(member.user_id),
+                email = emails.get(member.user_id),
+                you = member.user_id === ctx.user.id,
+                name = profile?.full_name || email || "Team member";
               return (
                 <tr className="border-b last:border-0" key={member.id}>
                   <td className="py-3">
-                    {profile?.full_name ??
-                      (member.user_id === ctx.user.id ? "You" : member.user_id.slice(0, 8))}
+                    <span className="font-medium text-zinc-950">
+                      {name}
+                      {you ? " (you)" : ""}
+                    </span>
+                    {email && profile?.full_name ? (
+                      <span className="block text-xs text-zinc-500">{email}</span>
+                    ) : null}
                   </td>
                   <td className="capitalize" title={ROLE_DESCRIPTIONS[member.role]}>
                     {member.role}
@@ -103,7 +116,10 @@ export default async function Team({
                   <td>{new Date(member.created_at).toLocaleDateString()}</td>
                   <td>
                     {canManage && member.id !== ctx.membership.id && (
-                      <form action={updateMember} className="flex gap-2">
+                      <form
+                        action={updateMember}
+                        className="flex flex-wrap items-center justify-end gap-2"
+                      >
                         <input type="hidden" name="id" value={member.id} />
                         <select className="field py-1" name="role" defaultValue={member.role}>
                           {ORGANISATION_ROLES.map((role) => (
@@ -113,9 +129,13 @@ export default async function Team({
                         <button className="button button-secondary" name="action" value="role">
                           Save
                         </button>
-                        <button className="text-red-700" name="action" value="remove">
-                          Remove
-                        </button>
+                        <ConfirmSubmit
+                          label="Remove"
+                          question={`Remove ${name} from ${ctx.organisation.name}? They'll lose access straight away.`}
+                          confirmLabel="Yes, remove"
+                          name="action"
+                          value="remove"
+                        />
                       </form>
                     )}
                   </td>
@@ -145,14 +165,21 @@ export default async function Team({
                       : invite.status}
                   </span>
                   {invite.status === "pending" && (
-                    <form action={updateInvitation} className="ml-auto flex gap-2">
+                    <form
+                      action={updateInvitation}
+                      className="ml-auto flex flex-wrap items-center gap-2"
+                    >
                       <input type="hidden" name="id" value={invite.id} />
                       <button className="button button-secondary" name="action" value="resend">
                         Resend
                       </button>
-                      <button className="text-red-700" name="action" value="cancel">
-                        Cancel
-                      </button>
+                      <ConfirmSubmit
+                        label="Cancel"
+                        question={`Cancel the invitation to ${invite.email}? The link in their email will stop working.`}
+                        confirmLabel="Yes, cancel it"
+                        name="action"
+                        value="cancel"
+                      />
                     </form>
                   )}
                 </div>

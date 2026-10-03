@@ -1,5 +1,6 @@
 import Link from "next/link";
 import {getActiveOrganisation} from "@/lib/organisations/active";
+import {organisationPeople} from "@/lib/organisations/people";
 import {WorkForm} from "@/components/work-form";
 import {Notice} from "@/components/notice";
 export default async function NewTask({
@@ -9,12 +10,8 @@ export default async function NewTask({
 }) {
   const ctx = await getActiveOrganisation(),
     p = await searchParams,
-    [{data: members}, {data: cases}] = await Promise.all([
-      ctx.supabase
-        .from("organisation_members")
-        .select("user_id")
-        .eq("organisation_id", ctx.organisation.id)
-        .eq("status", "active"),
+    [people, {data: cases}] = await Promise.all([
+      organisationPeople(ctx.supabase, ctx.organisation.id, ctx.user.id),
       ctx.supabase
         .from("work_cases")
         .select("id,case_number,title")
@@ -34,7 +31,7 @@ export default async function NewTask({
       <Notice searchParams={p} />
       <WorkForm
         kind="task"
-        members={members ?? []}
+        members={people.list.map((x) => ({user_id: x.userId, label: x.label}))}
         cases={cases ?? []}
         sourceType={typeof p.sourceType === "string" ? p.sourceType : undefined}
         sourceId={typeof p.sourceId === "string" ? p.sourceId : undefined}

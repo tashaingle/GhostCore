@@ -1,6 +1,6 @@
-import {caseCategories, workPriorities, workSourceTypes} from "@/lib/work/types";
+import {caseCategories, workPriorities} from "@/lib/work/types";
 import {createCaseAction, createTaskAction} from "@/app/work-actions";
-type Member = {user_id: string};
+type Member = {user_id: string; label: string};
 type Props = {
   kind: "task" | "case";
   members: Member[];
@@ -55,10 +55,11 @@ export function WorkForm({kind, members, cases = [], sourceType = "manual", sour
           <option value="">Unassigned</option>
           {members.map((x) => (
             <option key={x.user_id} value={x.user_id}>
-              {x.user_id}
+              {x.label}
             </option>
           ))}
         </select>
+        <span className="mt-1 block text-xs text-zinc-500">Who&apos;s doing the work.</span>
       </label>
       <label>
         Owner
@@ -66,23 +67,29 @@ export function WorkForm({kind, members, cases = [], sourceType = "manual", sour
           <option value="">No owner</option>
           {members.map((x) => (
             <option key={x.user_id} value={x.user_id}>
-              {x.user_id}
+              {x.label}
             </option>
           ))}
         </select>
+        <span className="mt-1 block text-xs text-zinc-500">
+          Who makes sure it gets done, if that&apos;s someone else.
+        </span>
       </label>
       {kind === "task" && (
         <>
           <label>
-            Case
+            Case <span className="text-zinc-400">(optional)</span>
             <select className="field mt-1 w-full" name="caseId">
-              <option value="">No case</option>
+              <option value="">Not part of a case</option>
               {cases.map((x) => (
                 <option key={x.id} value={x.id}>
                   {x.case_number} · {x.title}
                 </option>
               ))}
             </select>
+            <span className="mt-1 block text-xs text-zinc-500">
+              A case groups tasks about one bigger issue, like a customer complaint or an outage.
+            </span>
           </label>
           <label>
             Estimate (minutes)
@@ -90,23 +97,9 @@ export function WorkForm({kind, members, cases = [], sourceType = "manual", sour
           </label>
         </>
       )}
-      <label>
-        Source
-        <select className="field mt-1 w-full" name="sourceType" defaultValue={sourceType}>
-          {workSourceTypes.map((x) => (
-            <option key={x}>{x}</option>
-          ))}
-        </select>
-      </label>
-      <label>
-        Source ID
-        <input
-          className="field mt-1 w-full"
-          name="sourceId"
-          defaultValue={sourceId}
-          maxLength={200}
-        />
-      </label>
+      {/* Filled in when the item is created from an alert or automation; not something to edit. */}
+      <input type="hidden" name="sourceType" value={sourceType} />
+      <input type="hidden" name="sourceId" value={sourceId} />
       <button className="button md:col-span-2">Create {kind}</button>
     </form>
   );

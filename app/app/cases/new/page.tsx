@@ -1,5 +1,6 @@
 import Link from "next/link";
 import {getActiveOrganisation} from "@/lib/organisations/active";
+import {organisationPeople} from "@/lib/organisations/people";
 import {WorkForm} from "@/components/work-form";
 import {Notice} from "@/components/notice";
 export default async function NewCase({
@@ -9,11 +10,7 @@ export default async function NewCase({
 }) {
   const ctx = await getActiveOrganisation(),
     p = await searchParams,
-    {data: members} = await ctx.supabase
-      .from("organisation_members")
-      .select("user_id")
-      .eq("organisation_id", ctx.organisation.id)
-      .eq("status", "active");
+    people = await organisationPeople(ctx.supabase, ctx.organisation.id, ctx.user.id);
   return (
     <section className="mx-auto max-w-4xl space-y-6">
       <Link href="/app/cases">← Cases</Link>
@@ -27,7 +24,7 @@ export default async function NewCase({
       <Notice searchParams={p} />
       <WorkForm
         kind="case"
-        members={members ?? []}
+        members={people.list.map((x) => ({user_id: x.userId, label: x.label}))}
         sourceType={typeof p.sourceType === "string" ? p.sourceType : undefined}
         sourceId={typeof p.sourceId === "string" ? p.sourceId : undefined}
       />

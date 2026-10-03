@@ -1,6 +1,7 @@
 import Link from "next/link";
 import {notFound} from "next/navigation";
 import {getActiveOrganisation} from "@/lib/organisations/active";
+import {organisationPeople} from "@/lib/organisations/people";
 import {hasPermission, type OrganisationRole} from "@/lib/auth/permissions";
 import {Notice} from "@/components/notice";
 import {assignmentAction, workflowRunAction} from "@/app/workflow-actions";
@@ -12,6 +13,7 @@ export default async function RunDetail({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const ctx = await getActiveOrganisation(),
+    people = await organisationPeople(ctx.supabase, ctx.organisation.id, ctx.user.id),
     {id} = await params,
     p = await searchParams,
     [{data: run}, {data: steps}, {data: logs}, {data: approvals}, {data: assignments}] =
@@ -159,7 +161,10 @@ export default async function RunDetail({
           {assignments?.map((x) => (
             <div className="border-t py-2" key={x.id}>
               <p>
-                {x.assigned_role ?? x.assigned_user_id ?? "Unassigned"} · {x.status}
+                {x.assigned_role
+                  ? `Anyone with the ${x.assigned_role} role`
+                  : people.name(x.assigned_user_id)}{" "}
+                · {x.status}
               </p>
               {x.status === "pending" && canRun && (
                 <form action={assignmentAction} className="mt-2 flex gap-2">

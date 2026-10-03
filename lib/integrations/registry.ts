@@ -14,7 +14,8 @@ export type ProviderId =
   | "linkedin"
   | "manual"
   | "notion"
-  | "slack";
+  | "slack"
+  | "vercel";
 export type ProviderDefinition = {
   id: ProviderId;
   displayName: string;
@@ -42,6 +43,7 @@ export type ProviderDefinition = {
     | "manual"
     | "notion"
     | "slack"
+    | "vercel"
     | null;
   description?: string;
   healthSupport?: boolean;
@@ -312,6 +314,24 @@ export const providerRegistry = {
     configurationPath: "/app/integrations/slack/settings",
     healthSupport: true,
     propertySelection: true,
+  },
+  vercel: {
+    id: "vercel",
+    displayName: "Vercel",
+    description: "Production and preview deploys, including failed builds. Read-only.",
+    icon: "▲",
+    colour: "#000000",
+    category: "Development",
+    oauth: true,
+    sync: true,
+    capabilities: ["oauth", "polling", "read_only"],
+    schedule: "hourly",
+    recommendedFrequency: "Hourly",
+    connector: "vercel",
+    healthSupport: true,
+    propertySelection: true,
+    connectPath: "/api/integrations/vercel/connect",
+    configurationPath: "/app/integrations/vercel/settings",
   },
 } as const satisfies Record<ProviderId, ProviderDefinition>;
 export const providers = Object.values(providerRegistry);

@@ -32,7 +32,7 @@ class FakeConnector implements IntegrationConnector {
 }
 describe("provider registry", () => {
   it("is unique and complete", () => {
-    expect(providers).toHaveLength(15);
+    expect(providers).toHaveLength(16);
     expect(new Set(providers.map((provider) => provider.id)).size).toBe(providers.length);
     expect(getProvider("github")).toBe(providerRegistry.github);
     expect(getProvider("meta_social")?.connector).toBe("meta_social");

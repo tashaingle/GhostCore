@@ -166,12 +166,4 @@ export class GmailClient {
     const profile = await this.profile();
     return {messages, historyId: profile.historyId, pages, failed, initial, fallback};
   }
-  async revoke() {
-    try {
-      await this.request(
-        `https://oauth2.googleapis.com/revoke?token=${encodeURIComponent(await this.token())}`,
-        {method: "POST"},
-      );
-    } catch {}
-  }
 }

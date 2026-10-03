@@ -129,12 +129,4 @@ export class SearchConsoleClient {
     });
     return {inspectionUrl, ...data.inspectionResult?.indexStatusResult};
   }
-  async revoke() {
-    try {
-      await this.request(
-        `https://oauth2.googleapis.com/revoke?token=${encodeURIComponent(await this.token())}`,
-        {method: "POST"},
-      );
-    } catch {}
-  }
 }

@@ -180,13 +180,4 @@ export class GoogleAnalyticsClient {
       previousDimensions: this.dimensions(previousDimensions),
     };
   }
-  async revoke() {
-    const token = await this.token();
-    try {
-      await this.request(
-        `https://oauth2.googleapis.com/revoke?token=${encodeURIComponent(token)}`,
-        {method: "POST", headers: {"content-type": "application/x-www-form-urlencoded"}},
-      );
-    } catch {}
-  }
 }

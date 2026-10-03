@@ -108,12 +108,4 @@ export class CalendarClient {
   profile() {
     return this.get<{email: string; id: string}>("https://www.googleapis.com/oauth2/v2/userinfo");
   }
-  async revoke() {
-    try {
-      await this.request(
-        `https://oauth2.googleapis.com/revoke?token=${encodeURIComponent(await this.token())}`,
-        {method: "POST"},
-      );
-    } catch {}
-  }
 }

@@ -18,10 +18,11 @@ export class GoogleSearchConsoleConnector implements IntegrationConnector {
     private now: () => Date = () => new Date(),
   ) {}
   connect = async () => ({ok: (await this.client.properties()).length >= 0});
-  disconnect = async () => {
-    await this.client.revoke();
-    return {ok: true};
-  };
+  // Google grants one permission per Google account, shared by every Metric Mage connection that
+  // uses it (Gmail, Calendar, Analytics, Search Console, in any organisation). Revoking it on
+  // disconnect would cut off all of them, so disconnecting only deletes this connection's stored
+  // sign-in. People can remove Metric Mage entirely from their Google Account's security settings.
+  disconnect = async () => ({ok: true});
   refresh = async () => ({ok: true});
   healthError = () => this.error;
   async healthCheck() {

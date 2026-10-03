@@ -35,10 +35,13 @@ describe("LinkedIn connector", () => {
     await client.identity();
     const [url, init] = request.mock.calls[0];
     expect(String(url)).not.toContain("super-secret");
-    expect((init as RequestInit).headers).toMatchObject({
+    const headers = (init as RequestInit).headers as Record<string, string>;
+    expect(() => new Headers(headers)).not.toThrow();
+    expect(headers).toMatchObject({
       Authorization: "Bearer super-secret-token-value",
       "Linkedin-Version": "202607",
       "X-Restli-Protocol-Version": "2.0.0",
+      "X-Correlation-ID": expect.any(String),
     });
   });
   it("classifies rate limits safely", async () => {

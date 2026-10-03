@@ -20,7 +20,7 @@ export function restliQuery(params: Record<string, string>) {
   return Object.entries(params)
     .map(
       ([key, value]) =>
-        `${encodeURIComponent(key)}=${value.startsWith("List(") ? value : encodeURIComponent(value)}`,
+        `${encodeURIComponent(key)}=${value.startsWith("List(") || value.startsWith("(") ? value : encodeURIComponent(value)}`,
     )
     .join("&");
 }

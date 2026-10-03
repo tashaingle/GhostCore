@@ -25,24 +25,58 @@ describe("LinkedIn connector", () => {
     const value = restliList(["urn:li:organization:123"]);
     expect(value).toBe("List(urn%3Ali%3Aorganization%3A123)");
     expect(restliQuery({ids: value})).not.toContain("%253A");
+    expect(restliQuery({search: "(status:(values:List(ACTIVE)))"})).toContain(
+      "search=(status:(values:List(ACTIVE)))",
+    );
   });
   it("applies required headers and never puts the token in the URL", async () => {
     const request = vi.fn(
-        async (_url: RequestInfo | URL, _init?: RequestInit) =>
-          new Response(JSON.stringify({sub: "member-1", name: "Ada"}), {status: 200}),
+        async (url: RequestInfo | URL, _init?: RequestInit) =>
+          new Response(
+            JSON.stringify(
+              String(url).includes("/v2/userinfo")
+                ? {sub: "member-1", name: "Ada"}
+                : {elements: [], metadata: {}},
+            ),
+            {status: 200},
+          ),
       ),
       client = new LinkedInClient("super-secret-token-value", request as typeof fetch);
     await client.identity();
-    const [url, init] = request.mock.calls[0];
-    expect(String(url)).not.toContain("super-secret");
-    const headers = (init as RequestInit).headers as Record<string, string>;
-    expect(() => new Headers(headers)).not.toThrow();
-    expect(headers).toMatchObject({
+    await client.adAccounts();
+    const [userUrl, userInit] = request.mock.calls[0];
+    const userHeaders = (userInit as RequestInit).headers as Record<string, string>;
+    expect(String(userUrl)).toBe("https://api.linkedin.com/v2/userinfo");
+    expect(String(userUrl)).not.toContain("super-secret");
+    expect(() => new Headers(userHeaders)).not.toThrow();
+    expect(userHeaders).toEqual({
       Authorization: "Bearer super-secret-token-value",
-      "Linkedin-Version": "202607",
-      "X-Restli-Protocol-Version": "2.0.0",
+      Accept: "application/json",
       "X-Correlation-ID": expect.any(String),
     });
+    const [adUrl, adInit] = request.mock.calls[1];
+    const adHeaders = (adInit as RequestInit).headers as Record<string, string>;
+    expect(String(adUrl)).toContain("q=search");
+    expect(String(adUrl)).toContain("pageSize=100");
+    expect(String(adUrl)).not.toContain("start=");
+    expect(adHeaders).toMatchObject({
+      "Linkedin-Version": "202607",
+      "X-Restli-Protocol-Version": "2.0.0",
+      "X-RestLi-Method": "FINDER",
+    });
+  });
+  it("keeps LinkedIn's status when a call is rejected", async () => {
+    const client = new LinkedInClient(
+      "super-secret-token-value",
+      vi.fn(
+        async () =>
+          new Response(JSON.stringify({message: "Header is not a finder"}), {status: 400}),
+      ) as typeof fetch,
+    );
+    await expect(client.identity()).rejects.toMatchObject({
+      kind: "invalid_parameter",
+      message: "LinkedIn API request failed (400): Header is not a finder",
+    } as LinkedInError);
   });
   it("classifies rate limits safely", async () => {
     const client = new LinkedInClient(

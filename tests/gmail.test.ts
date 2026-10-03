@@ -87,3 +87,25 @@ describe("Gmail integration", () => {
     expect(client.credentialUpdate()?.accessToken).toBe("new");
   });
 });
+
+describe("Gmail connection errors", () => {
+  const failing = (status: number, error: object) =>
+    (async () => new Response(JSON.stringify({error}), {status})) as typeof fetch;
+  const valid = {accessToken: "t", expiresAt: "2999-01-01T00:00:00Z"};
+
+  it("explains when the Google account has no Gmail inbox", async () => {
+    const client = new GmailClient(
+      valid,
+      failing(400, {status: "FAILED_PRECONDITION", message: "Mail service not enabled"}),
+    );
+    await expect(client.profile()).rejects.toThrow("doesn't have a Gmail inbox");
+  });
+
+  it("passes on Google's reason instead of a generic failure", async () => {
+    const client = new GmailClient(
+      valid,
+      failing(400, {status: "INVALID_ARGUMENT", message: "Bad request"}),
+    );
+    await expect(client.profile()).rejects.toThrow("(400: INVALID_ARGUMENT Bad request)");
+  });
+});

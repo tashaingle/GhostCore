@@ -8,6 +8,7 @@ import {GitHubApiError} from "./github/api";
 import type {IntegrationConnector, IntegrationSyncContext} from "./connector";
 import {GoogleAnalyticsError} from "./google-analytics/errors";
 import {GmailError} from "./gmail/errors";
+import {OutlookError} from "./outlook/errors";
 import {GhostStripeError} from "./stripe/errors";
 import {SearchConsoleError} from "./google-search-console/client";
 import {ShopifyError} from "./shopify/client";
@@ -203,6 +204,7 @@ export async function runIntegrationSync(input: RunnerInput): Promise<SyncSummar
       (error instanceof GitHubApiError && error.kind === "rate_limit") ||
       (error instanceof GoogleAnalyticsError && error.kind === "rate_limit") ||
       (error instanceof GmailError && error.kind === "rate_limit") ||
+      (error instanceof OutlookError && error.kind === "rate_limit") ||
       (error instanceof GhostStripeError && error.kind === "rate_limit") ||
       (error instanceof SearchConsoleError && error.kind === "rate_limit") ||
       (error instanceof ShopifyError && error.kind === "rate_limit") ||
@@ -212,6 +214,7 @@ export async function runIntegrationSync(input: RunnerInput): Promise<SyncSummar
       (error instanceof GitHubApiError && error.kind === "unauthorized") ||
       (error instanceof GoogleAnalyticsError && error.kind === "unauthorized") ||
       (error instanceof GmailError && error.kind === "unauthorized") ||
+      (error instanceof OutlookError && error.kind === "unauthorized") ||
       (error instanceof GhostStripeError && error.kind === "unauthorized") ||
       (error instanceof SearchConsoleError && error.kind === "unauthorized") ||
       (error instanceof ShopifyError && error.kind === "unauthorized") ||

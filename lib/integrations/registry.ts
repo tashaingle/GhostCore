@@ -4,6 +4,7 @@ export type ProviderId =
   | "google_analytics"
   | "google_search_console"
   | "gmail"
+  | "outlook"
   | "google_calendar"
   | "stripe"
   | "shopify"
@@ -29,6 +30,7 @@ export type ProviderDefinition = {
     | "google_analytics"
     | "google_search_console"
     | "gmail"
+    | "outlook"
     | "google_calendar"
     | "stripe"
     | "shopify"
@@ -119,6 +121,23 @@ export const providerRegistry = {
     connector: "gmail",
     connectPath: "/api/integrations/gmail/connect",
     configurationPath: "/app/integrations/gmail/settings",
+  },
+  outlook: {
+    id: "outlook",
+    displayName: "Outlook",
+    icon: "OL",
+    colour: "#0a64d8",
+    category: "Communication",
+    description:
+      "New emails and enquiries from Outlook, Hotmail or Microsoft 365. Metric Mage reads subject lines, never full messages.",
+    oauth: true,
+    sync: true,
+    capabilities: ["oauth", "polling", "read_only"],
+    schedule: "hourly",
+    recommendedFrequency: "Hourly",
+    connector: "outlook",
+    connectPath: "/api/integrations/outlook/connect",
+    configurationPath: "/app/integrations/outlook/settings",
   },
   google_calendar: {
     id: "google_calendar",

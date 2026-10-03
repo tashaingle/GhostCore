@@ -5,6 +5,7 @@ const providerNames: Record<string, string> = {
   google_analytics: "Google Analytics",
   google_search_console: "Search Console",
   gmail: "Gmail",
+  outlook: "Outlook",
   google_calendar: "Google Calendar",
   stripe: "Stripe",
   shopify: "Shopify",
@@ -56,7 +57,7 @@ export function configureIntegrationLabel(providerId: string, configurationRequi
   if (providerId === "slack") {
     return configurationRequired ? "Choose channels" : "Manage channels";
   }
-  if (providerId === "gmail") {
+  if (providerId === "gmail" || providerId === "outlook") {
     return configurationRequired ? "Mailbox settings" : "Settings";
   }
   if (providerId === "google_calendar") {

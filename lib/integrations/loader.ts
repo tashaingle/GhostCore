@@ -12,6 +12,9 @@ import {GoogleAnalyticsClient} from "./google-analytics/client";
 import {GmailConnector} from "./gmail/connector";
 import {GmailClient} from "./gmail/client";
 import type {GmailSettings} from "./gmail/types";
+import {OutlookConnector} from "./outlook/connector";
+import {OutlookClient} from "./outlook/client";
+import type {OutlookSettings} from "./outlook/types";
 import {GoogleCalendarConnector} from "./google-calendar/connector";
 import {CalendarClient} from "./google-calendar/client";
 import type {CalendarSettings} from "./google-calendar/types";
@@ -85,6 +88,17 @@ export function loadConnector(
         expiresAt: credentials.expiresAt,
       }),
       credentials.settings as SearchConsoleSettings,
+    );
+  }
+  if (provider.connector === "outlook") {
+    if (!credentials.accessToken) throw new Error("Outlook credentials are missing.");
+    return new OutlookConnector(
+      new OutlookClient({
+        accessToken: credentials.accessToken,
+        refreshToken: credentials.refreshToken,
+        expiresAt: credentials.expiresAt,
+      }),
+      credentials.settings as OutlookSettings,
     );
   }
   if (provider.connector === "gmail") {

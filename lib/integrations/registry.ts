@@ -5,6 +5,7 @@ export type ProviderId =
   | "google_search_console"
   | "gmail"
   | "outlook"
+  | "mailchimp"
   | "google_calendar"
   | "stripe"
   | "shopify"
@@ -31,6 +32,7 @@ export type ProviderDefinition = {
     | "google_search_console"
     | "gmail"
     | "outlook"
+    | "mailchimp"
     | "google_calendar"
     | "stripe"
     | "shopify"
@@ -138,6 +140,24 @@ export const providerRegistry = {
     connector: "outlook",
     connectPath: "/api/integrations/outlook/connect",
     configurationPath: "/app/integrations/outlook/settings",
+  },
+  mailchimp: {
+    id: "mailchimp",
+    displayName: "Mailchimp",
+    icon: "MC",
+    colour: "#f6c544",
+    category: "Marketing",
+    description:
+      "Subscriber numbers and how each email campaign did: opens, clicks and audience growth.",
+    oauth: true,
+    sync: true,
+    // Mailchimp has no read-only permission, so this isn't marked read_only; the code only reads.
+    capabilities: ["oauth", "polling"],
+    schedule: "daily",
+    recommendedFrequency: "Daily",
+    connector: "mailchimp",
+    connectPath: "/api/integrations/mailchimp/connect",
+    configurationPath: "/app/integrations/mailchimp/settings",
   },
   google_calendar: {
     id: "google_calendar",

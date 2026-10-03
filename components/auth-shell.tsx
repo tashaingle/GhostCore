@@ -6,7 +6,7 @@ const points = [
   {
     icon: Plug,
     title: "Connect the tools you already use",
-    body: "Shopify, Stripe, Google, Meta, Slack and more. Read-only, so Metric Mage never changes anything.",
+    body: "Shopify, Stripe, Google, Meta, Slack and more. Metric Mage only reads, so it never changes anything.",
   },
   {
     icon: Bell,

@@ -156,7 +156,7 @@ export default async function Welcome({
               Connect your first tool
             </h1>
             <p className="mt-3 max-w-2xl text-zinc-500">
-              {`Pick something ${ctx.organisation.name} already uses. You'll sign in to it, allow read-only access, and Metric Mage starts importing straight away. You can add more any time.`}
+              {`Pick something ${ctx.organisation.name} already uses. You'll sign in to it, allow access, and Metric Mage starts importing straight away. You can add more any time.`}
             </p>
             <div className="mt-4">
               <Notice searchParams={params} />

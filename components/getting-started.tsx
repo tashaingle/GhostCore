@@ -5,7 +5,7 @@ const steps = [
   {
     icon: Plug,
     title: "Connect a tool",
-    body: "Shopify, Stripe, Google Analytics, Meta Ads, Gmail and more. Read-only, and takes about a minute.",
+    body: "Shopify, Stripe, Google Analytics, Meta Ads, Gmail and more. Metric Mage only reads, and it takes about a minute.",
   },
   {
     icon: RefreshCw,

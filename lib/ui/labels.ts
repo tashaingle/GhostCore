@@ -6,6 +6,7 @@ const providerNames: Record<string, string> = {
   google_search_console: "Search Console",
   gmail: "Gmail",
   outlook: "Outlook",
+  mailchimp: "Mailchimp",
   google_calendar: "Google Calendar",
   stripe: "Stripe",
   shopify: "Shopify",
@@ -74,6 +75,9 @@ export function configureIntegrationLabel(providerId: string, configurationRequi
   }
   if (providerId === "github") {
     return configurationRequired ? "Choose repositories" : "Repositories";
+  }
+  if (providerId === "mailchimp") {
+    return configurationRequired ? "Choose audiences" : "Audiences";
   }
   if (providerId === "notion") {
     return configurationRequired ? "Choose databases" : "Databases";

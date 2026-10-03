@@ -1,15 +1,53 @@
 import Link from "next/link";
+import Image from "next/image";
 import {ArrowRight, ArrowUpRight, TrendingDown, TrendingUp} from "lucide-react";
 import {getProvider} from "@/lib/integrations/registry";
 
-/** Small square brand mark for a connected tool, using the provider registry's colour. */
+/** Square icon files in /public/providers. Meta Ads and Meta Social share one mark. */
+const PROVIDER_MARKS: Record<string, string> = {
+  github: "/providers/github.png",
+  gmail: "/providers/gmail.png",
+  google_analytics: "/providers/google_analytics.png",
+  google_calendar: "/providers/google_calendar.png",
+  google_search_console: "/providers/google_search_console.png",
+  linkedin: "/providers/linkedin.png",
+  mailchimp: "/providers/mailchimp.png",
+  meta_ads: "/providers/meta.png",
+  meta_social: "/providers/meta.png",
+  notion: "/providers/notion.png",
+  outlook: "/providers/outlook.png",
+  shopify: "/providers/shopify.png",
+  slack: "/providers/slack.png",
+  stripe: "/providers/stripe.png",
+  tiktok: "/providers/tiktok.png",
+  vercel: "/providers/vercel.png",
+};
+
+/** Small square brand mark for a connected tool. Manual keeps its initials. */
 export function ProviderMark({provider, size = "md"}: {provider: string; size?: "sm" | "md"}) {
-  const p = getProvider(provider),
-    dims = size === "sm" ? "h-7 w-7 text-[10px] rounded-lg" : "h-9 w-9 text-xs rounded-[10px]";
+  const dims = size === "sm" ? "h-7 w-7 rounded-lg" : "h-9 w-9 rounded-[10px]";
+  const src = PROVIDER_MARKS[provider];
+  if (src) {
+    return (
+      <span
+        aria-hidden
+        className={`relative block shrink-0 overflow-hidden bg-white shadow-sm ring-1 ring-black/5 ${dims}`}
+      >
+        <Image
+          src={src}
+          alt=""
+          fill
+          sizes={size === "sm" ? "28px" : "36px"}
+          className="object-cover"
+        />
+      </span>
+    );
+  }
+  const p = getProvider(provider);
   return (
     <span
       aria-hidden
-      className={`grid shrink-0 place-items-center font-bold text-white shadow-sm ring-1 ring-black/5 ${dims}`}
+      className={`grid shrink-0 place-items-center font-bold text-white shadow-sm ring-1 ring-black/5 ${dims} ${size === "sm" ? "text-[10px]" : "text-xs"}`}
       style={{background: p?.colour ?? "#52525b"}}
     >
       {p?.icon ?? provider.slice(0, 2).toUpperCase()}

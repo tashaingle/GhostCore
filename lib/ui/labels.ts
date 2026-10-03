@@ -269,13 +269,13 @@ export function humanizeNotificationDisplay(input: {
             return `This automatic task was due ${formatWhenFriendly(iso)}`;
           }) || `This automatic task was supposed to run earlier and has not finished yet.`;
         if (!summary.includes("automatic")) {
-          summary = `${summary} Ghost runs this in the background so your tools stay up to date.`;
+          summary = `${summary} Metric Mage runs this in the background so your tools stay up to date.`;
         }
         recommendedAction =
           "Open Background Jobs and click Run now for this task, or wait for the daily automatic run. You can dismiss this if you only sync tools yourself.";
         explanation =
           explanation?.replace(/dispatcher and job locks/gi, "Background Jobs page") ??
-          "Ghost's automatic scheduler has not run this task on time.";
+          "Metric Mage's automatic scheduler has not run this task on time.";
       } else if (/failed/i.test(title)) {
         title = `${label.title} failed`;
         recommendedAction = "Open Background Jobs, check the error, then click Retry or Run now.";
@@ -325,7 +325,7 @@ export function humanizeNotificationDisplay(input: {
 const triggerLabels: Record<string, string> = {
   "notification.created": "When an Action Centre item is raised",
   "notification.resolved": "When an Action Centre item is resolved",
-  "correlation.created": "When Ghost links related events",
+  "correlation.created": "When Metric Mage links related events",
   "background_job.failed": "When a background task fails",
   "integration.error": "When a connection stops working",
   "integration.reconnected": "When a connection is fixed",

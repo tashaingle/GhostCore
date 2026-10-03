@@ -40,7 +40,7 @@ export async function GET(request: Request) {
   store.delete(GITHUB_APP_COOKIE);
 
   // Changing the repository selection on GitHub also returns here (when "Redirect on update" is
-  // on). Ghost reads the current list whenever it is needed, so send the user to choose.
+  // on). Metric Mage reads the current list whenever it is needed, so send the user to choose.
   if (setupAction === "update" && (!raw || !code))
     return back(
       url,
@@ -70,7 +70,7 @@ export async function GET(request: Request) {
         data: {user},
       } = await supabase.auth.getUser();
     if (!user || user.id !== state.userId)
-      throw new Error("Your Ghost session changed. Please connect GitHub again.");
+      throw new Error("Your Metric Mage session changed. Please connect GitHub again.");
     const {data: member} = await supabase
       .from("organisation_members")
       .select("role")

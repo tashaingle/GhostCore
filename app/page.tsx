@@ -1,4 +1,5 @@
 import Link from "next/link";
+import {BrandMark} from "@/components/brand-mark";
 import {createClient} from "@/lib/supabase/server";
 import {redirect} from "next/navigation";
 
@@ -13,10 +14,8 @@ export default async function Home() {
     <main className="min-h-screen bg-gradient-to-b from-zinc-50 via-white to-violet-50">
       <header className="mx-auto flex max-w-5xl items-center justify-between px-6 py-6">
         <div className="flex items-center gap-2">
-          <span className="grid h-9 w-9 place-items-center rounded-xl bg-zinc-900 text-sm font-bold text-white">
-            G
-          </span>
-          <span className="font-semibold tracking-tight">Ghost Core</span>
+          <BrandMark size={36} />
+          <span className="font-semibold tracking-tight">Metric Mage</span>
         </div>
         <div className="flex items-center gap-3">
           <Link className="text-sm text-zinc-600 hover:text-zinc-900" href="/privacy">
@@ -42,9 +41,9 @@ export default async function Home() {
           See what changed in your business, and what to do next.
         </h1>
         <p className="mt-5 max-w-2xl text-lg text-zinc-600">
-          Ghost connects Stripe, Shopify, Google, Meta, Slack and more, then tells you in plain
-          English what changed, what needs fixing and what to do about it, without another dashboard
-          to check.
+          Metric Mage connects Stripe, Shopify, Google, Meta, Slack and more, then tells you in
+          plain English what changed, what needs fixing and what to do about it, without another
+          dashboard to check.
         </p>
         <div className="mt-8 flex flex-wrap gap-3">
           <Link className="button" href="/register">
@@ -80,7 +79,7 @@ export default async function Home() {
 
       <footer className="border-t bg-white">
         <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3 px-6 py-6 text-sm text-zinc-500">
-          <span>Ghost Core</span>
+          <span>Metric Mage</span>
           <div className="flex gap-4">
             <Link className="hover:text-zinc-800" href="/privacy">
               Privacy Policy

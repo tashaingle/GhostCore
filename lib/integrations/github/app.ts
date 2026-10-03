@@ -11,7 +11,7 @@ export type GitHubAppEnv = {
 };
 
 /**
- * The GitHub App is configured only when all of its settings are present; until then Ghost keeps
+ * The GitHub App is configured only when all of its settings are present; until then Metric Mage keeps
  * using the older OAuth connection. The private key may be stored with literal "\n" escapes or
  * base64-encoded, as hosting dashboards often mangle multi-line values.
  */
@@ -30,7 +30,7 @@ export function githubAppEnv(env: Record<string, string | undefined> = process.e
 
 const base64url = (value: string | Buffer) => Buffer.from(value).toString("base64url");
 
-/** A short-lived JWT proving requests come from the Ghost Core GitHub App (RS256). */
+/** A short-lived JWT proving requests come from the Metric Mage GitHub App (RS256). */
 export function appJwt(appId: string, privateKey: string, now = new Date()) {
   const iat = Math.floor(now.getTime() / 1000) - 60, // allow for clock drift
     header = base64url(JSON.stringify({alg: "RS256", typ: "JWT"})),
@@ -45,7 +45,7 @@ const headers = (token: string) => ({
   Accept: "application/vnd.github+json",
   Authorization: `Bearer ${token}`,
   "X-GitHub-Api-Version": "2026-03-10",
-  "User-Agent": "Ghost-Core",
+  "User-Agent": "Metric-Mage",
 });
 
 async function call<T>(request: typeof fetch, url: string, init: RequestInit) {
@@ -92,7 +92,7 @@ export function installation(env: GitHubAppEnv, id: string, request: typeof fetc
   });
 }
 
-/** Removes Ghost's access to the installation's repositories (used when deleting an organisation). */
+/** Removes Metric Mage's access to the installation's repositories (used when deleting an organisation). */
 export async function uninstall(env: GitHubAppEnv, id: string, request: typeof fetch = fetch) {
   const response = await request(`${API}/app/installations/${encodeURIComponent(id)}`, {
     method: "DELETE",
@@ -130,7 +130,7 @@ export async function exchangeUserCode(
 
 export type UserInstallation = {id: string; login: string; type: string};
 
-/** The Ghost Core app installations the signed-in GitHub user can access (their own and orgs'). */
+/** The Metric Mage app installations the signed-in GitHub user can access (their own and orgs'). */
 export async function userInstallations(
   userToken: string,
   request: typeof fetch = fetch,

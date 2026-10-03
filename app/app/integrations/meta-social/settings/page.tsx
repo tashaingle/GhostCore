@@ -20,19 +20,25 @@ export default async function MetaSocialSettings() {
     <section className="mx-auto max-w-4xl space-y-6">
       <div>
         <Link className="text-sm text-zinc-500" href="/app/integrations">
-          ← Integrations
+          ← Connections
         </Link>
         <h1 className="mt-2 text-3xl font-semibold tracking-tight text-zinc-950">
           Facebook Pages and Instagram
         </h1>
         <p className="text-zinc-600">
-          Choose the Facebook Pages and linked Instagram business accounts to track. Ghost only
-          reads followers, reach, views and engagement.
+          Choose the Facebook Pages and linked Instagram business accounts to track. Metric Mage
+          only reads followers, reach, views and engagement.
+        </p>
+        <p className="mt-2 text-sm text-zinc-500">
+          Facebook shares one set of permissions with Metric Mage across all your organisations. If
+          you connect again, keep every business and Page ticked on Facebook&apos;s screens:
+          anything you untick disappears from all of them. You choose what each organisation tracks
+          here.
         </p>
       </div>
       {!items?.length ? (
         <Link className="button" href="/api/integrations/meta-social/connect">
-          Connect Meta Social
+          Connect Facebook Pages
         </Link>
       ) : (
         items.map((item) => {
@@ -52,13 +58,18 @@ export default async function MetaSocialSettings() {
             <form action={saveMetaSocialAssets} className="space-y-3" key={item.id}>
               <input type="hidden" name="integrationId" value={item.id} />
               <div className="card">
-                <strong>{item.provider_account_name}</strong>
+                <strong>
+                  Connected through {item.provider_account_name}&apos;s Facebook login
+                </strong>
                 <p className="text-sm text-zinc-500">
-                  Graph {String(s.graphApiVersion ?? "")} · Permissions:{" "}
-                  {((s.grantedPermissions as string[]) ?? []).join(", ") || "None"} · Expires:{" "}
                   {item.token_expires_at
-                    ? new Date(item.token_expires_at).toLocaleString()
-                    : "Unknown"}
+                    ? `Reconnect before ${new Date(item.token_expires_at).toLocaleDateString("en-GB", {day: "numeric", month: "long"})} to keep syncing.`
+                    : "This login doesn't expire."}{" "}
+                  Missing a Page?{" "}
+                  <Link className="underline" href="/api/integrations/meta-social/connect">
+                    Connect again
+                  </Link>{" "}
+                  and tick it on Facebook.
                 </p>
                 {item.last_sync_error ? (
                   <p className="text-red-700">{item.last_sync_error}</p>
@@ -77,9 +88,9 @@ export default async function MetaSocialSettings() {
                     <strong>{a.name}</strong>
                     <span className="block text-sm text-zinc-500">
                       {a.kind === "instagram_account" ? "Instagram" : "Facebook Page"}
-                      {a.username ? ` · @${a.username}` : ""} · id {a.id}
+                      {a.username ? ` · @${a.username}` : ""}
                       {a.followers != null ? ` · ${a.followers} followers` : ""}
-                      {a.accessState === "disabled" ? " · limited access" : ""}
+                      {a.accessState === "disabled" ? " · Metric Mage can't read this one" : ""}
                     </span>
                   </span>
                 </label>

@@ -9,13 +9,13 @@ const steps = [
   },
   {
     icon: RefreshCw,
-    title: "Ghost imports your activity",
+    title: "Metric Mage imports your activity",
     body: "The first sync starts straight away, then keeps itself up to date automatically.",
   },
   {
     icon: Sparkles,
     title: "See what needs you",
-    body: "This page fills with this week's numbers, anything that needs fixing, and what Ghost noticed.",
+    body: "This page fills with this week's numbers, anything that needs fixing, and what Metric Mage noticed.",
   },
 ];
 
@@ -27,7 +27,7 @@ export function GettingStarted() {
         Let&apos;s get your first tool connected
       </h2>
       <p className="mt-1 text-sm text-zinc-600">
-        Ghost needs something to watch before it can tell you what&apos;s happening.
+        Metric Mage needs something to watch before it can tell you what&apos;s happening.
       </p>
       <ol className="mt-6 grid gap-4 md:grid-cols-3">
         {steps.map(({icon: Icon, title, body}, i) => (

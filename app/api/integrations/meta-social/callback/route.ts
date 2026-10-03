@@ -7,6 +7,7 @@ import {MetaSocialClient} from "@/lib/integrations/meta-social/client";
 import {metaSocialEnv} from "@/lib/integrations/meta-social/config";
 import {encryptToken} from "@/lib/security/token-crypto";
 import type {Json} from "@/types/database";
+import {lostAccessMessage, lostItems, previouslyVisible} from "@/lib/integrations/meta/lost-access";
 
 const back = (url: URL, kind: "error" | "success", message: string, path = "/app/integrations") =>
   NextResponse.redirect(new URL(`${path}?${kind}=${encodeURIComponent(message)}`, url));
@@ -51,7 +52,7 @@ export async function GET(request: Request) {
       data: {user},
     } = await supabase.auth.getUser();
     if (!user || user.id !== state.userId) {
-      throw new Error("Your Ghost session changed. Restart Meta Social authorization.");
+      throw new Error("Your Metric Mage session changed. Restart Meta Social authorization.");
     }
     const {data: member} = await supabase
       .from("organisation_members")
@@ -94,6 +95,11 @@ export async function GET(request: Request) {
       ? (old.assets as {id?: string; selected?: boolean}[])
       : [];
     const eligible = discovered.assets.filter((a) => a.accessState === "available");
+    // Read before saving, so this connection's new list isn't part of "before".
+    const lost = lostItems(
+      await previouslyVisible(supabase, "meta_social", identity.id),
+      discovered.assets,
+    );
 
     const values = {
       provider_account_id: identity.id,
@@ -135,12 +141,14 @@ export async function GET(request: Request) {
           ...values,
         });
     if (result.error) {
-      throw new Error("Meta authorized Ghost, but the social integration could not be saved.");
+      throw new Error(
+        "Meta authorized Metric Mage, but the social integration could not be saved.",
+      );
     }
     return back(
       url,
       "success",
-      `Meta Social connected as ${identity.name}. Select Pages and Instagram accounts to sync.`,
+      `Facebook connected as ${identity.name}. Choose which Pages and Instagram accounts to track.${lostAccessMessage(lost)}`,
       state.returnTo,
     );
   } catch (error) {

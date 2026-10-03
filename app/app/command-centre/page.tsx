@@ -410,8 +410,8 @@ export default async function CommandCentre({
       <Section id="activity" title="Cross-platform activity">
         {!chains.length ? (
           <div className="card text-zinc-500">
-            No linked activity yet. Ghost links related events, like a deploy followed by a traffic
-            drop, once your tools have synced.
+            No linked activity yet. Metric Mage links related events, like a deploy followed by a
+            traffic drop, once your tools have synced.
           </div>
         ) : (
           <div className="grid gap-3 lg:grid-cols-2">
@@ -491,8 +491,8 @@ export default async function CommandCentre({
       <Section id="correlations" title="Recent correlations">
         {!correlations?.length ? (
           <div className="card text-zinc-500">
-            No related events found yet. Ghost only links events when they clearly match, so this
-            can stay empty for a while.
+            No related events found yet. Metric Mage only links events when they clearly match, so
+            this can stay empty for a while.
           </div>
         ) : (
           <div className="grid gap-3 lg:grid-cols-2">

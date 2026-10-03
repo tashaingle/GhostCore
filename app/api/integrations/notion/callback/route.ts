@@ -48,7 +48,7 @@ export async function GET(request: Request) {
         data: {user},
       } = await supabase.auth.getUser();
     if (!user || user.id !== state.userId)
-      throw new Error("Your Ghost session changed. Restart Notion authorization.");
+      throw new Error("Your Metric Mage session changed. Restart Notion authorization.");
     const {data: member} = await supabase
       .from("organisation_members")
       .select("role")
@@ -117,7 +117,7 @@ export async function GET(request: Request) {
           .select("id")
           .maybeSingle();
     if (result.error)
-      throw new Error("Notion authorized Ghost, but the workspace could not be saved.");
+      throw new Error("Notion authorized Metric Mage, but the workspace could not be saved.");
     const id = existing?.id ?? result.data?.id;
     if (id)
       await supabase.from("integration_logs").insert({

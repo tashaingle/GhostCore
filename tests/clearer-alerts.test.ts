@@ -51,7 +51,7 @@ describe("one alert per connection", () => {
     expect(alert.detail).toBe("No new data coming in. Last synced on 2 Aug.");
   });
 
-  it("ignores Ghost's own audit events", () => {
+  it("ignores Metric Mage's own audit events", () => {
     const audit = {
       id: "e1",
       source: "ghost",

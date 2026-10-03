@@ -161,7 +161,7 @@ export class MetaAdsClient {
   }
   /**
    * Ad accounts the person can report on: ones assigned to them directly, plus ones owned by or
-   * shared with the businesses they allowed Ghost to see. Business-owned accounts are often not
+   * shared with the businesses they allowed Metric Mage to see. Business-owned accounts are often not
    * assigned to anyone personally, so me/adaccounts alone misses them.
    */
   async accounts(): Promise<MetaAccount[]> {
@@ -176,7 +176,7 @@ export class MetaAdsClient {
         z.object({id: z.string(), name: z.string().optional()}),
       );
     } catch {
-      // Without business access Ghost still has the personally assigned accounts.
+      // Without business access Metric Mage still has the personally assigned accounts.
     }
     for (const business of businesses.slice(0, META_LIMITS.businesses))
       for (const edge of ["owned_ad_accounts", "client_ad_accounts"]) {
@@ -188,7 +188,7 @@ export class MetaAdsClient {
           );
           rows.push(...owned.map((row) => ({...row, business: row.business ?? business})));
         } catch {
-          // One business Ghost can't read shouldn't hide the others.
+          // One business Metric Mage can't read shouldn't hide the others.
         }
       }
     return [

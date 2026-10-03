@@ -90,7 +90,7 @@ export default async function Preferences({
         </p>
         <p className="mt-2 text-sm text-zinc-500">
           Alerts always appear in the Action Centre. Email alerts will start once email sending is
-          switched on for Ghost; webhooks aren&apos;t available yet.
+          switched on for Metric Mage; webhooks aren&apos;t available yet.
         </p>
       </div>
       <Notice searchParams={p} />

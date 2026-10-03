@@ -114,7 +114,7 @@ const retrying: NotificationRuleDefinition = {
   key: "background_job_retrying",
   version: 1,
   name: "Background job retrying",
-  description: "A background task failed and Ghost will retry it automatically.",
+  description: "A background task failed and Metric Mage will retry it automatically.",
   category: "background_job",
   defaultSeverity: "warning",
   async evaluate(c) {
@@ -131,7 +131,7 @@ const retrying: NotificationRuleDefinition = {
         make(c, retrying, {
           severity: run.attempt >= 3 ? "critical" : "warning",
           title: `${label.title} is retrying`,
-          summary: `Ghost will try again automatically (attempt ${run.attempt}).`,
+          summary: `Metric Mage will try again automatically (attempt ${run.attempt}).`,
           explanation: "The last failure was classified as retryable.",
           recommendedAction: "Wait for the retry, or open Background Jobs and run it now.",
           sourceType: "background_job",

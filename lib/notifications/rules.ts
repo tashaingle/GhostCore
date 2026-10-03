@@ -81,7 +81,7 @@ const jobStale: NotificationRuleDefinition = {
           title: `${label.title} is behind schedule`,
           summary: `This automatic task was due ${formatWhen(job.next_run_at)} and has not run yet.`,
           explanation:
-            "Ghost’s background scheduler has not run this job recently. This is usually fixed by enabling the daily job cron.",
+            "Metric Mage’s background scheduler has not run this job recently. This is usually fixed by enabling the daily job cron.",
           recommendedAction:
             "Open Background Jobs and click Run now, or wait for the scheduled dispatcher. You can dismiss this if you only sync tools manually.",
           sourceType: "background_job",
@@ -133,14 +133,14 @@ const integrationError: NotificationRuleDefinition = {
               : `${providerLabel(x.provider)} sync is failing`,
         summary:
           x.status === "expired"
-            ? "Ghost can't import new data until you reconnect it."
+            ? "Metric Mage can't import new data until you reconnect it."
             : x.status === "disconnected"
-              ? "Ghost is no longer importing data from this tool."
+              ? "Metric Mage is no longer importing data from this tool."
               : safe(x.last_sync_error) || "The last sync didn't finish.",
         explanation:
           x.status === "expired"
             ? `${providerLabel(x.provider)} access expired, which usually happens when a password changes or permissions are revoked. Reconnecting signs in again.`
-            : `Ghost cannot use this connected tool until it is fixed.`,
+            : `Metric Mage cannot use this connected tool until it is fixed.`,
         recommendedAction:
           x.status === "disconnected" || x.status === "expired"
             ? "Open Connections and reconnect this tool."
@@ -196,7 +196,7 @@ const integrationCredentials: NotificationRuleDefinition = {
           title: `${providerLabel(x.provider)} access is expiring`,
           summary: `Access may stop working after ${formatWhen(x.token_expires_at)}.`,
           explanation:
-            "This connection does not have a long-lived refresh token, so Ghost cannot renew it automatically.",
+            "This connection does not have a long-lived refresh token, so Metric Mage cannot renew it automatically.",
           recommendedAction: "Open Connections and reconnect this tool before it expires.",
           sourceType: "integration",
           sourceId: x.id,
@@ -222,7 +222,7 @@ const rateLimited: NotificationRuleDefinition = {
   key: "integration_rate_limited",
   version: 1,
   name: "Provider rate limited",
-  description: "A tool asked Ghost to slow down.",
+  description: "A tool asked Metric Mage to slow down.",
   category: "integration",
   defaultSeverity: "warning",
   async evaluate(c) {
@@ -236,10 +236,10 @@ const rateLimited: NotificationRuleDefinition = {
     return (data ?? []).map((x) =>
       candidate(c, rateLimited, {
         severity: "warning",
-        title: `${providerLabel(x.provider)} asked Ghost to slow down`,
+        title: `${providerLabel(x.provider)} asked Metric Mage to slow down`,
         summary:
           safe(x.error_message) ||
-          "The provider temporarily limited how fast Ghost can import data.",
+          "The provider temporarily limited how fast Metric Mage can import data.",
         explanation: "This is normal when too many requests were made in a short period.",
         recommendedAction: "Wait a little, then click Sync now again in Connections.",
         sourceType: "integration",
@@ -266,7 +266,7 @@ const correlationReview: NotificationRuleDefinition = {
   key: "high_confidence_correlation_requires_review",
   version: 1,
   name: "Strong link worth reviewing",
-  description: "Ghost found a strong link between events from different tools.",
+  description: "Metric Mage found a strong link between events from different tools.",
   category: "correlation",
   defaultSeverity: "warning",
   async evaluate(c) {
@@ -283,7 +283,7 @@ const correlationReview: NotificationRuleDefinition = {
       candidate(c, correlationReview, {
         severity: x.score >= 95 ? "critical" : "warning",
         title: `Review possible link: ${providerLabel(x.source_provider)} ↔ ${providerLabel(x.target_provider)}`,
-        summary: `Ghost found a ${x.strength} match (score ${x.score}/100). This is not proof of cause.`,
+        summary: `Metric Mage found a ${x.strength} match (score ${x.score}/100). This is not proof of cause.`,
         explanation:
           "A correlation means two things look related in the data - not that one caused the other.",
         recommendedAction:

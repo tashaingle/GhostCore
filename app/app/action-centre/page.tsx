@@ -39,7 +39,7 @@ export default async function ActionCentre({
   const source = value("source");
   const q = value("q").slice(0, 100);
   const days = Math.min(365, Math.max(1, Number(value("days") || 30)));
-  // Ghost's own background-task alerts are hidden unless asked for or filtered to explicitly.
+  // Metric Mage's own background-task alerts are hidden unless asked for or filtered to explicitly.
   const showSystem = value("show") === "system" || category === SYSTEM_CATEGORY;
   const now = new Date();
 
@@ -193,7 +193,7 @@ export default async function ActionCentre({
         <div>
           <h1 className="text-3xl font-semibold tracking-tight text-zinc-950">Action Centre</h1>
           <p className="mt-2 max-w-2xl text-base text-zinc-500">
-            Things Ghost needs a person to check, fix or dismiss. Click any item for a full
+            Things Metric Mage needs a person to check, fix or dismiss. Click any item for a full
             explanation.
           </p>
         </div>
@@ -254,7 +254,7 @@ export default async function ActionCentre({
           <Link
             className="text-sm font-medium text-zinc-500 hover:text-zinc-950"
             href="/app/action-centre?show=system"
-            title="Alerts about Ghost's own background tasks running late or retrying. They usually fix themselves."
+            title="Alerts about Metric Mage's own background tasks running late or retrying. They usually fix themselves."
           >
             Show {systemOpen} system alert{systemOpen === 1 ? "" : "s"}
           </Link>
@@ -372,7 +372,7 @@ export default async function ActionCentre({
           </p>
           <p className="mt-1 text-sm text-zinc-500">
             {activeView === "attention" && !extraFilters
-              ? "New alerts will appear here when Ghost spots something."
+              ? "New alerts will appear here when Metric Mage spots something."
               : "Try another tab or clear your filters."}
           </p>
         </div>

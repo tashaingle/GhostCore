@@ -59,8 +59,8 @@ export default async function SlackDashboard({
         <div>
           <h1 className="text-3xl font-semibold tracking-tight text-zinc-950">Slack</h1>
           <p className="text-zinc-600">
-            Activity from the channels you chose. Ghost doesn’t judge tone, summarise conversations
-            or score people.
+            Activity from the channels you chose. Metric Mage doesn’t judge tone, summarise
+            conversations or score people.
           </p>
         </div>
         <Link className="button button-secondary" href="/app/integrations/slack/settings">

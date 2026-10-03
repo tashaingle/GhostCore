@@ -95,7 +95,7 @@ export class SlackClient {
           : kind === "scope"
             ? "Slack scope is missing."
             : kind === "membership"
-              ? "Add the Ghost Core app to this channel."
+              ? "Add the Metric Mage app to this channel."
               : "Slack API request failed.",
         retryAfter || undefined,
         code,

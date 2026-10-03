@@ -9,6 +9,7 @@ import {signOut} from "@/app/actions";
 import {Notice} from "@/components/notice";
 import {SubmitButton} from "@/components/submit-button";
 import {ProviderMark} from "@/components/home-ui";
+import {BrandMark} from "@/components/brand-mark";
 
 export const metadata = {title: "Welcome"};
 
@@ -96,10 +97,8 @@ export default async function Welcome({
     <main className="min-h-screen bg-gradient-to-b from-zinc-50 via-white to-violet-50/40">
       <header className="mx-auto flex max-w-4xl items-center justify-between px-6 py-6">
         <span className="flex items-center gap-2.5">
-          <span className="grid h-8 w-8 place-items-center rounded-[10px] bg-gradient-to-br from-violet-500 via-violet-600 to-indigo-700 text-sm font-bold text-white">
-            G
-          </span>
-          <span className="font-semibold tracking-tight">Ghost Core</span>
+          <BrandMark />
+          <span className="font-semibold tracking-tight">Metric Mage</span>
         </span>
         <form action={signOut}>
           <button className="flex items-center gap-1.5 text-sm text-zinc-500 hover:text-zinc-900">
@@ -157,7 +156,7 @@ export default async function Welcome({
               Connect your first tool
             </h1>
             <p className="mt-3 max-w-2xl text-zinc-500">
-              {`Pick something ${ctx.organisation.name} already uses. You'll sign in to it, allow read-only access, and Ghost starts importing straight away. You can add more any time.`}
+              {`Pick something ${ctx.organisation.name} already uses. You'll sign in to it, allow read-only access, and Metric Mage starts importing straight away. You can add more any time.`}
             </p>
             <div className="mt-4">
               <Notice searchParams={params} />
@@ -204,7 +203,7 @@ export default async function Welcome({
                 See all {providers.length} tools
               </Link>
               <Link href="/app" className="button">
-                {connected.size ? "Continue to Ghost" : "Skip for now"}
+                {connected.size ? "Continue to Metric Mage" : "Skip for now"}
                 <ArrowRight aria-hidden className="h-4 w-4" />
               </Link>
             </div>

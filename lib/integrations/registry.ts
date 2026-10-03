@@ -110,7 +110,7 @@ export const providerRegistry = {
     icon: "GM",
     colour: "#ea4335",
     category: "Communication",
-    description: "New emails and enquiries. Ghost reads subject lines, never full messages.",
+    description: "New emails and enquiries. Metric Mage reads subject lines, never full messages.",
     oauth: true,
     sync: true,
     capabilities: ["oauth", "polling", "read_only"],

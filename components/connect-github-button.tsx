@@ -60,7 +60,7 @@ export function ConnectGitHubButton({configuredSiteUrl}: {configuredSiteUrl: str
         setFailure({
           kind: "already_linked",
           message:
-            "GitHub is already linked to this Ghost user, but no usable integration token exists. Remove the linked GitHub identity in Supabase Auth, then connect again.",
+            "GitHub is already linked to this Metric Mage user, but no usable integration token exists. Remove the linked GitHub identity in Supabase Auth, then connect again.",
         });
         return;
       }

@@ -140,7 +140,7 @@ describe("schema, routes and immutable audit", () => {
   });
   it("provides inbox, bulk actions, evidence and sidebar navigation", () => {
     expect(list).toContain("Apply to selected");
-    expect(detail).toContain("What Ghost saw");
+    expect(detail).toContain("What Metric Mage saw");
     expect(detail).toContain(">History<");
     expect(sidebar).toContain(`href: "/app/action-centre"`);
   });

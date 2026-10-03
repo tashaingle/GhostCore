@@ -130,8 +130,8 @@ export default async function Settings({
             <h4 className="font-semibold text-zinc-900">Delete {ctx.organisation.name}</h4>
             <p className="text-sm text-zinc-600">
               Deletes this organisation and everything in it: connected tools, imported activity,
-              alerts, insights, tasks, automations and team access. Ghost also removes its access to
-              GitHub. Your other organisations aren&apos;t affected.
+              alerts, insights, tasks, automations and team access. Metric Mage also removes its
+              access to GitHub. Your other organisations aren&apos;t affected.
             </p>
             <label className="label">
               <span>
@@ -150,7 +150,7 @@ export default async function Settings({
         <form action={deleteAccount} className="card space-y-3 border-rose-200">
           <h4 className="font-semibold text-zinc-900">Delete your account</h4>
           <p className="text-sm text-zinc-600">
-            Deletes your Ghost login and personal details. You&apos;ll be signed out.
+            Deletes your Metric Mage login and personal details. You&apos;ll be signed out.
           </p>
           <ul className="list-disc space-y-1 pl-5 text-sm text-zinc-600">
             {accountPlan.deleteOrganisations.length ? (

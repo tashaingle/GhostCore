@@ -32,7 +32,7 @@ export async function GET(request: Request) {
     return back(url.origin, "error", "Google OAuth verifier expired. Restart the connection.");
   try {
     const ctx = await getActiveOrganisation();
-    if (!ctx) throw new Error("Your Ghost session expired.");
+    if (!ctx) throw new Error("Your Metric Mage session expired.");
     requireOrganisationAdmin(ctx.membership.role);
     const tokens = await exchangeGoogleCode(code, verifier);
     const userResponse = await fetch("https://openidconnect.googleapis.com/v1/userinfo", {
@@ -51,7 +51,7 @@ export async function GET(request: Request) {
       .maybeSingle();
     if (!tokens.refresh_token && !existing?.refresh_token_encrypted)
       throw new Error(
-        "Google returned no refresh token. Remove Ghost access from your Google account and reconnect.",
+        "Google returned no refresh token. Remove Metric Mage access from your Google account and reconnect.",
       );
     const values = {
       provider_account_id: account.sub ?? null,

@@ -64,7 +64,7 @@ export async function saveGitHubRepositories(form: FormData) {
   try {
     available = await installationRepositories(env, settings.installationId);
   } catch {
-    return go(SETTINGS, "error", "Ghost couldn't reach GitHub. Please try again.");
+    return go(SETTINGS, "error", "Metric Mage couldn't reach GitHub. Please try again.");
   }
   // Only repositories the installation can actually see may be saved.
   const picked = new Set(form.getAll("repository").map(String)),

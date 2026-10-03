@@ -15,7 +15,7 @@ import type {Preference} from "@/lib/notifications/preferences";
 
 const config = {
   apiKey: "re_secret_key",
-  from: "Ghost <alerts@mail.test>",
+  from: "Metric Mage <alerts@mail.test>",
   appUrl: "https://app.test",
 };
 const json = (body: unknown, status = 200) =>

@@ -28,7 +28,7 @@ export const metadata = {title: "Home"};
 
 const DAY_MS = 86_400_000;
 const severityRank = (s: string) => ({critical: 0, warning: 1, info: 2, good: 3})[s] ?? 4;
-// Connection problems get their own section, and Ghost's own housekeeping is not the user's job.
+// Connection problems get their own section, and Metric Mage's own housekeeping is not the user's job.
 const HOME_HIDDEN_CATEGORIES = ["background_job", "integration", "credential"];
 
 function greeting(timezone: string | null, now: Date) {
@@ -161,7 +161,7 @@ export default async function Home({
       .in("event_type", PERFORMANCE_EVENT_TYPES)
       .gte("occurred_at", previousStart)
       .limit(20000),
-    // Updates from connected tools; Ghost's own audit trail is not business activity.
+    // Updates from connected tools; Metric Mage's own audit trail is not business activity.
     ctx.supabase
       .from("events")
       .select("id", {count: "exact", head: true})
@@ -448,7 +448,7 @@ export default async function Home({
           <section className="lg:col-span-2" aria-label="Insights">
             <SectionHeading
               title="Insights"
-              description="What Ghost noticed in your business."
+              description="What Metric Mage noticed in your business."
               href="/app/insights"
               linkLabel={insightCount && insightCount > 4 ? `All ${insightCount}` : "All insights"}
             />
@@ -465,8 +465,8 @@ export default async function Home({
                 </span>
                 <p className="mt-3 font-medium text-zinc-900">No insights right now</p>
                 <p className="mt-1 max-w-xs text-sm text-zinc-500">
-                  When Ghost spots a change in your sales, payments, ads or website, it will explain
-                  it here.
+                  When Metric Mage spots a change in your sales, payments, ads or website, it will
+                  explain it here.
                 </p>
               </div>
             )}

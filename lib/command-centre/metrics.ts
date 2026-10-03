@@ -42,7 +42,9 @@ export function commandMetrics(events: CommandEvent[], currency = "GBP") {
       .reduce((n, e) => n + number(meta(e, "clicks")), 0),
     campaignActivity: count((e) => ["meta_ads", "linkedin"].includes(e.source)),
     emailEnquiries: count(
-      (e) => e.source === "gmail" && /received|inbound|message/i.test(e.event_type),
+      (e) =>
+        (e.source === "gmail" || e.source === "outlook") &&
+        /received|inbound|message/i.test(e.event_type),
     ),
     meetings: count(
       (e) => e.source === "google_calendar" && /created|started|upcoming/i.test(e.event_type),

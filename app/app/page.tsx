@@ -168,7 +168,7 @@ export default async function Home({
       .eq("organisation_id", org)
       .neq("source", "ghost")
       .gte("occurred_at", currentStart),
-    countPair(["gmail.message_received"]),
+    countPair(["gmail.message_received", "outlook.message_received"]),
     countPair(["google_calendar.event_created"]),
     countPair(["workflow.success", "release.published"]),
     countPair(["workflow.failed"]),

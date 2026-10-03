@@ -60,9 +60,9 @@ export default function PrivacyPage() {
 
         <h3>2.2 Integration and provider data</h3>
         <p>
-          When an organisation administrator connects a provider (for example Meta, Google, Stripe,
-          Shopify, GitHub, Slack, Notion), we receive only what that provider returns under the
-          scopes the admin approved. Depending on the connector, that may include:
+          When an organisation administrator connects a provider (for example Meta, Google,
+          Microsoft, Stripe, Shopify, GitHub, Slack, Notion), we receive only what that provider
+          returns under the scopes the admin approved. Depending on the connector, that may include:
         </p>
         <ul>
           <li>Account or Page identifiers and display names</li>
@@ -115,8 +115,8 @@ export default function PrivacyPage() {
             database/auth (Supabase)
           </li>
           <li>
-            <strong>Connected providers</strong> you choose to authorise (Meta, Google, etc.), only
-            via their OAuth/API flows
+            <strong>Connected providers</strong> you choose to authorise (Meta, Google, Microsoft,
+            etc.), only via their OAuth/API flows
           </li>
           <li>Authorities if required by law</li>
         </ul>

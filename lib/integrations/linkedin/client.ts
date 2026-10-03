@@ -85,7 +85,7 @@ export class LinkedInClient {
             "Linkedin-Version": env.version,
             "X-Restli-Protocol-Version": "2.0.0",
             "X-RestLi-Method": "FINDER",
-            "X-Metric Mage-Correlation-ID": correlationId,
+            "X-Correlation-ID": correlationId,
           },
           signal: AbortSignal.timeout(LINKEDIN_LIMITS.timeoutMs),
         });

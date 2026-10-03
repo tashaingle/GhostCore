@@ -5,26 +5,8 @@ import {hasPermission, type OrganisationRole, ORGANISATION_ROLES} from "@/lib/au
 import {inviteMember, updateInvitation, updateMember} from "@/app/organisation-actions";
 import {Notice} from "@/components/notice";
 import {ConfirmSubmit} from "@/components/confirm-submit";
-import {createServiceClient} from "@/lib/supabase/service";
+import {organisationPeople} from "@/lib/organisations/people";
 
-/**
- * Email addresses for this organisation's members, so people without a saved name are still
- * recognisable. Only called with the IDs of members of the organisation being viewed.
- */
-async function memberEmails(userIds: string[]) {
-  if (!userIds.length) return new Map<string, string>();
-  try {
-    const admin = createServiceClient();
-    const found = await Promise.all(
-      userIds.map(
-        async (id) => [id, (await admin.auth.admin.getUserById(id)).data.user?.email] as const,
-      ),
-    );
-    return new Map(found.filter((entry): entry is readonly [string, string] => Boolean(entry[1])));
-  } catch {
-    return new Map<string, string>();
-  }
-}
 export default async function Team({
   searchParams,
 }: {
@@ -52,7 +34,8 @@ export default async function Team({
           .data ?? [])
       : [],
     profileMap = new Map(profiles.map((profile) => [profile.id, profile])),
-    emails = await memberEmails(ids);
+    people = await organisationPeople(ctx.supabase, ctx.organisation.id),
+    emails = new Map(people.list.flatMap((x) => (x.email ? [[x.userId, x.email] as const] : [])));
   return (
     <section className="space-y-6">
       <PageHeader

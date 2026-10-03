@@ -1,6 +1,7 @@
 import Link from "next/link";
 import {notFound} from "next/navigation";
 import {getActiveOrganisation} from "@/lib/organisations/active";
+import {organisationPeople} from "@/lib/organisations/people";
 import {hasPermission, type OrganisationRole} from "@/lib/auth/permissions";
 import {Notice} from "@/components/notice";
 import {SeverityBadge} from "@/components/severity-badge";
@@ -26,7 +27,6 @@ export default async function NotificationDetail({
     {data: revisions},
     {data: assignments},
     {data: members},
-    {data: profiles},
     {data: jobs},
     {data: integrations},
   ] = await Promise.all([
@@ -62,7 +62,6 @@ export default async function NotificationDetail({
       .select("user_id")
       .eq("organisation_id", ctx.organisation.id)
       .eq("status", "active"),
-    ctx.supabase.from("profiles").select("id,full_name").limit(500),
     ctx.supabase
       .from("background_jobs")
       .select("id,job_key,provider")
@@ -75,7 +74,8 @@ export default async function NotificationDetail({
 
   if (!item) notFound();
 
-  const names = new Map((profiles ?? []).map((x) => [x.id, x.full_name ?? x.id.slice(0, 8)]));
+  const people = await organisationPeople(ctx.supabase, ctx.organisation.id, ctx.user.id),
+    names = new Map(people.list.map((x) => [x.userId, x.label]));
   const jobById = new Map(
     (jobs ?? []).map((j) => [j.id, {job_key: j.job_key, provider: j.provider}]),
   );
@@ -271,7 +271,7 @@ export default async function NotificationDetail({
                 <select className="field w-full" name="assignedUserId" required>
                   {(members ?? []).map((x) => (
                     <option key={x.user_id} value={x.user_id}>
-                      {names.get(x.user_id) ?? x.user_id.slice(0, 8)}
+                      {names.get(x.user_id) ?? "Team member"}
                     </option>
                   ))}
                 </select>
@@ -320,7 +320,7 @@ export default async function NotificationDetail({
             ) : (
               assignments.map((a) => (
                 <p className="mt-2 text-sm" key={a.id}>
-                  {names.get(a.assigned_user_id) ?? a.assigned_user_id} ·{" "}
+                  {names.get(a.assigned_user_id) ?? "Former team member"} ·{" "}
                   {new Date(a.assigned_at).toLocaleString()}
                   {a.unassigned_at ? " · unassigned" : ""}
                 </p>

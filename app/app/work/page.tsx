@@ -1,6 +1,7 @@
 import Link from "next/link";
 import {PageHeader} from "@/components/page-header";
 import {getActiveOrganisation} from "@/lib/organisations/active";
+import {organisationPeople} from "@/lib/organisations/people";
 import {WorkList} from "@/components/work-list";
 import {Notice} from "@/components/notice";
 export default async function WorkInbox({
@@ -9,6 +10,7 @@ export default async function WorkInbox({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const ctx = await getActiveOrganisation(),
+    people = await organisationPeople(ctx.supabase, ctx.organisation.id, ctx.user.id),
     p = await searchParams,
     tab = typeof p.tab === "string" ? p.tab : "assigned";
   const now = new Date(),
@@ -60,8 +62,8 @@ export default async function WorkInbox({
       priority: x.priority as "low" | "normal" | "high" | "critical",
       dueAt: x.due_at,
       createdAt: x.created_at,
-      assignee: x.assigned_user_id,
-      owner: x.owner_user_id,
+      assignee: x.assigned_user_id ? people.name(x.assigned_user_id) : null,
+      owner: x.owner_user_id ? people.name(x.owner_user_id) : null,
       sourceType: x.source_type,
       updatedAt: x.updated_at,
     })),
@@ -73,8 +75,8 @@ export default async function WorkInbox({
       priority: x.priority as "low" | "normal" | "high" | "critical",
       dueAt: null,
       createdAt: x.created_at,
-      assignee: x.assigned_user_id,
-      owner: x.owner_user_id,
+      assignee: x.assigned_user_id ? people.name(x.assigned_user_id) : null,
+      owner: x.owner_user_id ? people.name(x.owner_user_id) : null,
       caseNumber: x.case_number,
       sourceType: x.source_type,
       updatedAt: x.updated_at,

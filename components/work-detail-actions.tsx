@@ -12,7 +12,7 @@ export function WorkDetailActions({
   id: string;
   status: string;
   role: OrganisationRole;
-  members: {user_id: string}[];
+  members: {user_id: string; label: string}[];
 }) {
   const transitions =
     kind === "task"
@@ -44,7 +44,7 @@ export function WorkDetailActions({
               <option value="">Select assignee</option>
               {members.map((x) => (
                 <option key={x.user_id} value={x.user_id}>
-                  {x.user_id}
+                  {x.label}
                 </option>
               ))}
             </select>

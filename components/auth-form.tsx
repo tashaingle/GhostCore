@@ -23,7 +23,7 @@ export function AuthForm({
       }
       footer={
         <>
-          {register ? "Already have an account? " : "New to Ghost? "}
+          {register ? "Already have an account? " : "New to Metric Mage? "}
           <Link
             className="font-medium text-violet-700 hover:underline"
             href={register ? "/login" : "/register"}

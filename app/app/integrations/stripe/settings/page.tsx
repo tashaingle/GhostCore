@@ -19,7 +19,8 @@ export default async function StripeSettingsPage() {
           Stripe accounts
         </h1>
         <p className="text-zinc-600">
-          Your connected Stripe accounts and whether they’re syncing. Ghost never shows your keys.
+          Your connected Stripe accounts and whether they’re syncing. Metric Mage never shows your
+          keys.
         </p>
       </div>
       {!accounts?.length ? (

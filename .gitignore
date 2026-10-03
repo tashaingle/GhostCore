@@ -46,3 +46,6 @@ next-env.d.ts
 
 # private keys (e.g. the GitHub App key)
 *.pem
+
+# Private keys (e.g. SSL certificates from the domain registrar)
+*.key

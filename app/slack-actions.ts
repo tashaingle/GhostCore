@@ -45,7 +45,7 @@ export async function refreshSlackChannels(form: FormData) {
     .eq("organisation_id", ctx.organisation.id);
   const ready = channels.filter((c) => c.isMember).length;
   redirect(
-    `${SETTINGS}?success=${encodeURIComponent(`Channels refreshed. Ghost can read ${ready} of ${channels.length}.`)}`,
+    `${SETTINGS}?success=${encodeURIComponent(`Channels refreshed. Metric Mage can read ${ready} of ${channels.length}.`)}`,
   );
 }
 export async function saveSlackChannels(form: FormData) {

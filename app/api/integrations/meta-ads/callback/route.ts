@@ -45,7 +45,7 @@ export async function GET(request: Request) {
         data: {user},
       } = await supabase.auth.getUser();
     if (!user || user.id !== state.userId)
-      throw new Error("Your Ghost session changed. Restart Meta authorization.");
+      throw new Error("Your Metric Mage session changed. Restart Meta authorization.");
     const {data: member} = await supabase
       .from("organisation_members")
       .select("role")
@@ -126,7 +126,7 @@ export async function GET(request: Request) {
           .from("integrations")
           .insert({organisation_id: state.organisationId, provider: "meta_ads", ...values});
     if (result.error)
-      throw new Error("Meta authorized Ghost, but the integration could not be saved.");
+      throw new Error("Meta authorized Metric Mage, but the integration could not be saved.");
     if (existing?.id)
       await supabase.from("integration_logs").insert({
         organisation_id: state.organisationId,

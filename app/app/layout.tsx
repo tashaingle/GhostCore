@@ -4,6 +4,7 @@ import {getActiveOrganisation} from "@/lib/organisations/active";
 import {signOut} from "@/app/actions";
 import {OrganisationSwitcher} from "@/components/organisation-switcher";
 import {SidebarNav} from "@/components/sidebar-nav";
+import {BrandMark} from "@/components/brand-mark";
 import {roleLabel} from "@/lib/ui/labels";
 
 export default async function AppLayout({children}: {children: React.ReactNode}) {
@@ -13,10 +14,10 @@ export default async function AppLayout({children}: {children: React.ReactNode})
     <div className="min-h-screen md:grid md:grid-cols-[264px_1fr]">
       <aside className="flex flex-col border-b border-zinc-200/80 bg-white/90 px-4 py-5 backdrop-blur md:sticky md:top-0 md:h-screen md:overflow-y-auto md:border-b-0 md:border-r">
         <Link href="/app" className="flex items-center gap-2.5 px-2">
-          <span className="grid h-8 w-8 place-items-center rounded-[10px] bg-gradient-to-br from-violet-500 via-violet-600 to-indigo-700 text-sm font-bold text-white shadow-sm shadow-violet-600/30">
-            G
+          <BrandMark />
+          <span className="text-[15px] font-semibold tracking-tight text-zinc-950">
+            Metric Mage
           </span>
-          <span className="text-[15px] font-semibold tracking-tight text-zinc-950">Ghost Core</span>
         </Link>
 
         {ctx ? (

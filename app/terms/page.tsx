@@ -3,8 +3,8 @@ import Link from "next/link";
 const UPDATED = "4 August 2026";
 
 export const metadata = {
-  title: "Terms of Service · Ghost Core",
-  description: "Terms governing use of the Ghost Core service.",
+  title: "Terms of Service · Metric Mage",
+  description: "Terms governing use of the Metric Mage service.",
 };
 
 export default function TermsPage() {
@@ -13,7 +13,7 @@ export default function TermsPage() {
       <header className="border-b bg-white">
         <div className="mx-auto flex max-w-3xl items-center justify-between px-6 py-5">
           <Link href="/" className="font-semibold tracking-tight">
-            Ghost Core
+            Metric Mage
           </Link>
           <div className="flex gap-3 text-sm">
             <Link className="text-zinc-600 hover:text-zinc-900" href="/privacy">
@@ -32,14 +32,14 @@ export default function TermsPage() {
         <p className="text-zinc-600">Last updated: {UPDATED}</p>
 
         <p>
-          These Terms of Service (“Terms”) govern access to and use of <strong>Ghost Core</strong>{" "}
+          These Terms of Service (“Terms”) govern access to and use of <strong>Metric Mage</strong>{" "}
           (the “Service”) at <strong>ghost-core-two.vercel.app</strong>. By creating an account or
           using the Service, you agree to these Terms.
         </p>
 
         <h2>1. The Service</h2>
         <p>
-          Ghost Core provides organisation workspaces that connect third-party tools, import
+          Metric Mage provides organisation workspaces that connect third-party tools, import
           activity into a unified timeline, and surface operational insights, jobs, workflows, and
           work management features. Features may change as the product evolves.
         </p>
@@ -73,13 +73,13 @@ export default function TermsPage() {
         <p>
           Integrations (including Meta, Google, Stripe, Shopify, GitHub, Slack, Notion, and others)
           are provided by third parties. Their terms and privacy policies apply to your use of those
-          platforms. Ghost does not control provider outages, API changes, rate limits, or approval
-          of developer apps.
+          platforms. Metric Mage does not control provider outages, API changes, rate limits, or
+          approval of developer apps.
         </p>
         <p>
-          Social and advertising connectors are generally <strong>read-only</strong>. Ghost does not
-          promise write access to post content, run ads, or message users on your behalf unless a
-          specific feature explicitly says so.
+          Social and advertising connectors are generally <strong>read-only</strong>. Metric Mage
+          does not promise write access to post content, run ads, or message users on your behalf
+          unless a specific feature explicitly says so.
         </p>
 
         <h2>5. Data and privacy</h2>
@@ -91,9 +91,9 @@ export default function TermsPage() {
 
         <h2>6. Intellectual property</h2>
         <p>
-          Ghost Core software, branding, and documentation remain ours or our licensors’. You retain
-          rights to your content and provider data. You grant us a limited licence to host and
-          process that data solely to provide the Service.
+          Metric Mage software, branding, and documentation remain ours or our licensors’. You
+          retain rights to your content and provider data. You grant us a limited licence to host
+          and process that data solely to provide the Service.
         </p>
 
         <h2>7. Beta / early access</h2>
@@ -141,7 +141,7 @@ export default function TermsPage() {
 
         <h2>13. Contact</h2>
         <p>
-          Questions about these Terms: contact the Ghost Core operator via the support channel
+          Questions about these Terms: contact the Metric Mage operator via the support channel
           listed on the Service.
         </p>
 

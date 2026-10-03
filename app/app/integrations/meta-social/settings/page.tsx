@@ -26,13 +26,14 @@ export default async function MetaSocialSettings() {
           Facebook Pages and Instagram
         </h1>
         <p className="text-zinc-600">
-          Choose the Facebook Pages and linked Instagram business accounts to track. Ghost only
-          reads followers, reach, views and engagement.
+          Choose the Facebook Pages and linked Instagram business accounts to track. Metric Mage
+          only reads followers, reach, views and engagement.
         </p>
         <p className="mt-2 text-sm text-zinc-500">
-          Facebook shares one set of permissions with Ghost across all your organisations. If you
-          connect again, keep every business and Page ticked on Facebook&apos;s screens: anything
-          you untick disappears from all of them. You choose what each organisation tracks here.
+          Facebook shares one set of permissions with Metric Mage across all your organisations. If
+          you connect again, keep every business and Page ticked on Facebook&apos;s screens:
+          anything you untick disappears from all of them. You choose what each organisation tracks
+          here.
         </p>
       </div>
       {!items?.length ? (
@@ -89,7 +90,7 @@ export default async function MetaSocialSettings() {
                       {a.kind === "instagram_account" ? "Instagram" : "Facebook Page"}
                       {a.username ? ` · @${a.username}` : ""}
                       {a.followers != null ? ` · ${a.followers} followers` : ""}
-                      {a.accessState === "disabled" ? " · Ghost can't read this one" : ""}
+                      {a.accessState === "disabled" ? " · Metric Mage can't read this one" : ""}
                     </span>
                   </span>
                 </label>

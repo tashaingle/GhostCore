@@ -32,7 +32,7 @@ export async function GET(request: Request) {
       {
         data: {user},
       } = await supabase.auth.getUser();
-    if (!user) throw new Error("Your Ghost session expired.");
+    if (!user) throw new Error("Your Metric Mage session expired.");
     const {data: member} = await supabase
       .from("organisation_members")
       .select("role")
@@ -66,7 +66,7 @@ export async function GET(request: Request) {
       .maybeSingle();
     if (!tokens.refresh_token && !existing?.refresh_token_encrypted)
       throw new Error(
-        "Google returned no refresh token. Remove Ghost access from Google and reconnect.",
+        "Google returned no refresh token. Remove Metric Mage access from Google and reconnect.",
       );
     const old =
         existing?.settings &&

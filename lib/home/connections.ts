@@ -97,7 +97,7 @@ export function connectionStatus(
       ...base,
       state: "setup",
       label: "Finish setup",
-      detail: "Choose what to import before Ghost can sync.",
+      detail: "Choose what to import before Metric Mage can sync.",
       needsAttention: true,
       action: {label: "Finish setup", href: provider?.configurationPath ?? "/app/integrations"},
     };

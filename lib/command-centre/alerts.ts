@@ -40,7 +40,7 @@ export function commandAlerts(
   for (const event of events
     .filter(
       (e) =>
-        // Ghost's own audit trail (alert, task and workflow changes) is not a business problem.
+        // Metric Mage's own audit trail (alert, task and workflow changes) is not a business problem.
         e.source !== "ghost" &&
         (e.severity === "critical" || /failed|overdue|awaiting_payment/i.test(e.event_type)),
     )
@@ -60,14 +60,14 @@ export function commandAlerts(
       title: insight.title,
       detail: insight.summary,
       href: `/app/insights/${insight.id}`,
-      evidence: "Ghost insight",
+      evidence: "Metric Mage insight",
     });
   for (const run of failedRuns)
     alerts.push({
       id: `rule-${run.id}`,
       severity: "warning",
       title: "Checking for related events failed",
-      detail: run.error || "Ghost couldn’t finish checking for related events.",
+      detail: run.error || "Metric Mage couldn’t finish checking for related events.",
       href: "/app/correlations",
       evidence: `Run started ${new Date(run.started_at).toLocaleString()}`,
     });

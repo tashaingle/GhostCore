@@ -242,8 +242,8 @@ export default async function Integrations({
       <header>
         <h1 className="text-3xl font-semibold tracking-tight text-zinc-950">Connections</h1>
         <p className="mt-2 max-w-2xl text-base text-zinc-500">
-          The tools Ghost watches for you. Ghost only ever asks for read access, so it can never
-          change anything in them.
+          The tools Metric Mage watches for you. Metric Mage only ever asks for read access, so it
+          can never change anything in them.
         </p>
       </header>
       <Notice searchParams={params} />

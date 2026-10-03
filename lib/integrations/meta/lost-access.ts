@@ -4,9 +4,9 @@ import type {Database} from "@/types/database";
 type Item = {id: string; name: string};
 
 /**
- * Facebook keeps one set of permissions for Ghost Core per Facebook account, shared by every Ghost
+ * Facebook keeps one set of permissions for Metric Mage per Facebook account, shared by every Metric Mage
  * organisation. Reconnecting with fewer businesses or Pages ticked silently removes them everywhere,
- * so after each connection Ghost compares with what this Facebook account showed before.
+ * so after each connection Metric Mage compares with what this Facebook account showed before.
  */
 export function lostItems(before: Item[], now: Item[]) {
   const current = new Set(now.map((i) => i.id)),
@@ -42,5 +42,5 @@ export function lostAccessMessage(lost: Item[]) {
   if (!lost.length) return "";
   const names = lost.slice(0, 5).map((i) => i.name),
     more = lost.length > 5 ? ` and ${lost.length - 5} more` : "";
-  return ` Facebook no longer lets Ghost see ${names.join(", ")}${more}, in any of your organisations. If you didn't mean that, connect again and keep everything ticked on Facebook's screens.`;
+  return ` Facebook no longer lets Metric Mage see ${names.join(", ")}${more}, in any of your organisations. If you didn't mean that, connect again and keep everything ticked on Facebook's screens.`;
 }

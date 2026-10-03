@@ -89,7 +89,8 @@ export const workflowTemplates: WorkflowTemplate[] = [
   {
     key: "correlation_review",
     name: "Related events review",
-    description: "When Ghost links related events: someone checks whether the link makes sense.",
+    description:
+      "When Metric Mage links related events: someone checks whether the link makes sense.",
     definition: {
       name: "Related events review",
       description: "Someone checks a link between events. A link isn't proof one caused the other.",

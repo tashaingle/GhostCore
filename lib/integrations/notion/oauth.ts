@@ -74,7 +74,7 @@ async function tokenRequest(body: Record<string, string>) {
 
   if (!parsed.success) {
     throw new Error(
-      "Notion authorized Ghost, but the token response shape was unexpected. Check NOTION_CLIENT_ID/SECRET and try again.",
+      "Notion authorized Metric Mage, but the token response shape was unexpected. Check NOTION_CLIENT_ID/SECRET and try again.",
     );
   }
 

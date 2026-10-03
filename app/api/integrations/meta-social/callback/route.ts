@@ -52,7 +52,7 @@ export async function GET(request: Request) {
       data: {user},
     } = await supabase.auth.getUser();
     if (!user || user.id !== state.userId) {
-      throw new Error("Your Ghost session changed. Restart Meta Social authorization.");
+      throw new Error("Your Metric Mage session changed. Restart Meta Social authorization.");
     }
     const {data: member} = await supabase
       .from("organisation_members")
@@ -141,7 +141,9 @@ export async function GET(request: Request) {
           ...values,
         });
     if (result.error) {
-      throw new Error("Meta authorized Ghost, but the social integration could not be saved.");
+      throw new Error(
+        "Meta authorized Metric Mage, but the social integration could not be saved.",
+      );
     }
     return back(
       url,

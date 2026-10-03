@@ -38,7 +38,7 @@ export async function GET(request: Request) {
       {
         data: {user},
       } = await supabase.auth.getUser();
-    if (!user) throw new Error("Your Ghost session expired.");
+    if (!user) throw new Error("Your Metric Mage session expired.");
     const {data: member} = await supabase
       .from("organisation_members")
       .select("role")

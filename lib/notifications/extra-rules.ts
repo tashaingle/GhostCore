@@ -62,7 +62,7 @@ const lockContention: NotificationRuleDefinition = {
           title: "A background task keeps getting skipped",
           summary: `It was skipped ${items.length} times in an hour because another run was still going.`,
           explanation:
-            "Ghost skips a task if the previous run hasn't finished. One skip is normal; this has happened at least three times.",
+            "Metric Mage skips a task if the previous run hasn't finished. One skip is normal; this has happened at least three times.",
           recommendedAction:
             "Usually this sorts itself out. If it keeps happening, open Background jobs to see which task is slow.",
           sourceType: "background_job",
@@ -114,7 +114,7 @@ const integrationStale: NotificationRuleDefinition = {
           severity: late >= interval * 3 ? "critical" : "warning",
           title: `${providerLabel(x.provider)} hasn't synced recently`,
           summary: `No new data coming in. Last synced ${timeAgo(last, c.now)}.`,
-          explanation: `${providerLabel(x.provider)} normally updates ${schedule === "hourly" ? "every hour" : "every day"}, but Ghost hasn't received new data for more than twice that long.`,
+          explanation: `${providerLabel(x.provider)} normally updates ${schedule === "hourly" ? "every hour" : "every day"}, but Metric Mage hasn't received new data for more than twice that long.`,
           recommendedAction:
             "Open Connections and click Sync now. If it fails, reconnect the tool.",
           sourceType: "integration",

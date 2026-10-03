@@ -75,7 +75,7 @@ const fields = new Set([
 export function validateMapping(headers: string[], mapping: CsvMapping) {
   for (const [key, value] of Object.entries(mapping)) {
     if (!headers.includes(key)) throw new Error(`Unknown CSV header: ${key}`);
-    if (value && !fields.has(value)) throw new Error(`Unsupported Ghost field: ${value}`);
+    if (value && !fields.has(value)) throw new Error(`Unsupported Metric Mage field: ${value}`);
   }
   const mapped = Object.values(mapping);
   if (!mapped.includes("title") || !mapped.includes("recordType") || !mapped.includes("occurredAt"))

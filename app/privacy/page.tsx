@@ -1,10 +1,11 @@
 import Link from "next/link";
+import {CookieChoiceButton} from "@/components/analytics";
 
-const UPDATED = "4 August 2026";
+const UPDATED = "3 October 2026";
 
 export const metadata = {
-  title: "Privacy Policy · Ghost Core",
-  description: "How Ghost Core collects, uses, and protects data.",
+  title: "Privacy Policy · Metric Mage",
+  description: "How Metric Mage collects, uses, and protects data.",
 };
 
 export default function PrivacyPage() {
@@ -13,7 +14,7 @@ export default function PrivacyPage() {
       <header className="border-b bg-white">
         <div className="mx-auto flex max-w-3xl items-center justify-between px-6 py-5">
           <Link href="/" className="font-semibold tracking-tight">
-            Ghost Core
+            Metric Mage
           </Link>
           <div className="flex gap-3 text-sm">
             <Link className="text-zinc-600 hover:text-zinc-900" href="/terms">
@@ -32,21 +33,21 @@ export default function PrivacyPage() {
         <p className="text-zinc-600">Last updated: {UPDATED}</p>
 
         <p>
-          This Privacy Policy describes how <strong>Ghost Core</strong> (“Ghost”, “we”, “us”)
+          This Privacy Policy describes how <strong>Metric Mage</strong> (“Metric Mage”, “we”, “us”)
           collects, uses, stores, and shares information when you use our website and application at{" "}
           <strong>ghost-core-two.vercel.app</strong> (the “Service”).
         </p>
 
         <h2>1. Who we are</h2>
         <p>
-          Ghost Core is a multi-tenant operations and integrations platform. Organisation owners and
-          members connect third-party business tools so activity can be normalised into an
+          Metric Mage is a multi-tenant operations and integrations platform. Organisation owners
+          and members connect third-party business tools so activity can be normalised into an
           organisation-scoped timeline, insights, and workflows.
         </p>
         <p>
-          Contact for privacy requests: use the email address associated with your Ghost account
-          owner profile, or the contact method published on the Service homepage once a support
-          address is configured.
+          Contact for privacy requests: use the email address associated with your Metric Mage
+          account owner profile, or the contact method published on the Service homepage once a
+          support address is configured.
         </p>
 
         <h2>2. Information we collect</h2>
@@ -82,6 +83,11 @@ export default function PrivacyPage() {
           <li>Session cookies required for authentication and workspace selection</li>
           <li>Server logs needed to operate and secure the Service</li>
           <li>Background job run metadata for reliability</li>
+          <li>
+            Google Analytics on our public pages (home, sign-in, sign-up and policy pages) only, and
+            only if you click Allow on the cookie banner. It measures visits to those pages; it is
+            never used inside the app. <CookieChoiceButton />.
+          </li>
         </ul>
 
         <h2>3. How we use information</h2>
@@ -149,14 +155,15 @@ export default function PrivacyPage() {
 
         <h2>9. Meta (Facebook / Instagram) specific notes</h2>
         <p>
-          When you connect <strong>Meta Social</strong> or <strong>Meta Ads</strong>, Ghost requests
-          only the permissions shown on the Meta consent screen. Organic social access is used to
-          import Page and Instagram professional aggregate insights for the organisation that
-          connected the account. Ghost does not post or message on Facebook or Instagram.
+          When you connect <strong>Meta Social</strong> or <strong>Meta Ads</strong>, Metric Mage
+          requests only the permissions shown on the Meta consent screen. Organic social access is
+          used to import Page and Instagram professional aggregate insights for the organisation
+          that connected the account. Metric Mage does not post or message on Facebook or Instagram.
         </p>
         <p>
-          You can disconnect these integrations at any time in Ghost. You should also remove Ghost
-          from your Meta Business / Facebook settings if you want tokens revoked at the provider.
+          You can disconnect these integrations at any time in Metric Mage. You should also remove
+          Metric Mage from your Meta Business / Facebook settings if you want tokens revoked at the
+          provider.
         </p>
 
         <h2>10. Children</h2>
@@ -173,7 +180,7 @@ export default function PrivacyPage() {
 
         <h2>12. Contact</h2>
         <p>
-          Privacy questions: contact the organisation that invited you, or the Ghost Core operator
+          Privacy questions: contact the organisation that invited you, or the Metric Mage operator
           via the support channel listed on the Service.
         </p>
 

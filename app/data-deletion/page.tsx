@@ -1,8 +1,8 @@
 import Link from "next/link";
 
 export const metadata = {
-  title: "Data deletion · Ghost Core",
-  description: "How to delete your Ghost Core account and the data from your connected tools.",
+  title: "Data deletion · Metric Mage",
+  description: "How to delete your Metric Mage account and the data from your connected tools.",
 };
 
 /** Public instructions for deleting data; also used as the data-deletion URL in app reviews. */
@@ -12,7 +12,7 @@ export default function DataDeletionPage() {
       <header className="border-b bg-white">
         <div className="mx-auto flex max-w-3xl items-center justify-between px-6 py-5">
           <Link href="/" className="font-semibold tracking-tight">
-            Ghost Core
+            Metric Mage
           </Link>
           <div className="flex gap-3 text-sm">
             <Link className="text-zinc-600 hover:text-zinc-900" href="/privacy">
@@ -34,21 +34,21 @@ export default function DataDeletionPage() {
         </div>
 
         <p>
-          You can delete your data from Ghost Core yourself at any time. Deletion is permanent and
+          You can delete your data from Metric Mage yourself at any time. Deletion is permanent and
           takes effect immediately.
         </p>
 
         <section className="space-y-2">
           <h2 className="text-xl font-semibold text-zinc-950">
-            Stop Ghost reading a connected tool
+            Stop Metric Mage reading a connected tool
           </h2>
           <p>
-            In Ghost, open <strong>Connections</strong>, find the tool (for example Facebook, Google
-            or Shopify) and click <strong>Disconnect</strong>. Ghost deletes its stored access to
-            that tool straight away and stops importing from it. You can also remove Ghost
-            Core&apos;s access from the tool&apos;s own settings, such as Facebook&apos;s
-            &quot;Business Integrations&quot; or your Google Account&apos;s &quot;Third-party
-            connections&quot;.
+            In Metric Mage, open <strong>Connections</strong>, find the tool (for example Facebook,
+            Google or Shopify) and click <strong>Disconnect</strong>. Metric Mage deletes its stored
+            access to that tool straight away and stops importing from it. You can also remove
+            Metric Mage Core&apos;s access from the tool&apos;s own settings, such as
+            Facebook&apos;s &quot;Business Integrations&quot; or your Google Account&apos;s
+            &quot;Third-party connections&quot;.
           </p>
         </section>
 

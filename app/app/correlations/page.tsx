@@ -67,7 +67,7 @@ export default async function CorrelationsPage({
       <Notice searchParams={params} />
 
       <div className="info-banner">
-        <strong>How to read this:</strong> Ghost compares events with fixed rules (not AI
+        <strong>How to read this:</strong> Metric Mage compares events with fixed rules (not AI
         guesswork). Higher scores mean a stronger match. Always check the evidence before acting.
       </div>
 

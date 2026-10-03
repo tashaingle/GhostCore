@@ -11,7 +11,7 @@ import {
 } from "@/lib/integrations/github/app";
 
 /**
- * Sends the user to GitHub. By default they sign in so Ghost can reuse an installation they already
+ * Sends the user to GitHub. By default they sign in so Metric Mage can reuse an installation they already
  * have (GitHub only allows one per account); the callback sends them on to install the app if they
  * have none. `?install=1` goes straight to installing, e.g. on another GitHub account.
  */

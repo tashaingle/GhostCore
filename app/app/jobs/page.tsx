@@ -50,13 +50,13 @@ export default async function JobsPage({
     <section className="space-y-6">
       <PageHeader
         title="Background jobs"
-        description="These are automatic chores Ghost runs for you, like syncing tools, matching related events, and housekeeping. You can run any job manually."
+        description="These are automatic chores Metric Mage runs for you, like syncing tools, matching related events, and housekeeping. You can run any job manually."
       />
       <Notice searchParams={params} />
 
       <div className="info-banner">
-        <strong>What is this page?</strong> Think of it as Ghost’s night shift. Ghost checks every
-        five minutes for jobs that are due. If one is “Behind schedule”, click{" "}
+        <strong>What is this page?</strong> Think of it as Metric Mage’s night shift. Metric Mage
+        checks every five minutes for jobs that are due. If one is “Behind schedule”, click{" "}
         <strong>Run now</strong> or give it a few minutes.
       </div>
 

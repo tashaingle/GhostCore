@@ -65,7 +65,7 @@ describe("Meta access lost on reconnect", () => {
     const lost = lostItems(before, [{id: "1", name: "XUFU"}]);
     expect(lost.map((i) => i.name)).toEqual(["RabbitCare.co.uk", "Unhinged Clothing"]);
     expect(lostAccessMessage(lost)).toContain(
-      "no longer lets Ghost see RabbitCare.co.uk, Unhinged Clothing",
+      "no longer lets Metric Mage see RabbitCare.co.uk, Unhinged Clothing",
     );
     expect(lostAccessMessage([])).toBe("");
   });

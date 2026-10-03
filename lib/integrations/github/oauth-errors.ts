@@ -23,7 +23,8 @@ export function classifyGitHubOAuthError(
   let message = "GitHub connection could not be started.";
   if (lower.includes("session") && (lower.includes("missing") || lower.includes("not found"))) {
     kind = "session_missing";
-    message = "Your Ghost session is missing or expired. Sign in again, then reconnect GitHub.";
+    message =
+      "Your Metric Mage session is missing or expired. Sign in again, then reconnect GitHub.";
   } else if (lower.includes("manual") && lower.includes("link")) {
     kind = "manual_linking_disabled";
     message = "Manual identity linking is disabled in Supabase Auth.";
@@ -35,14 +36,14 @@ export function classifyGitHubOAuthError(
     message = "The GitHub provider is disabled or incomplete in Supabase Auth.";
   } else if (lower.includes("already linked") || lower.includes("identity is already linked")) {
     kind = "already_linked";
-    message = "This GitHub identity is already linked to your Ghost user.";
+    message = "This GitHub identity is already linked to your Metric Mage user.";
   } else if (
     lower.includes("already exists") ||
     lower.includes("another user") ||
     lower.includes("different user")
   ) {
     kind = "linked_elsewhere";
-    message = "This GitHub identity is linked to another Ghost user.";
+    message = "This GitHub identity is linked to another Metric Mage user.";
   }
   if (development)
     message = `${message} Supabase: ${technical}${error?.code ? ` [${error.code}]` : ""}${error?.status ? ` (HTTP ${error.status})` : ""}`;

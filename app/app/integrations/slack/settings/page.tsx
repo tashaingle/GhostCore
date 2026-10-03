@@ -29,7 +29,8 @@ export default async function SlackSettings({
         </Link>
         <h1 className="mt-2 text-3xl font-semibold tracking-tight text-zinc-950">Slack channels</h1>
         <p className="text-zinc-600">
-          Select channels explicitly. Ghost never joins channels, imports DMs or sends messages.
+          Select channels explicitly. Metric Mage never joins channels, imports DMs or sends
+          messages.
         </p>
       </div>
       <Notice searchParams={params} />
@@ -85,8 +86,9 @@ export default async function SlackSettings({
               </div>
               {channels.some((c) => !c.isMember && !c.isArchived) ? (
                 <p className="info-banner">
-                  To let Ghost read a channel, open it in Slack and type <code>/invite @</code>{" "}
-                  followed by your app&apos;s name. Then click <strong>Refresh channels</strong>.
+                  To let Metric Mage read a channel, open it in Slack and type{" "}
+                  <code>/invite @</code> followed by your app&apos;s name. Then click{" "}
+                  <strong>Refresh channels</strong>.
                 </p>
               ) : null}
               {channels.map((c) => (

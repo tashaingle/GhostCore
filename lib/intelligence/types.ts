@@ -8,7 +8,7 @@ export type IntelligenceEvent = {
   description: string | null;
   severity: EventSeverity;
   occurredAt: string;
-  /** When Ghost stored the event; distinguishes revised provider reports for the same day. */
+  /** When Metric Mage stored the event; distinguishes revised provider reports for the same day. */
   recordedAt?: string;
   metadata: Record<string, unknown>;
 };

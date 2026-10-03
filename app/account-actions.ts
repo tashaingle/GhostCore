@@ -16,7 +16,7 @@ import {
 const settings = (kind: "error" | "success", message: string) =>
   `/app/settings?${kind}=${encodeURIComponent(message)}`;
 
-/** Best effort: remove Ghost from GitHub for any GitHub App installations in these organisations. */
+/** Best effort: remove Metric Mage from GitHub for any GitHub App installations in these organisations. */
 async function uninstallGitHub(service: SupabaseClient<Database>, organisationIds: string[]) {
   const env = githubAppEnv();
   if (!env || !organisationIds.length) return;

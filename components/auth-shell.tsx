@@ -1,11 +1,12 @@
 import Link from "next/link";
+import {BrandMark} from "@/components/brand-mark";
 import {Bell, Plug, Sparkles} from "lucide-react";
 
 const points = [
   {
     icon: Plug,
     title: "Connect the tools you already use",
-    body: "Shopify, Stripe, Google, Meta, Slack and more. Read-only, so Ghost never changes anything.",
+    body: "Shopify, Stripe, Google, Meta, Slack and more. Read-only, so Metric Mage never changes anything.",
   },
   {
     icon: Bell,
@@ -15,7 +16,7 @@ const points = [
   {
     icon: Sparkles,
     title: "Understand what changed",
-    body: "Ghost spots drops in sales, orders and ad returns, and tells you what to check.",
+    body: "Metric Mage spots drops in sales, orders and ad returns, and tells you what to check.",
   },
 ];
 
@@ -39,10 +40,8 @@ export function AuthShell({
           className="pointer-events-none absolute -right-24 -top-24 h-96 w-96 rounded-full bg-white/10 blur-3xl"
         />
         <Link href="/" className="relative flex items-center gap-2.5">
-          <span className="grid h-9 w-9 place-items-center rounded-[10px] bg-white text-sm font-bold text-violet-800">
-            G
-          </span>
-          <span className="text-lg font-semibold tracking-tight">Ghost Core</span>
+          <BrandMark size={36} />
+          <span className="text-lg font-semibold tracking-tight">Metric Mage</span>
         </Link>
         <div className="relative mt-auto max-w-md">
           <h2 className="text-3xl font-semibold leading-tight tracking-tight">
@@ -76,10 +75,8 @@ export function AuthShell({
       <section className="flex flex-col items-center justify-center px-6 py-12">
         <div className="w-full max-w-sm">
           <Link href="/" className="mb-10 flex items-center gap-2.5 lg:hidden">
-            <span className="grid h-8 w-8 place-items-center rounded-[10px] bg-gradient-to-br from-violet-500 to-indigo-700 text-sm font-bold text-white">
-              G
-            </span>
-            <span className="font-semibold tracking-tight">Ghost Core</span>
+            <BrandMark />
+            <span className="font-semibold tracking-tight">Metric Mage</span>
           </Link>
           <h1 className="text-2xl font-semibold tracking-tight text-zinc-950">{title}</h1>
           {subtitle ? <p className="mt-2 text-sm text-zinc-500">{subtitle}</p> : null}

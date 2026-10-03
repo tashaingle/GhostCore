@@ -23,7 +23,7 @@ export default async function LinkedInSettings() {
         </h1>
         <p className="text-zinc-600">
           Choose the ad accounts and Company Pages to track. What appears here depends on LinkedIn
-          approving Ghost and on your role in each account or Page.
+          approving Metric Mage and on your role in each account or Page.
         </p>
       </div>
       {!items?.length ? (
@@ -73,8 +73,8 @@ export default async function LinkedInSettings() {
               <h3 className="font-semibold">Advertising accounts</h3>
               {!ads.length && (
                 <div className="card text-zinc-500">
-                  No ad accounts found. LinkedIn may still be reviewing Ghost’s access, or your
-                  LinkedIn account may not have access to an ad account.
+                  No ad accounts found. LinkedIn may still be reviewing Metric Mage’s access, or
+                  your LinkedIn account may not have access to an ad account.
                 </div>
               )}
               {ads.map((a) => (
@@ -97,8 +97,8 @@ export default async function LinkedInSettings() {
               <h3 className="font-semibold">Company Pages</h3>
               {!orgs.length && (
                 <div className="card text-zinc-500">
-                  No Company Pages found. LinkedIn may still be reviewing Ghost’s access, or you may
-                  not be an admin of a Company Page.
+                  No Company Pages found. LinkedIn may still be reviewing Metric Mage’s access, or
+                  you may not be an admin of a Company Page.
                 </div>
               )}
               {orgs.map((o) => (

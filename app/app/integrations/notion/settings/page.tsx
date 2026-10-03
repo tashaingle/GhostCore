@@ -24,8 +24,8 @@ export default async function NotionSettings() {
           Notion databases
         </h1>
         <p className="text-zinc-600">
-          Choose which shared databases to track. Ghost reads database fields only, never the text
-          inside your pages.
+          Choose which shared databases to track. Metric Mage reads database fields only, never the
+          text inside your pages.
         </p>
       </div>
       {!items?.length ? (
@@ -65,7 +65,7 @@ export default async function NotionSettings() {
               </div>
               {!sources.length && (
                 <div className="card">
-                  No databases found. In Notion, share a database with Ghost Core, then reconnect.
+                  No databases found. In Notion, share a database with Metric Mage, then reconnect.
                 </div>
               )}
               {sources.map((d) => (

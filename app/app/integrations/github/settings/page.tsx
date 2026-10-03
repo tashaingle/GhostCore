@@ -39,7 +39,7 @@ export default async function GitHubSettings({
     try {
       available = await installationRepositories(env, installationId);
     } catch {
-      error = "Ghost couldn't reach GitHub to list your repositories. Refresh to try again.";
+      error = "Metric Mage couldn't reach GitHub to list your repositories. Refresh to try again.";
     }
   }
   const selection = selectedRepositories(settings),
@@ -75,7 +75,7 @@ export default async function GitHubSettings({
           {error && <p className="error">{error}</p>}
           {!error && !available.length && (
             <div className="card">
-              Ghost Core can&apos;t see any repositories on{" "}
+              Metric Mage can&apos;t see any repositories on{" "}
               {String(settings.accountLogin ?? "GitHub")} yet. Use the link below to give it access
               to some.
             </div>
@@ -114,8 +114,8 @@ export default async function GitHubSettings({
           </div>
           <p className="text-sm text-zinc-500">
             After adding a repository on GitHub, come back to this tab and refresh the page.
-            Repositories you add on GitHub are visible to every Ghost organisation using that GitHub
-            account, but each organisation only tracks the ones it ticks here.
+            Repositories you add on GitHub are visible to every Metric Mage organisation using that
+            GitHub account, but each organisation only tracks the ones it ticks here.
           </p>
         </form>
       )}

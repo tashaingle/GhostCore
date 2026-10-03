@@ -15,7 +15,7 @@ export function stripeAuthorisationUrl(state: string) {
   const {clientId, redirectUri} = stripeEnvironment(),
     url = new URL("https://connect.stripe.com/oauth/authorize");
   // Stripe rejects scope=read_only unless Support enables it on the platform.
-  // Ghost still only performs read API calls; read_write is the OAuth permission Stripe grants by default.
+  // Metric Mage still only performs read API calls; read_write is the OAuth permission Stripe grants by default.
   url.search = new URLSearchParams({
     response_type: "code",
     scope: "read_write",

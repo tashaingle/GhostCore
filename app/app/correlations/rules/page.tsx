@@ -26,8 +26,8 @@ export default async function CorrelationRulesPage({
         </Link>
         <h1 className="mt-2 text-3xl font-semibold tracking-tight text-zinc-950">Matching rules</h1>
         <p className="text-zinc-600">
-          The rules Ghost uses to spot related events. You can switch rules on or off and adjust
-          their settings.
+          The rules Metric Mage uses to spot related events. You can switch rules on or off and
+          adjust their settings.
         </p>
       </div>
       <Notice searchParams={params} />

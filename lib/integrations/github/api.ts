@@ -25,7 +25,7 @@ export class GitHubApi {
           Accept: "application/vnd.github+json",
           Authorization: `Bearer ${this.token}`,
           "X-GitHub-Api-Version": "2026-03-10",
-          "User-Agent": "Ghost-Core",
+          "User-Agent": "Metric-Mage",
         },
       });
     } catch {

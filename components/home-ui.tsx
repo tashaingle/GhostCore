@@ -81,7 +81,7 @@ const ruleSource = (ruleId: string) =>
           ? "Website"
           : ruleId.startsWith("github.")
             ? "GitHub"
-            : "Ghost";
+            : "Metric Mage";
 
 export function InsightCard({insight}: {insight: InsightSummary}) {
   return (

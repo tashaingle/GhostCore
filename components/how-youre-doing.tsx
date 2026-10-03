@@ -89,7 +89,7 @@ export function HowYoureDoing({
             ) : null}
             {!comparable && metrics.length ? (
               <p className="mt-3 text-sm text-emerald-900/70">
-                {`Ghost compares with ${labels.previous} once it has data from then.`}
+                {`Metric Mage compares with ${labels.previous} once it has data from then.`}
                 {nextPeriod ? " Your tools may have more history: " : null}
                 {nextPeriod ? (
                   <Link

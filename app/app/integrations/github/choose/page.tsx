@@ -19,7 +19,7 @@ export default async function ChooseGitHubAccount() {
       </Link>
       <PageHeader
         title="Which GitHub account?"
-        description={`Ghost Core is installed on more than one of your GitHub accounts. Choose the one ${ctx.organisation.name} should use. You'll pick its repositories next.`}
+        description={`Metric Mage is installed on more than one of your GitHub accounts. Choose the one ${ctx.organisation.name} should use. You'll pick its repositories next.`}
       />
       {!choices ? (
         <div className="card space-y-3">
@@ -49,7 +49,7 @@ export default async function ChooseGitHubAccount() {
           <p className="text-sm text-zinc-500">
             Not listed?{" "}
             <Link className="underline" href="/api/integrations/github/connect?install=1">
-              Install Ghost Core on another GitHub account
+              Install Metric Mage on another GitHub account
             </Link>
             .
           </p>

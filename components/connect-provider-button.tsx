@@ -61,7 +61,7 @@ export function ConnectProviderButton(props: Props) {
         setFailure(classifyGitHubOAuthError(identitiesError, development));
         return;
       }
-      // The provider can only be linked to a Ghost login once, and its token is only issued while
+      // The provider can only be linked to a Metric Mage login once, and its token is only issued while
       // linking. Each organisation stores its own copy of the token, so to connect another
       // organisation the existing link is removed and created again. Earlier organisations keep
       // working with their stored tokens.
@@ -72,7 +72,7 @@ export function ConnectProviderButton(props: Props) {
         if (identities.identities.length < 2) {
           setFailure({
             kind: "already_linked",
-            message: `${props.displayName} is how you sign in to Ghost, so it can't be re-linked here. Add an email sign-in to your account first, then try again.`,
+            message: `${props.displayName} is how you sign in to Metric Mage, so it can't be re-linked here. Add an email sign-in to your account first, then try again.`,
           });
           return;
         }
@@ -80,7 +80,7 @@ export function ConnectProviderButton(props: Props) {
         if (unlinkError) {
           setFailure({
             kind: "already_linked",
-            message: `${props.displayName} is already linked to your Ghost login and couldn't be refreshed. Please try again.`,
+            message: `${props.displayName} is already linked to your Metric Mage login and couldn't be refreshed. Please try again.`,
           });
           return;
         }

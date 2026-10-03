@@ -34,7 +34,7 @@ export default async function Workflows({
     <section className="space-y-6">
       <PageHeader
         title="Automations"
-        description="Steps Ghost runs for you when something happens, like creating a task or asking someone to approve. They only act inside Ghost and never change your connected tools."
+        description="Steps Metric Mage runs for you when something happens, like creating a task or asking someone to approve. They only act inside Metric Mage and never change your connected tools."
         actions={
           canManage ? (
             <Link className="button" href="/app/workflows/new">

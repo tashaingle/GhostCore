@@ -182,7 +182,7 @@ export default async function NotificationDetail({
           </article>
 
           <article className="card">
-            <h3 className="font-semibold">What Ghost saw</h3>
+            <h3 className="font-semibold">What Metric Mage saw</h3>
             {!evidence?.length ? (
               <p className="mt-2 text-zinc-500">No evidence was stored.</p>
             ) : (

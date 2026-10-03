@@ -78,7 +78,7 @@ export default async function InsightDetail({
         ))}
       </div>
       <div>
-        <h3 className="text-lg font-semibold">What Ghost saw</h3>
+        <h3 className="text-lg font-semibold">What Metric Mage saw</h3>
         <div className="mt-3 space-y-3">
           {evidence.map((event) => (
             <article className="card" key={event.id}>

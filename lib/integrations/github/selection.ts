@@ -1,6 +1,6 @@
 /**
  * The repositories this organisation tracks. One GitHub account has a single installation shared
- * by every Ghost organisation it connects to, so each organisation keeps its own choice here.
+ * by every Metric Mage organisation it connects to, so each organisation keeps its own choice here.
  * Connections made before this existed have no choice saved and track everything they can see.
  */
 export function selectedRepositories(settings: Record<string, unknown> | null | undefined) {

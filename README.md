@@ -1,4 +1,4 @@
-# Ghost Core
+# Metric Mage
 
 Backend-first SaaS MVP that normalises activity from business tools into one organisation-scoped event stream.
 
@@ -46,14 +46,14 @@ Changing this key makes existing GitHub credentials unreadable, so users must re
 
 ## GitHub OAuth setup
 
-1. In GitHub, create an OAuth App. Set its homepage to your Ghost deployment URL.
-2. Set the GitHub OAuth App **Authorization callback URL** to the callback displayed in Supabase Authentication → Providers → GitHub. For the hosted project it is `https://<project-ref>.supabase.co/auth/v1/callback` (not the Ghost callback route).
+1. In GitHub, create an OAuth App. Set its homepage to your Metric Mage deployment URL.
+2. Set the GitHub OAuth App **Authorization callback URL** to the callback displayed in Supabase Authentication → Providers → GitHub. For the hosted project it is `https://<project-ref>.supabase.co/auth/v1/callback` (not the Metric Mage callback route).
 3. Copy the GitHub Client ID and Client Secret into the GitHub provider configuration in Supabase and enable it.
 4. Enable **Manual identity linking** in Supabase Authentication settings.
-5. Add `https://your-ghost-domain/auth/github/callback` (and the localhost equivalent during development) to Supabase Authentication's redirect allow list.
-6. Set `NEXT_PUBLIC_SITE_URL` to the exact Ghost origin and set `GITHUB_TOKEN_ENCRYPTION_KEY` in the server environment.
+5. Add `https://your-metric-mage-domain/auth/github/callback` (and the localhost equivalent during development) to Supabase Authentication's redirect allow list.
+6. Set `NEXT_PUBLIC_SITE_URL` to the exact Metric Mage origin and set `GITHUB_TOKEN_ENCRYPTION_KEY` in the server environment.
 
-Ghost requests `read:user repo` so it can identify the account and read private repository activity and Actions runs. GitHub's classic `repo` scope is broad; a future GitHub App is recommended for finer-grained production permissions. Provider tokens are captured only by the server callback, verified with `GET /user`, encrypted using AES-256-GCM, and never returned to client code.
+Metric Mage requests `read:user repo` so it can identify the account and read private repository activity and Actions runs. GitHub's classic `repo` scope is broad; a future GitHub App is recommended for finer-grained production permissions. Provider tokens are captured only by the server callback, verified with `GET /user`, encrypted using AES-256-GCM, and never returned to client code.
 
 On Integrations, choose **Connect GitHub**, complete authorization, then choose **Sync now**. Sync imports up to 100 recent account activity records and up to 10 workflow runs for each of at most 10 repositories present in that activity. It translates pushes, opened/merged pull requests, opened issues, published releases, and completed workflows. GitHub's activity feed can lag, and only its recent window is available. Repeated syncs are safe because external identities are deterministic and protected by the existing unique index.
 
@@ -98,7 +98,7 @@ GA4 uses a direct server-side Google authorization-code flow with state, PKCE, a
 4. If External remains in Testing, add every Google account that will connect as a test user. Refresh tokens for testing apps may have shorter lifetimes.
 5. Add only these scopes: `openid`, `email`, and `https://www.googleapis.com/auth/analytics.readonly`.
 6. Create an OAuth 2.0 Client ID with application type **Web application**.
-7. Add `http://localhost:3000` as an authorised JavaScript origin if Google requests one. Ghost itself performs OAuth on the server and does not depend on browser Google SDKs.
+7. Add `http://localhost:3000` as an authorised JavaScript origin if Google requests one. Metric Mage itself performs OAuth on the server and does not depend on browser Google SDKs.
 8. Add this exact authorised redirect URI:
 
    ```text
@@ -132,13 +132,13 @@ Thresholds live in `lib/integrations/google-analytics/config.ts`. Defaults requi
 ### Manual GA4 verification
 
 1. Complete the Google Cloud setup above and restart development.
-2. Sign into Ghost as an organisation owner or admin.
+2. Sign into Metric Mage as an organisation owner or admin.
 3. Connect Google Analytics and approve only requested permissions.
 4. Select a GA4 property.
 5. Choose Sync now and inspect the Integration log.
 6. Confirm meaningful events appear in Timeline and contribute to Overview.
 7. Sync again and confirm existing completed-period events are skipped.
-8. Revoke Ghost access in the Google Account security page, sync, and confirm an expired/error state.
+8. Revoke Metric Mage access in the Google Account security page, sync, and confirm an expired/error state.
 9. Reauthorise, then change property if needed.
 10. Disconnect and confirm credentials are cleared while historical Timeline events remain.
 
@@ -151,7 +151,7 @@ RLS stays enabled. No service-role key, browser token input, `dangerouslySetInne
 Live auth and RLS require configured credentials. Manually test isolation with two users: create separate organisations, add events/integrations in each, confirm neither appears in the other account, and directly query each table from both authenticated sessions. GitHub sync is manual and bounded; it does not use webhooks or background jobs. Organisation switching, invitations, other OAuth providers, queues, scheduled sync, billing, and AI are intentionally out of scope. Regenerate database types later with `npx supabase gen types typescript --linked > types/database.ts`.
 # Intelligence Engine (Phase 5)
 
-Ghost now turns normalised events into deterministic, explainable insights. The engine is provider-independent: connectors still translate provider records into the universal `events` table, while isolated intelligence rules inspect those events and return insight candidates. The shared runner owns confidence clamping, fingerprints, duplicate-safe persistence, lifecycle updates, and recovery resolution.
+Metric Mage now turns normalised events into deterministic, explainable insights. The engine is provider-independent: connectors still translate provider records into the universal `events` table, while isolated intelligence rules inspect those events and return insight candidates. The shared runner owns confidence clamping, fingerprints, duplicate-safe persistence, lifecycle updates, and recovery resolution.
 
 ## How intelligence works
 
@@ -187,7 +187,7 @@ Apply `supabase/migrations/202607280003_insights.sql` after the Phase 1–4 migr
 6. Add deterministic unit tests for positive, negative, confidence, and duplicate cases.
 # Multi-organisation workspaces (Phase 6)
 
-One authenticated account can belong to multiple isolated organisations. The active workspace is resolved on the server from an HTTP-only `ghost_active_organisation` cookie, checked against active membership on every request, and backed by `profiles.active_organisation_id` so it survives login on another browser. If access disappears, Ghost safely selects the oldest remaining active membership.
+One authenticated account can belong to multiple isolated organisations. The active workspace is resolved on the server from an HTTP-only `ghost_active_organisation` cookie, checked against active membership on every request, and backed by `profiles.active_organisation_id` so it survives login on another browser. If access disappears, Metric Mage safely selects the oldest remaining active membership.
 
 The sidebar switcher submits a server action; it never treats client state as an authorization boundary. All dashboard, timeline, insight, integration, log, developer-tool and settings queries use the resulting organisation ID. OAuth callbacks also resolve the selected organisation, so credentials cannot land in a different workspace.
 
@@ -205,7 +205,7 @@ Server actions and APIs validate permissions. Phase 6 RLS independently limits e
 
 ## Invitations
 
-Owners and admins invite an email and select a non-owner role. Ghost stores only a SHA-256 token hash, expires invitations after seven days, and asks Supabase Auth to send a magic-link email whose safe callback returns to `/invite/<token>`. The invited user must authenticate as the invited email. Acceptance is an atomic security-definer function that checks email, expiry and duplicate membership, adds the membership, marks the invitation accepted and selects the new workspace.
+Owners and admins invite an email and select a non-owner role. Metric Mage stores only a SHA-256 token hash, expires invitations after seven days, and asks Supabase Auth to send a magic-link email whose safe callback returns to `/invite/<token>`. The invited user must authenticate as the invited email. Acceptance is an atomic security-definer function that checks email, expiry and duplicate membership, adds the membership, marks the invitation accepted and selects the new workspace.
 
 Pending invitations can be resent (rotating the token and expiry) or cancelled. Duplicate pending invitations and existing members are rejected.
 
@@ -222,7 +222,7 @@ Gmail is a real connector in the provider registry and shared sync runner. It us
 
 The first sync searches only the last seven days, excludes Spam and Trash, requests at most five pages and 250 messages, and fetches metadata format only. Later syncs use `users.history.list` and the stored history ID; an invalid history cursor falls back to the bounded recent query. Cursors update only after a successful connector run. Each mailbox is a separate integration record with independent encrypted access/refresh tokens, expiry, settings, health, cursor and logs.
 
-Ghost stores subjects, safe address metadata, direction, labels, unread/starred flags, attachment filenames/counts and optionally a 200-character Gmail snippet. Snippets are off by default. It never downloads bodies, HTML, embedded images, attachments or remote links. Provider strings are control-character stripped, angle-bracket stripped and length bounded. Tokens, authorization codes and private snippets are never logged.
+Metric Mage stores subjects, safe address metadata, direction, labels, unread/starred flags, attachment filenames/counts and optionally a 200-character Gmail snippet. Snippets are off by default. It never downloads bodies, HTML, embedded images, attachments or remote links. Provider strings are control-character stripped, angle-bracket stripped and length bounded. Tokens, authorization codes and private snippets are never logged.
 
 Events are `gmail.message_received` and `gmail.message_sent`. External IDs include integration ID, Gmail message ID and event type, so reruns and multiple mailboxes remain duplicate-safe. Spam/Trash and disabled directions are filtered. Gmail `IMPORTANT` remains metadata and is not intelligence.
 
@@ -264,7 +264,7 @@ Use the temporary `whsec_...` printed by that command only in local `.env.local`
 
 PaymentIntent is the canonical successful/failed/cancelled payment lifecycle source. `charge.succeeded` and `charge.failed` are deliberately ignored. Checkout, invoice and subscription events remain lifecycle facts and do not add revenue. Monetary values remain integer minor units, include ISO currency, are grouped by currency by consumers, and are never converted. Customer IDs are one-way pseudonyms; emails, addresses, metadata, descriptions, payment methods, card/bank details, and raw Stripe objects are not persisted.
 
-Apply `supabase/migrations/202607280006_stripe_integration.sql` before connecting Stripe. Owners/admins connect and disconnect; roles with `integration.sync` may reconcile. Disconnect clears local credentials while preserving historical events and receipts. Webhook processing is bounded and synchronous because Ghost does not yet have a durable job queue.
+Apply `supabase/migrations/202607280006_stripe_integration.sql` before connecting Stripe. Owners/admins connect and disconnect; roles with `integration.sync` may reconcile. Disconnect clears local credentials while preserving historical events and receipts. Webhook processing is bounded and synchronous because Metric Mage does not yet have a durable job queue.
 # Phase 10: Google Search Console
 
 Search Console is a read-only connector in the shared provider registry. It reuses Google OAuth with PKCE, encrypted access/refresh tokens, organisation-bound callback cookies, provider-independent locks, the sync runner, logs and universal events. Required scope: `openid email https://www.googleapis.com/auth/webmasters.readonly`; no write scope is requested.
@@ -275,18 +275,18 @@ After connecting, `/app/integrations/google-search-console/properties` discovers
 
 Initial sync compares two bounded 45-day halves covering 90 days; later syncs compare complete seven-day periods after Search Console's three-day data delay. Limits are 10 selected properties, 250 final Search Analytics rows/property/period, 50 API requests, 10 URL inspections/property, 25 seconds and 500 translated events/property. Search data groups page, bounded query, country and device. Queries and URL paths are sanitised/length-limited; OAuth credentials are never logged.
 
-Deterministic thresholds default to 25% and 10 previous clicks. Summary, click change, ranking change, new-query, sitemap and URL Inspection events use period/property/integration-bound external IDs. Dashboard cards show latest clicks, impressions, CTR and impression-weighted position. The supported Search Console APIs do not expose the Core Web Vitals report, so Ghost does not invent it. Index inspection is limited to top returned pages and can partially fail due to quota/permissions.
+Deterministic thresholds default to 25% and 10 previous clicks. Summary, click change, ranking change, new-query, sitemap and URL Inspection events use period/property/integration-bound external IDs. Dashboard cards show latest clicks, impressions, CTR and impression-weighted position. The supported Search Console APIs do not expose the Core Web Vitals report, so Metric Mage does not invent it. Index inspection is limited to top returned pages and can partially fail due to quota/permissions.
 
 Troubleshooting: verify the API is enabled, the callback matches exactly, the account owns/has access to the property, and reconnect with `prompt=consent` if Google does not return a refresh token.
 # Phase 11: read-only Shopify
 
 Shopify is a first-class connector using the versioned GraphQL Admin API `2026-07` (the REST Admin API is legacy). It requests only `read_orders,read_products,read_inventory,read_discounts,read_locations`. OAuth uses an organisation-bound, HttpOnly, one-use nonce, validates the exact `*.myshopify.com` host and verifies Shopify's callback HMAC before exchanging the code. Omitting `access_mode=per-user` requests an offline token; expiring offline access and refresh-token rotation are supported.
 
-Configure a Shopify app in the Dev Dashboard with `SHOPIFY_CLIENT_ID`, `SHOPIFY_CLIENT_SECRET`, and exact allowed redirect `http://localhost:3000/api/integrations/shopify/callback`. Add the five read scopes. No write operation or write scope exists in Ghost.
+Configure a Shopify app in the Dev Dashboard with `SHOPIFY_CLIENT_ID`, `SHOPIFY_CLIENT_SECRET`, and exact allowed redirect `http://localhost:3000/api/integrations/shopify/callback`. Add the five read scopes. No write operation or write scope exists in Metric Mage.
 
-The connector discovers store name, canonical myshopify domain, currency, IANA timezone and plan. Each store is a separate organisation-scoped integration. Initial order access is bounded to Shopify's standard 60-day order window (90 days requires separately approved `read_all_orders`, which Ghost deliberately does not request); reconciliation overlaps 72 hours. One GraphQL snapshot is capped at 100 orders/products/collections/discounts, 20 API requests, 25 seconds and 500 events. Existing locks, logs, encrypted credentials and duplicate protection are reused.
+The connector discovers store name, canonical myshopify domain, currency, IANA timezone and plan. Each store is a separate organisation-scoped integration. Initial order access is bounded to Shopify's standard 60-day order window (90 days requires separately approved `read_all_orders`, which Metric Mage deliberately does not request); reconciliation overlaps 72 hours. One GraphQL snapshot is capped at 100 orders/products/collections/discounts, 20 API requests, 25 seconds and 500 events. Existing locks, logs, encrypted credentials and duplicate protection are reused.
 
-Events cover created/paid/cancelled/refunded/fulfilled orders, product state, zero/low inventory, collections and discounts. Dashboard/timeline consume normalised events without provider-specific storage. Customer references are salted hashes; only order count and country are retained. Ghost excludes names, emails, phones, addresses, notes, marketing preferences, payment/card data and raw Shopify payloads.
+Events cover created/paid/cancelled/refunded/fulfilled orders, product state, zero/low inventory, collections and discounts. Dashboard/timeline consume normalised events without provider-specific storage. Customer references are salted hashes; only order count and country are retained. Metric Mage excludes names, emails, phones, addresses, notes, marketing preferences, payment/card data and raw Shopify payloads.
 
 Troubleshooting: confirm the exact callback URL, read scopes, app installation on the development store, API version support, and store domain. Reinstall/reconnect after scope changes.
 # Phase 12: Meta Ads reporting
@@ -317,7 +317,7 @@ LinkedIn is implemented as a normal connector and feeds the universal event engi
 
 Set `LINKEDIN_CLIENT_ID`, `LINKEDIN_CLIENT_SECRET`, and `LINKEDIN_REDIRECT_URI` (locally, exactly `http://localhost:3000/api/integrations/linkedin/callback`). `LINKEDIN_API_VERSION` defaults to `202607`, the July 2026 stable Marketing API version selected from LinkedIn's official versioning documentation. Register the exact callback under the LinkedIn app Auth tab. Add the Sign In with LinkedIn using OpenID Connect product and apply separately for Advertising API and Community Management API access; creating an app alone does not grant Marketing API production access.
 
-Ghost requests exactly `openid profile r_ads r_ads_reporting r_organization_admin r_organization_social`: OpenID identity, advertising structure, advertising reporting, administered-organisation/page analytics, and organisation content analytics respectively. The callback records what LinkedIn actually granted and probes Ads and Company Page capabilities independently. No write scope (`rw_ads`, `w_organization_social`, `rw_organization_admin`) is requested or used. Because LinkedIn consent is all-or-nothing for the requested scopes and scopes depend on approved products, the app may need the relevant LinkedIn product approvals before OAuth succeeds.
+Metric Mage requests exactly `openid profile r_ads r_ads_reporting r_organization_admin r_organization_social`: OpenID identity, advertising structure, advertising reporting, administered-organisation/page analytics, and organisation content analytics respectively. The callback records what LinkedIn actually granted and probes Ads and Company Page capabilities independently. No write scope (`rw_ads`, `w_organization_social`, `rw_organization_admin`) is requested or used. Because LinkedIn consent is all-or-nothing for the requested scopes and scopes depend on approved products, the app may need the relevant LinkedIn product approvals before OAuth succeeds.
 
 After connecting, choose eligible ad accounts and Company Pages under LinkedIn settings, then use the generic **Sync now** action. One eligible asset is selected automatically; multiple assets require explicit selection. Existing generic `integrations.settings` safely holds capability evidence, assets, selections, checkpoints, and fingerprints, so Phase 13 adds no database migration.
 
@@ -357,7 +357,7 @@ NOTION_REDIRECT_URI=http://localhost:3000/api/integrations/notion/callback
 
 Register the redirect URI exactly in Notion. Give the integration **Read content** capability only. During authorization, choose the pages/databases to share. Notion exposes only content explicitly shared with the connection. Connect separately for each workspace; each authorization is stored as a distinct provider account where the workspace differs.
 
-Ghost uses `Notion-Version: 2026-03-11`, the current official version at implementation time. Since modern Notion databases are containers, discovery and page queries use data sources. Select databases under `/app/integrations/notion/settings`; none are selected automatically.
+Metric Mage uses `Notion-Version: 2026-03-11`, the current official version at implementation time. Since modern Notion databases are containers, discovery and page queries use data sources. Select databases under `/app/integrations/notion/settings`; none are selected automatically.
 
 The client supports title, rich text, status, select, multi-select, checkbox, date, people, number, URL, email, phone, relation, evaluated formula, created/edited time and created/edited by values. Unsupported properties are ignored safely. File contents and page blocks are never downloaded.
 
@@ -366,7 +366,7 @@ Initial sync imports pages edited within 90 days. Routine runs filter by the las
 Owner/admin can connect, select data sources and disconnect; managers can sync/view; viewers are read-only. Existing integration and event RLS provides organisation isolation, so Phase 15 adds no migration.
 # Phase 16: Slack connector
 
-Slack is a strictly read-only, polling connector for explicitly selected channels. OAuth v2 credentials are encrypted; workspace/channel/checkpoint/snapshot state uses generic organisation-scoped integration settings. Ghost does not request DMs, send messages, join channels, download files, fetch unfurls, score employees, infer sentiment or use Slack remote search.
+Slack is a strictly read-only, polling connector for explicitly selected channels. OAuth v2 credentials are encrypted; workspace/channel/checkpoint/snapshot state uses generic organisation-scoped integration settings. Metric Mage does not request DMs, send messages, join channels, download files, fetch unfurls, score employees, infer sentiment or use Slack remote search.
 
 Set `SLACK_CLIENT_ID`, `SLACK_CLIENT_SECRET`, `SLACK_SIGNING_SECRET`, and exact `SLACK_REDIRECT_URI`. `SLACK_ENABLE_PRIVATE_CHANNELS=false` is the safe default. Signing secret is reserved for a future signed Events API; Phase 16 intentionally uses polling and defines no event subscription.
 
@@ -376,12 +376,12 @@ Create a Slack app with this manifest:
 
 ```yaml
 display_information:
-  name: Ghost Core
-  description: Read-only Slack activity integration for Ghost Core
+  name: Metric Mage
+  description: Read-only Slack activity integration for Metric Mage
   background_color: "#111111"
 features:
   bot_user:
-    display_name: Ghost Core
+    display_name: Metric Mage
     always_online: false
 oauth_config:
   redirect_urls:
@@ -394,7 +394,7 @@ settings:
   token_rotation_enabled: true
 ```
 
-Install the app, add it manually to each channel Ghost may read, reconnect to refresh discovery, then explicitly select channels in Ghost. Discovery is never treated as selection.
+Install the app, add it manually to each channel Metric Mage may read, reconnect to refresh discovery, then explicitly select channels in Metric Mage. Discovery is never treated as selection.
 
 Initial sync defaults to 30 days (bounded to 90). Each invocation makes at most one 15-message history request and rotates fairly across selected channels. Cursors and timestamps persist. More work or a 429 response records a continuation at least 60 seconds later and returns a resumable partial result instead of holding a request open. Routine sync overlaps five minutes; deterministic snapshots suppress duplicates.
 
@@ -403,7 +403,7 @@ Thread parent metadata and reaction names/counts are stored. Full thread-body ba
 No database migration is required. Existing integration/event/log RLS enforces organisation isolation.
 # Phase 17: deterministic correlations
 
-Ghost Core can connect universal events across providers using reviewed, versioned rules. Correlations are evidence-backed associations, not causation claims. No LLM, embedding, fuzzy semantic match, or database-supplied executable rule is used.
+Metric Mage can connect universal events across providers using reviewed, versioned rules. Correlations are evidence-backed associations, not causation claims. No LLM, embedding, fuzzy semantic match, or database-supplied executable rule is used.
 
 The engine is split across `lib/correlations`: the registry discovers allowlisted rules, candidate selection bounds provider/event/time comparisons to 500 pairs per rule, scoring records every deterministic contribution, fingerprints suppress duplicates, the runner processes a maximum of 1,000 recent events by default, and the repository preserves evidence, revisions and invalidations. A failed rule is isolated from other rules.
 
@@ -460,7 +460,7 @@ Alert rules are explicit: disconnected/expired integrations, failed syncs, token
 The command centre never claims that a correlation is causation. Cross-platform activity shows only source/target edges already stored by Phase 17 and never inserts a missing intermediate step.
 # Phase 19: automated sync and background jobs
 
-Ghost Core has a provider-neutral, organisation-scoped scheduler in `lib/jobs`. Connected providers register an `integration.sync` job from the provider registry; correlations, health, manual refresh and maintenance use the same execution path. The scheduler discovers due work while the executor owns distributed locking, timeout enforcement, deterministic retry, metrics and durable run logs. Connectors remain responsible for fetching and translation, and the existing sync runner remains responsible for event insertion and duplicate protection.
+Metric Mage has a provider-neutral, organisation-scoped scheduler in `lib/jobs`. Connected providers register an `integration.sync` job from the provider registry; correlations, health, manual refresh and maintenance use the same execution path. The scheduler discovers due work while the executor owns distributed locking, timeout enforcement, deterministic retry, metrics and durable run logs. Connectors remain responsible for fetching and translation, and the existing sync runner remains responsible for event insertion and duplicate protection.
 
 Apply `supabase/migrations/202607290010_background_jobs.sql`, set `SUPABASE_SERVICE_ROLE_KEY` and a long random `BACKGROUND_JOB_SECRET`, then invoke `GET` or `POST /api/jobs/dispatch` with `Authorization: Bearer <secret>`. Vercel Cron, Supabase Scheduled Functions or a future worker may call the same endpoint. Each invocation runs due jobs for up to four minutes (at most 100), four at a time; `BACKGROUND_JOB_CONCURRENCY` (1–8, default 4) adjusts parallelism. Invoke frequently (for example every five minutes); individual job schedules determine whether work is due.
 
@@ -488,13 +488,13 @@ Manual verification:
 5. Review `/app/action-centre/preferences`, `/app/command-centre`, `/app/jobs`, and `/app/timeline`.
 # Phase 21: deterministic workflow and approval engine
 
-Ghost Core now includes versioned, provider-neutral operational workflows at `/app/workflows`, execution history at `/app/workflow-runs`, and a human approval inbox at `/app/approvals`. No AI, autonomous decisions, semantic matching or probabilistic branching is used.
+Metric Mage now includes versioned, provider-neutral operational workflows at `/app/workflows`, execution history at `/app/workflow-runs`, and a human approval inbox at `/app/approvals`. No AI, autonomous decisions, semantic matching or probabilistic branching is used.
 
 Definitions are mutable only by creating a new immutable `workflow_versions` snapshot with immutable ordered steps. Every run pins that version and has a stable SHA-256 fingerprint derived from organisation, workflow, version, trigger, source and canonical payload. Replaying the same trigger returns the existing run.
 
 Supported steps are task, approval, condition, delay, background job, notification, integration action, webhook, manual confirmation and complete. Conditions use explicit operators and fields. Retries use bounded exponential backoff. Runs pause durably for tasks, approvals and delays and resume through the Phase 19 dispatcher. Failure policies are fail, continue or pause.
 
-Provider adapters expose only the action already supported consistently by connected Ghost providers: queueing their registered read-only sync job. No unsupported provider write operation is fabricated. Webhooks require a public HTTPS URL, have a 30-second maximum request timeout, and send only configured workflow data.
+Provider adapters expose only the action already supported consistently by connected Metric Mage providers: queueing their registered read-only sync job. No unsupported provider write operation is fabricated. Webhooks require a public HTTPS URL, have a 30-second maximum request timeout, and send only configured workflow data.
 
 Built-in templates cover deployment failure review, integration reconnect, CSV import review, correlation review and background-job recovery. The builder supports drag ordering, JSON configuration validation, enable/disable/archive, duplication through templates, and immutable version history.
 
@@ -513,7 +513,7 @@ Manual verification:
 7. Confirm all four workflow jobs appear in `/app/jobs`.
 # Phase 22: deterministic operational work
 
-Ghost Core now includes organisation-scoped tasks, cases, checklists, dependencies,
+Metric Mage now includes organisation-scoped tasks, cases, checklists, dependencies,
 assignments, watchers, comments/internal notes, evidence, immutable revisions,
 templates, validated saved views, explicit SLA policies and idempotent recurrence.
 Open `/app/work` for the unified inbox, or `/app/tasks` and `/app/cases` for focused

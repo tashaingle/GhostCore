@@ -43,8 +43,8 @@ export default async function InsightsPage({
         <div>
           <h1 className="text-3xl font-semibold tracking-tight text-zinc-950">Insights</h1>
           <p className="mt-2 max-w-2xl text-base text-zinc-500">
-            Changes Ghost noticed across your sales, payments, ads and website, with what to do
-            about each one. Updated every hour.
+            Changes Metric Mage noticed across your sales, payments, ads and website, with what to
+            do about each one. Updated every hour.
           </p>
         </div>
         <form action={runIntelligenceAction}>
@@ -93,7 +93,7 @@ export default async function InsightsPage({
           </p>
           <p className="mt-1 max-w-sm text-sm text-zinc-500">
             {view.key === "active"
-              ? "Ghost checks your connected tools every hour. When something changes, like orders dropping or a payment dispute, it will appear here."
+              ? "Metric Mage checks your connected tools every hour. When something changes, like orders dropping or a payment dispute, it will appear here."
               : "Insights you resolve or dismiss will be kept here for reference."}
           </p>
         </div>

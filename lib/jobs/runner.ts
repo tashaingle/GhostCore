@@ -17,6 +17,7 @@ import {
 import {acquireLock, releaseLock} from "./locks";
 import {classifyError, retryDelayMs, retryable} from "./retries";
 import {nextRun} from "./scheduler";
+import {trulyExpired} from "./expiry";
 import type {Job, JobMetrics} from "./types";
 async function actor(client: SupabaseClient<Database>, org: string) {
   const {data} = await client
@@ -143,11 +144,9 @@ async function handle(client: SupabaseClient<Database>, job: Job): Promise<JobMe
   if (job.job_type === "integration.health") {
     const {data} = await client
         .from("integrations")
-        .select("id,status,token_expires_at")
+        .select("id,status,token_expires_at,refresh_token_encrypted")
         .eq("organisation_id", job.organisation_id),
-      expired = (data ?? []).filter(
-        (x) => x.token_expires_at && new Date(x.token_expires_at) <= new Date(),
-      );
+      expired = trulyExpired(data ?? []);
     for (const item of expired)
       await client
         .from("integrations")

@@ -1,5 +1,33 @@
 @import "tailwindcss";
 
+/* Metric Mage palette, taken from the logo. Violet utilities used across the app are remapped to
+   the brand blue so every accent matches without touching each component. */
+@theme {
+  --color-violet-50: #eef6fd;
+  --color-violet-100: #d9ebfa;
+  --color-violet-200: #b6d8f4;
+  --color-violet-300: #85bdec;
+  --color-violet-400: #4f9be0;
+  --color-violet-500: #2a7fd3;
+  --color-violet-600: #1d66b8;
+  --color-violet-700: #185295;
+  --color-violet-800: #17457a;
+  --color-violet-900: #163a64;
+  --color-violet-950: #0d2342;
+
+  --color-ink: #0b1830;
+  --color-ink-soft: #13264a;
+  --color-paper: #f3efe6;
+  --color-paper-deep: #e8e2d4;
+  --color-mage: #1f74c9;
+  --color-sky: #5cb8ec;
+  --color-spark: #3fd8c2;
+
+  --font-display: var(--font-bricolage), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-instrument), Georgia, serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+}
+
 :root {
   --background: #f4f4f5;
   --foreground: #18181b;
@@ -8,7 +36,7 @@
   --border: #e4e4e7;
   --brand: #18181b;
   --brand-soft: #f4f4f5;
-  --accent: #5b21b6;
+  --accent: #1d66b8;
 }
 
 * {
@@ -239,4 +267,83 @@ a {
 .prose-sm {
   font-size: 0.875rem;
   line-height: 1.5;
+}
+
+/* ---------- Marketing site ---------- */
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* Fine film grain so dark sections feel printed rather than flat. */
+.mm-grain::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.08;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+@keyframes mm-twinkle {
+  0%,
+  100% {
+    transform: scale(0.85) rotate(0deg);
+    opacity: 0.55;
+  }
+  50% {
+    transform: scale(1.15) rotate(12deg);
+    opacity: 1;
+  }
+}
+.mm-twinkle {
+  animation: mm-twinkle 3.6s ease-in-out infinite;
+}
+
+@keyframes mm-marquee {
+  to {
+    transform: translateX(-100%);
+  }
+}
+.mm-marquee-track {
+  animation: mm-marquee 42s linear infinite;
+}
+.mm-marquee-reverse {
+  animation-direction: reverse;
+}
+.mm-marquee:hover .mm-marquee-track {
+  animation-play-state: paused;
+}
+
+@keyframes mm-scroll-cue {
+  0% {
+    transform: scaleY(0);
+    transform-origin: top;
+  }
+  50% {
+    transform: scaleY(1);
+    transform-origin: top;
+  }
+  51% {
+    transform-origin: bottom;
+  }
+  100% {
+    transform: scaleY(0);
+    transform-origin: bottom;
+  }
+}
+.mm-scroll-cue {
+  animation: mm-scroll-cue 2.4s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .mm-twinkle,
+  .mm-marquee-track,
+  .mm-scroll-cue {
+    animation: none;
+  }
 }

@@ -10,6 +10,7 @@ const LOGOS: Logo[] = [
   {slug: "meta-ads", name: "Meta Ads", w: 319, h: 160},
   {slug: "gmail", name: "Gmail", w: 491, h: 160},
   {slug: "meta", name: "Facebook and Instagram", w: 520, h: 118},
+  {slug: "outlook", name: "Outlook", w: 520, h: 107},
   {slug: "google-calendar", name: "Google Calendar", w: 520, h: 158},
   {slug: "linkedin", name: "LinkedIn", w: 520, h: 128},
   {slug: "slack", name: "Slack", w: 520, h: 133},

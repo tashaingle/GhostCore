@@ -37,6 +37,7 @@ const collection = z.object({
       links: z.array(z.object({rel: z.string(), href: z.string()})).optional(),
     })
     .optional(),
+  metadata: z.object({nextPageToken: z.string().optional()}).optional(),
 });
 const identitySchema = z.object({
   sub: z.string(),
@@ -74,19 +75,23 @@ export class LinkedInClient {
       throw new LinkedInError("rate_limit", "LinkedIn request safety limit reached.");
     const correlationId = randomUUID(),
       url = `https://api.linkedin.com${path}${Object.keys(params).length ? `?${restliQuery(params)}` : ""}`,
-      env = linkedinEnv();
+      env = linkedinEnv(),
+      versioned = path.startsWith("/rest/"),
+      headers: Record<string, string> = {
+        Authorization: `Bearer ${this.token}`,
+        Accept: "application/json",
+        "X-Correlation-ID": correlationId,
+      };
+    if (versioned) {
+      headers["Linkedin-Version"] = env.version;
+      headers["X-Restli-Protocol-Version"] = "2.0.0";
+      headers["X-RestLi-Method"] = params.q ? "FINDER" : params.ids ? "BATCH_GET" : "GET";
+    }
     for (let attempt = 0; ; attempt++) {
       let response: Response;
       try {
         response = await this.request(url, {
-          headers: {
-            Authorization: `Bearer ${this.token}`,
-            Accept: "application/json",
-            "Linkedin-Version": env.version,
-            "X-Restli-Protocol-Version": "2.0.0",
-            "X-RestLi-Method": "FINDER",
-            "X-Correlation-ID": correlationId,
-          },
+          headers,
           signal: AbortSignal.timeout(LINKEDIN_LIMITS.timeoutMs),
         });
       } catch {
@@ -141,7 +146,9 @@ export class LinkedInClient {
               ? "LinkedIn permission is missing."
               : kind === "product_approval"
                 ? "LinkedIn product approval is required."
-                : "LinkedIn API request failed.",
+                : message
+                  ? `LinkedIn API request failed (${response.status}): ${message.replace(/\s+/g, " ").slice(0, 160)}`
+                  : `LinkedIn API request failed (${response.status}).`,
         response.status,
         correlationId,
       );
@@ -182,12 +189,24 @@ export class LinkedInClient {
     };
   }
   async adAccounts(): Promise<LinkedInAdAccount[]> {
-    const rows = await this.pages("/rest/adAccounts", {
-      q: "search",
-      search: "(status:(values:List(ACTIVE,DRAFT,CANCELED)))",
-    });
+    const rows: Record<string, unknown>[] = [];
+    let pageToken: string | undefined;
+    for (let page = 0; page < LINKEDIN_LIMITS.pages && rows.length < LINKEDIN_LIMITS.rows; page++) {
+      const params: Record<string, string> = {
+        q: "search",
+        search: "(status:(values:List(ACTIVE,DRAFT,CANCELED)))",
+        pageSize: "100",
+      };
+      if (pageToken) params.pageToken = pageToken;
+      const parsed = collection.safeParse(await this.get("/rest/adAccounts", params));
+      if (!parsed.success)
+        throw new LinkedInError("malformed", "LinkedIn returned an unsupported response shape.");
+      rows.push(...parsed.data.elements);
+      pageToken = parsed.data.metadata?.nextPageToken;
+      if (!pageToken || parsed.data.elements.length === 0) break;
+    }
     return rows.map((r) => {
-      const id = linkedinId(text(r.id));
+      const id = linkedinId(typeof r.id === "number" ? String(r.id) : text(r.id));
       return {
         kind: "ad_account",
         id,

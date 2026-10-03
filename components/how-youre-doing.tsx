@@ -1,6 +1,8 @@
 import Link from "next/link";
 import {CircleCheck, TriangleAlert} from "lucide-react";
 import {TrendChip} from "@/components/home-ui";
+import {Sparkline} from "@/components/charts/sparkline";
+import {TrendChart, type ChartNote} from "@/components/charts/trend-chart";
 import {
   PERIOD_LABEL,
   steadyLines,
@@ -16,6 +18,10 @@ const PERIODS: {key: Period; label: string}[] = [
   {key: "year", label: "Year"},
 ];
 const GROUPS: MetricGroup[] = ["Money", "Marketing", "Operations"];
+/** Which figure leads the main chart: the first of these with something to draw. */
+const HEADLINE = ["revenue", "orders", "emailSubscribers", "reach", "adSpend", "followers"];
+const hasShape = (m: Metric) =>
+  Boolean(m.trend && [...m.trend.current, ...m.trend.previous].some((v) => (v ?? 0) > 0));
 
 export function HowYoureDoing({
   period,
@@ -23,6 +29,7 @@ export function HowYoureDoing({
   highlights,
   updates,
   healthy = [],
+  notes = [],
 }: {
   period: Period;
   metrics: Metric[];
@@ -30,6 +37,8 @@ export function HowYoureDoing({
   updates: number;
   /** Good news about the organisation's setup, e.g. all connections working. */
   healthy?: string[];
+  /** Things Metric Mage noticed this period, marked on the main chart. */
+  notes?: ChartNote[];
 }) {
   const good = highlights.filter((h) => h.tone === "good"),
     bad = highlights.filter((h) => h.tone === "bad"),
@@ -41,7 +50,11 @@ export function HowYoureDoing({
       ...healthy,
       ...(good.length ? [] : steadyLines(metrics)),
     ],
-    nextPeriod = period === "week" ? "Month" : period === "month" ? "Year" : null;
+    nextPeriod = period === "week" ? "Month" : period === "month" ? "Year" : null,
+    headline = HEADLINE.map((key) => metrics.find((m) => m.key === key)).find((m): m is Metric =>
+      Boolean(m && hasShape(m)),
+    ),
+    capital = (text: string) => `${text[0].toUpperCase()}${text.slice(1)}`;
 
   return (
     <section aria-label="How you're doing" className="space-y-5">
@@ -125,6 +138,17 @@ export function HowYoureDoing({
         </div>
       ) : null}
 
+      {headline?.trend ? (
+        <TrendChart
+          key={`${headline.key}-${period}`}
+          trend={headline.trend}
+          label={`${headline.label} ${labels.current}`}
+          currentLabel={capital(labels.current)}
+          previousLabel={capital(labels.previous)}
+          notes={notes}
+        />
+      ) : null}
+
       {GROUPS.map((group) => {
         const items = metrics.filter((m) => m.group === group);
         if (!items.length) return null;
@@ -141,11 +165,18 @@ export function HowYoureDoing({
                     <p className="text-sm font-medium text-zinc-600">{m.label}</p>
                     <p className="truncate text-xs text-zinc-400">{m.source}</p>
                   </div>
-                  <p className="mt-2 text-2xl font-semibold tracking-tight text-zinc-950 tabular-nums">
-                    {m.value}
-                  </p>
-                  <div className="mt-2">
-                    <TrendChip change={m.change} higherIsBetter={m.higherIsBetter} />
+                  <div className="mt-2 flex items-end justify-between gap-3">
+                    <div>
+                      <p className="text-2xl font-semibold tracking-tight text-zinc-950">
+                        {m.value}
+                      </p>
+                      <div className="mt-2">
+                        <TrendChip change={m.change} higherIsBetter={m.higherIsBetter} />
+                      </div>
+                    </div>
+                    {m.trend && hasShape(m) ? (
+                      <Sparkline key={period} trend={m.trend} label={m.label} />
+                    ) : null}
                   </div>
                 </article>
               ))}

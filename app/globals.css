@@ -347,3 +347,22 @@ html {
     animation: none;
   }
 }
+
+/* Charts: lines draw themselves in once (paths set pathLength="1"). */
+@keyframes mm-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.mm-draw {
+  stroke-dasharray: 1;
+  animation: mm-draw 1.2s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .mm-draw {
+    animation: none;
+  }
+}

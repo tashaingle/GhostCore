@@ -25,6 +25,19 @@ export type Metric = {
   higherIsBetter: boolean | null;
   /** Enough history in the previous period to call it going well or badly. */
   comparable: boolean;
+  /** Day-by-day (weekly for a year) values for this period and the one before, for charts. */
+  trend?: Trend;
+};
+
+export type TrendUnit = {kind: "money"; currency: string} | {kind: "count"};
+export type Trend = {
+  /** One value per bucket; null where there's nothing yet (e.g. before the first snapshot). */
+  current: (number | null)[];
+  previous: (number | null)[];
+  /** Start of each current-period bucket (ms since epoch). */
+  starts: number[];
+  bucketDays: number;
+  unit: TrendUnit;
 };
 
 export type Highlight = {tone: "good" | "bad"; text: string};
@@ -83,6 +96,14 @@ const money = (amount: number, currency: string) =>
     amount,
   );
 const count = (n: number) => n.toLocaleString("en-GB");
+/** Minor units (pence) to major (pounds), respecting zero-decimal currencies like JPY. */
+const toMajor = (amount: number, currency: string) =>
+  amount /
+  10 **
+    (new Intl.NumberFormat("en-GB", {
+      style: "currency",
+      currency: currency.toUpperCase(),
+    }).resolvedOptions().maximumFractionDigits ?? 2);
 
 export function performanceMetrics(input: {
   events: IntelligenceEvent[];
@@ -106,6 +127,30 @@ export function performanceMetrics(input: {
     ofType = (type: string) => input.events.filter((e) => e.eventType === type),
     metrics: Metric[] = [];
 
+  // Charts group by day, or by week across a year so the line stays readable.
+  const bucketDays = input.period === "year" ? 7 : 1,
+    bucketCount = Math.ceil(days / bucketDays),
+    bucketMs = bucketDays * DAY,
+    build = (points: {t: number; v: number}[], start: number, mode: "sum" | "last") => {
+      const out: (number | null)[] = Array(bucketCount).fill(mode === "sum" ? 0 : null);
+      for (const point of [...points].sort((a, b) => a.t - b.t)) {
+        const i = Math.floor((point.t - start) / bucketMs);
+        if (i < 0 || i >= bucketCount) continue;
+        out[i] = mode === "sum" ? (out[i] ?? 0) + point.v : point.v;
+      }
+      // Snapshots (followers, subscribers) carry forward between readings.
+      if (mode === "last") for (let i = 1; i < out.length; i++) out[i] ??= out[i - 1];
+      return out;
+    },
+    trend = (points: {t: number; v: number}[], mode: "sum" | "last", unit: TrendUnit): Trend => ({
+      current: build(points, currentStart, mode),
+      previous: build(points, previousStart, mode),
+      starts: Array.from({length: bucketCount}, (_, i) => currentStart + i * bucketMs),
+      bucketDays,
+      unit,
+    }),
+    at = (e: IntelligenceEvent) => Date.parse(e.occurredAt);
+
   // Revenue: live Stripe payments, or test mode (labelled) when there are no live ones.
   const payments = ofType("stripe.payment_succeeded").filter(
     (e) => num(meta(e, "amountMinor")) !== null && typeof meta(e, "currency") === "string",
@@ -127,6 +172,11 @@ export function performanceMetrics(input: {
       source: live.length ? "Stripe" : "Stripe · test mode",
       higherIsBetter: true,
       comparable: prev.length >= MIN_PREVIOUS_COUNT,
+      trend: trend(
+        same.map((e) => ({t: at(e), v: toMajor(num(meta(e, "amountMinor"))!, currency)})),
+        "sum",
+        {kind: "money", currency},
+      ),
     });
   }
 
@@ -144,6 +194,11 @@ export function performanceMetrics(input: {
       source: "Shopify",
       higherIsBetter: true,
       comparable: prev.length >= MIN_PREVIOUS_COUNT,
+      trend: trend(
+        orders.map((e) => ({t: at(e), v: 1})),
+        "sum",
+        {kind: "count"},
+      ),
     });
     const priced = orders.filter((e) => num(meta(e, "amountMinor")) !== null),
       currency = mostCommon(priced.map((e) => String(meta(e, "currency") ?? "")).filter(Boolean));
@@ -190,6 +245,11 @@ export function performanceMetrics(input: {
       ),
       higherIsBetter: false,
       comparable: prev.length >= MIN_PREVIOUS_COUNT,
+      trend: trend(
+        refunds.map((e) => ({t: at(e), v: 1})),
+        "sum",
+        {kind: "count"},
+      ),
     });
   }
 
@@ -213,6 +273,11 @@ export function performanceMetrics(input: {
       source: "Meta Ads",
       higherIsBetter: null,
       comparable: prev.length >= MIN_PREVIOUS_COUNT,
+      trend: trend(
+        adDays.map((d) => ({t: dayMs(d.date), v: d.spend})),
+        "sum",
+        {kind: "money", currency},
+      ),
     });
     if (value(cur) > 0 || value(prev) > 0)
       metrics.push({
@@ -248,6 +313,14 @@ export function performanceMetrics(input: {
         source: "Facebook",
         higherIsBetter: true,
         comparable: followersBefore !== null,
+        trend: trend(
+          pageDays.flatMap((e) => {
+            const v = metric(e, "followers");
+            return v === null ? [] : [{t: at(e), v}];
+          }),
+          "last",
+          {kind: "count"},
+        ),
       });
     const reach = (l: IntelligenceEvent[]) =>
       sum(l.map((e) => metric(e, "page_total_media_view_unique") ?? 0));
@@ -260,6 +333,11 @@ export function performanceMetrics(input: {
       source: "Facebook",
       higherIsBetter: true,
       comparable: prev.length >= MIN_PREVIOUS_COUNT && reach(prev) > 0,
+      trend: trend(
+        pageDays.map((e) => ({t: at(e), v: metric(e, "page_total_media_view_unique") ?? 0})),
+        "sum",
+        {kind: "count"},
+      ),
     });
   }
 
@@ -308,6 +386,19 @@ export function performanceMetrics(input: {
         source: "Mailchimp",
         higherIsBetter: true,
         comparable: before !== null,
+        trend: trend(
+          [
+            ...audienceDays
+              .reduce((byDay, e) => {
+                const day = e.occurredAt.slice(0, 10);
+                byDay.set(day, (byDay.get(day) ?? 0) + (num(meta(e, "subscribers")) ?? 0));
+                return byDay;
+              }, new Map<string, number>())
+              .entries(),
+          ].map(([day, v]) => ({t: Date.parse(`${day}T12:00:00Z`), v})),
+          "last",
+          {kind: "count"},
+        ),
       });
   }
   const campaignResults = ofType("mailchimp.campaign.results_recorded");

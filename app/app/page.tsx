@@ -364,6 +364,12 @@ export default async function Home({
           metrics={metrics}
           highlights={highlights}
           updates={updates ?? 0}
+          notes={(insights ?? []).flatMap((insight) => {
+            const t = Date.parse(insight.updated_at);
+            return t >= now.getTime() - PERIOD_DAYS[period] * 86_400_000
+              ? [{t, title: insight.title}]
+              : [];
+          })}
           healthy={[
             ...(connections.length && !broken.length
               ? [

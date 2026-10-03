@@ -4,6 +4,16 @@ import type {ConnectorCredentialUpdate} from "../connector";
 import type {GmailMessage, GmailProfile, GmailSettings} from "./types";
 type Credentials = {accessToken: string; refreshToken?: string; expiresAt?: string};
 const base = "https://gmail.googleapis.com/gmail/v1/users/me";
+/** Google's own explanation from an error response, kept short for display. */
+async function googleReason(response: Response) {
+  try {
+    const body = (await response.json()) as {error?: {message?: string; status?: string}};
+    return [body.error?.status, body.error?.message].filter(Boolean).join(" ").slice(0, 160);
+  } catch {
+    return "";
+  }
+}
+
 export class GmailClient {
   private access: string;
   private expiry?: string;
@@ -58,6 +68,13 @@ export class GmailClient {
       throw new GmailError("network", "Gmail could not be reached.");
     }
     if (!response.ok) {
+      const reason = await googleReason(response);
+      // A Google login made with a non-Gmail address (e.g. Outlook) has no mailbox to read.
+      if (/mail service not enabled|failedPrecondition/i.test(reason))
+        throw new GmailError(
+          "provider",
+          "This Google account doesn't have a Gmail inbox. Connect again and choose a Google account that uses Gmail.",
+        );
       const kind =
         response.status === 401
           ? "unauthorized"
@@ -72,7 +89,7 @@ export class GmailClient {
           ? "Gmail read-only permission is missing. Reconnect and approve access."
           : kind === "rate_limit"
             ? "Gmail rate limit reached. Try again later."
-            : "Gmail API request failed.",
+            : `Gmail couldn't be read (${response.status}${reason ? `: ${reason}` : ""}).`,
       );
     }
     return response.json() as Promise<T>;

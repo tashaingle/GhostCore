@@ -16,26 +16,39 @@ import {
   SUPPORTED_PROVIDERS,
 } from "@/types/events";
 import {requirePermission} from "@/lib/auth/permissions";
+import {safeNext} from "@/lib/auth/next";
 
 const messageUrl = (path: string, kind: "error" | "success", message: string) =>
   `${path}?${kind}=${encodeURIComponent(message)}`;
+// Keeps "?next=" on the form's own page when sending someone back with an error.
+const withNext = (path: string, next: string | null) =>
+  next ? `${path}${path.includes("?") ? "&" : "?"}next=${encodeURIComponent(next)}` : path;
+
 export async function signIn(form: FormData) {
+  const next = form.get("next") ? safeNext(form.get("next")) : null;
   const parsed = z
     .object({email: z.email(), password: z.string().min(8)})
     .safeParse(Object.fromEntries(form));
   if (!parsed.success)
     redirect(
-      messageUrl("/login", "error", "Enter a valid email and password (at least 8 characters)."),
+      withNext(
+        messageUrl("/login", "error", "Enter a valid email and password (at least 8 characters)."),
+        next,
+      ),
     );
   const supabase = await createClient();
   const {error} = await supabase.auth.signInWithPassword(parsed.data);
   if (error)
     redirect(
-      messageUrl("/login", "error", "That email and password don't match. Please try again."),
+      withNext(
+        messageUrl("/login", "error", "That email and password don't match. Please try again."),
+        next,
+      ),
     );
-  redirect("/app");
+  redirect(next ?? "/app");
 }
 export async function signUp(form: FormData) {
+  const next = form.get("next") ? safeNext(form.get("next")) : null;
   const parsed = z
     .object({
       email: z.email(),
@@ -45,10 +58,13 @@ export async function signUp(form: FormData) {
     .safeParse(Object.fromEntries(form));
   if (!parsed.success)
     redirect(
-      messageUrl(
-        "/register",
-        "error",
-        "Enter your name, a valid email, and a password of at least 8 characters.",
+      withNext(
+        messageUrl(
+          "/register",
+          "error",
+          "Enter your name, a valid email, and a password of at least 8 characters.",
+        ),
+        next,
       ),
     );
   const supabase = await createClient();
@@ -57,19 +73,22 @@ export async function signUp(form: FormData) {
     password: parsed.data.password,
     options: {
       data: {full_name: parsed.data.fullName},
-      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"}/auth/callback?next=/welcome`,
+      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"}/auth/callback?next=${encodeURIComponent(next ?? "/welcome")}`,
     },
   });
   if (error)
     redirect(
-      messageUrl(
-        "/register",
-        "error",
-        "Your account couldn't be created. You may already have one, so try signing in.",
+      withNext(
+        messageUrl(
+          "/register",
+          "error",
+          "Your account couldn't be created. You may already have one, so try signing in.",
+        ),
+        next,
       ),
     );
   if (!data.session) redirect("/check-email");
-  redirect("/welcome");
+  redirect(next ?? "/welcome");
 }
 const siteUrl = () => process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 /**
@@ -105,10 +124,12 @@ export async function updatePassword(form: FormData) {
     );
   redirect("/app?success=Your%20password%20has%20been%20changed.");
 }
-export async function signOut() {
+export async function signOut(form?: FormData) {
   const supabase = await createClient();
   await supabase.auth.signOut();
-  redirect("/login");
+  // From an invitation, signing out leads back to it with a different account.
+  const next = form?.get("next");
+  redirect(next ? `/login?next=${encodeURIComponent(safeNext(next))}` : "/login");
 }
 export async function createOrganisation(form: FormData) {
   const name = z.string().trim().min(2).max(100).safeParse(form.get("name"));

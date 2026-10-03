@@ -22,13 +22,21 @@ const severityLabel: Record<string, string> = {
   info: "Info",
 };
 
-function layout(input: {
+type EmailContent = {
   heading: string;
   paragraphs: string[];
   actionLabel: string;
   actionUrl: string;
-  footerUrl: string;
-}) {
+  /** Link to notification preferences, for emails people can switch off. */
+  footerUrl?: string;
+  /** Shown instead, for one-off emails such as invitations. */
+  footerText?: string;
+};
+
+function layout(input: EmailContent) {
+  const footer = input.footerUrl
+    ? `You can change which emails you receive in <a href="${escapeHtml(input.footerUrl)}" style="color:#71717a">notification preferences</a>.`
+    : escapeHtml(input.footerText ?? "");
   const body = input.paragraphs
     .map((p) => `<p style="margin:0 0 16px;line-height:1.5">${escapeHtml(p)}</p>`)
     .join("");
@@ -36,32 +44,29 @@ function layout(input: {
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:32px 16px">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:12px;padding:32px">
 <tr><td>
+<p style="margin:0 0 20px;font-size:13px;font-weight:700;letter-spacing:0.04em;color:#1d66b8">METRIC MAGE</p>
 <h1 style="margin:0 0 20px;font-size:20px;line-height:1.3">${escapeHtml(input.heading)}</h1>
 ${body}
-<p style="margin:24px 0"><a href="${escapeHtml(input.actionUrl)}" style="display:inline-block;background:#18181b;color:#ffffff;text-decoration:none;padding:10px 18px;border-radius:8px;font-weight:600">${escapeHtml(input.actionLabel)}</a></p>
+<p style="margin:24px 0"><a href="${escapeHtml(input.actionUrl)}" style="display:inline-block;background:#0b1830;color:#ffffff;text-decoration:none;padding:10px 18px;border-radius:8px;font-weight:600">${escapeHtml(input.actionLabel)}</a></p>
 </td></tr></table>
-<p style="font-size:12px;color:#71717a;margin:16px 0 0">You can change which emails you receive in <a href="${escapeHtml(input.footerUrl)}" style="color:#71717a">notification preferences</a>.</p>
+<p style="font-size:12px;color:#71717a;margin:16px 0 0;max-width:560px">${footer}</p>
 </td></tr></table></body></html>`;
 }
 
-function plainText(input: {
-  heading: string;
-  paragraphs: string[];
-  actionLabel: string;
-  actionUrl: string;
-  footerUrl: string;
-}) {
+function plainText(input: EmailContent) {
   return [
     input.heading,
     "",
     ...input.paragraphs.flatMap((p) => [p, ""]),
     `${input.actionLabel}: ${input.actionUrl}`,
     "",
-    `Change which emails you receive: ${input.footerUrl}`,
+    input.footerUrl
+      ? `Change which emails you receive: ${input.footerUrl}`
+      : (input.footerText ?? ""),
   ].join("\n");
 }
 
-function render(subject: string, content: Parameters<typeof layout>[0]): RenderedEmail {
+function render(subject: string, content: EmailContent): RenderedEmail {
   return {subject: subjectLine(subject), html: layout(content), text: plainText(content)};
 }
 
@@ -111,4 +116,38 @@ export function approvalEmail(input: {
     actionUrl: `${input.appUrl}/app/approvals/${input.approval.id}`,
     footerUrl: `${input.appUrl}/app/action-centre/preferences`,
   });
+}
+
+const ROLE_SUMMARY: Record<string, string> = {
+  admin: "As an admin you can connect tools, change settings and manage the team.",
+  manager: "As a manager you can handle alerts, tasks and approvals.",
+  member: "As a member you can work on tasks and alerts.",
+  viewer: "As a viewer you can see everything without changing anything.",
+};
+
+export function invitationEmail(input: {
+  organisationName: string;
+  inviterName: string;
+  role: string;
+  acceptUrl: string;
+  expiresAt: string;
+}): RenderedEmail {
+  const expires = new Date(input.expiresAt).toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "long",
+  });
+  return render(
+    `${input.inviterName} invited you to join ${input.organisationName} on Metric Mage`,
+    {
+      heading: `Join ${input.organisationName} on Metric Mage`,
+      paragraphs: [
+        `${input.inviterName} has invited you to ${input.organisationName}'s Metric Mage, where the team sees what's going well, what needs a look and what to do next across their business tools.`,
+        ROLE_SUMMARY[input.role] ?? "",
+        `Sign in or create an account with this email address to accept. The invitation works until ${expires}.`,
+      ].filter(Boolean),
+      actionLabel: "Accept invitation",
+      actionUrl: input.acceptUrl,
+      footerText: `You're getting this because ${input.inviterName} invited this email address. If you weren't expecting it, you can ignore it.`,
+    },
+  );
 }

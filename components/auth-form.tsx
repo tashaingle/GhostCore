@@ -3,6 +3,7 @@ import {signIn, signUp} from "@/app/actions";
 import {Notice} from "./notice";
 import {AuthShell} from "./auth-shell";
 import {SubmitButton} from "./submit-button";
+import {safeNext} from "@/lib/auth/next";
 
 export function AuthForm({
   mode,
@@ -12,6 +13,10 @@ export function AuthForm({
   params: Record<string, string | string[] | undefined>;
 }) {
   const register = mode === "register";
+  // Set when someone arrives from an invitation, so they go back to it afterwards.
+  const nextParam = Array.isArray(params.next) ? params.next[0] : params.next;
+  const next = nextParam ? safeNext(nextParam, "") : "";
+  const otherPage = `${register ? "/login" : "/register"}${next ? `?next=${encodeURIComponent(next)}` : ""}`;
 
   return (
     <AuthShell
@@ -24,10 +29,7 @@ export function AuthForm({
       footer={
         <>
           {register ? "Already have an account? " : "New to Metric Mage? "}
-          <Link
-            className="font-medium text-violet-700 hover:underline"
-            href={register ? "/login" : "/register"}
-          >
+          <Link className="font-medium text-violet-700 hover:underline" href={otherPage}>
             {register ? "Sign in" : "Create an account"}
           </Link>
         </>
@@ -36,6 +38,7 @@ export function AuthForm({
       <div className="space-y-5">
         <Notice searchParams={params} />
         <form action={register ? signUp : signIn} className="space-y-4">
+          {next ? <input type="hidden" name="next" value={next} /> : null}
           {register ? (
             <label className="label">
               Your name

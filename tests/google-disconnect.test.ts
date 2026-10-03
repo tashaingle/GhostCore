@@ -25,7 +25,7 @@ describe("disconnecting a Google tool", () => {
       new GoogleSearchConsoleConnector(new SearchConsoleClient(credentials, request), {} as never),
     ];
     for (const connector of connectors)
-      expect(await connector.disconnect({organisationId: "o", integrationId: "i"})).toEqual({
+      expect(await connector.disconnect()).toEqual({
         ok: true,
       });
     expect(calls).toEqual([]);

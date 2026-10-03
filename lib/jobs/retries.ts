@@ -10,7 +10,7 @@ export function classifyError(error: unknown): ErrorClass {
   if (/timeout|timed out|abort/.test(text)) return "timeout";
   if (/network|fetch|econn|dns/.test(text)) return "network";
   if (/database|postgres|supabase/.test(text)) return "database";
-  if (/provider|github|google|stripe|slack|notion|shopify|linkedin|meta|vercel/.test(text))
+  if (/provider|github|google|stripe|slack|notion|shopify|linkedin|meta|vercel|tiktok/.test(text))
     return "provider_error";
   return "internal";
 }

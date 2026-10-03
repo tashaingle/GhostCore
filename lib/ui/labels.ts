@@ -17,6 +17,7 @@ const providerNames: Record<string, string> = {
   notion: "Notion",
   slack: "Slack",
   vercel: "Vercel",
+  tiktok: "TikTok",
 };
 
 export function providerLabel(id: string | null | undefined) {

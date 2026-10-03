@@ -15,7 +15,8 @@ export type ProviderId =
   | "manual"
   | "notion"
   | "slack"
-  | "vercel";
+  | "vercel"
+  | "tiktok";
 export type ProviderDefinition = {
   id: ProviderId;
   displayName: string;
@@ -44,6 +45,7 @@ export type ProviderDefinition = {
     | "notion"
     | "slack"
     | "vercel"
+    | "tiktok"
     | null;
   description?: string;
   healthSupport?: boolean;
@@ -332,6 +334,22 @@ export const providerRegistry = {
     propertySelection: true,
     connectPath: "/api/integrations/vercel/connect",
     configurationPath: "/app/integrations/vercel/settings",
+  },
+  tiktok: {
+    id: "tiktok",
+    displayName: "TikTok",
+    description: "Followers, likes and new public posts from the account you connect. Read-only.",
+    icon: "TT",
+    colour: "#111111",
+    category: "Marketing",
+    oauth: true,
+    sync: true,
+    capabilities: ["oauth", "polling", "read_only"],
+    schedule: "daily",
+    recommendedFrequency: "Daily",
+    connector: "tiktok",
+    healthSupport: true,
+    connectPath: "/api/integrations/tiktok/connect",
   },
 } as const satisfies Record<ProviderId, ProviderDefinition>;
 export const providers = Object.values(providerRegistry);

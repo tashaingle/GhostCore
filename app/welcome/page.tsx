@@ -19,6 +19,7 @@ const POPULAR = [
   "stripe",
   "google_analytics",
   "meta_ads",
+  "tiktok",
   "gmail",
   "google_search_console",
   "slack",

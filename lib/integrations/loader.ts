@@ -50,6 +50,9 @@ import type {VercelSettings} from "./vercel/types";
 import {TikTokConnector} from "./tiktok/connector";
 import {TikTokClient} from "./tiktok/client";
 import type {TikTokSettings} from "./tiktok/types";
+import {GooglePlayConnector} from "./google-play/connector";
+import {GooglePlayClient} from "./google-play/client";
+import type {GooglePlaySettings} from "./google-play/types";
 export type ConnectorCredentials = {
   accessToken?: string;
   refreshToken?: string;
@@ -209,6 +212,17 @@ export function loadConnector(
         expiresAt: credentials.expiresAt,
       }),
       (credentials.settings ?? {}) as TikTokSettings,
+    );
+  }
+  if (provider.connector === "google_play") {
+    if (!credentials.accessToken) throw new Error("Google Play credentials are missing.");
+    return new GooglePlayConnector(
+      new GooglePlayClient({
+        accessToken: credentials.accessToken,
+        refreshToken: credentials.refreshToken,
+        expiresAt: credentials.expiresAt,
+      }),
+      (credentials.settings ?? {}) as GooglePlaySettings,
     );
   }
   return new PlaceholderConnector(provider.id);

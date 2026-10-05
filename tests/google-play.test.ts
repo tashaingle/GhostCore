@@ -1,5 +1,5 @@
 import {beforeEach, describe, expect, it, vi} from "vitest";
-import {PLAY_SCOPES, scopesGranted} from "@/lib/integrations/google-play/config";
+import {missingPlayScopes, PLAY_SCOPES, scopesGranted} from "@/lib/integrations/google-play/config";
 import {
   assertPlayRead,
   GooglePlayClient,
@@ -36,7 +36,16 @@ describe("Google Play connection", () => {
     expect(url).not.toMatch(/:reply|reviewrefund/);
     expect(scopesGranted(PLAY_SCOPES.join(" "))).toBe(true);
     expect(scopesGranted(PLAY_SCOPES.join(","))).toBe(true);
+    expect(scopesGranted(undefined)).toBe(true);
+    expect(
+      scopesGranted(
+        "openid https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/playdeveloperreporting https://www.googleapis.com/auth/androidpublisher",
+      ),
+    ).toBe(true);
     expect(scopesGranted("openid email")).toBe(false);
+    expect(
+      missingPlayScopes("openid https://www.googleapis.com/auth/playdeveloperreporting"),
+    ).toEqual(["Play reviews"]);
     expect(stateMatches("same", "same")).toBe(true);
     expect(stateMatches("same", "bad")).toBe(false);
     expect(providerRegistry.google_play.capabilities).not.toContain("read_only");

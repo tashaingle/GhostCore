@@ -128,7 +128,9 @@ export default async function Home({
   ] = await Promise.all([
     ctx.supabase
       .from("integrations")
-      .select("id,provider,provider_account_name,status,last_sync_at,last_sync_status,settings")
+      .select(
+        "id,provider,provider_account_name,status,last_sync_at,last_sync_status,last_sync_error,settings",
+      )
       .eq("organisation_id", org)
       .neq("status", "disconnected"),
     ctx.supabase

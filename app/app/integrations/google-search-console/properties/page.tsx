@@ -8,7 +8,7 @@ export default async function SearchConsoleProperties() {
   requireOrganisationAdmin(ctx.membership.role);
   const {data: integrations} = await ctx.supabase
     .from("integrations")
-    .select("id,provider_account_name,settings,status")
+    .select("id,provider_account_name,settings,status,last_sync_error")
     .eq("organisation_id", ctx.organisation.id)
     .eq("provider", "google_search_console")
     .order("created_at");
@@ -47,6 +47,15 @@ export default async function SearchConsoleProperties() {
             <form action={saveSearchConsoleProperties} className="space-y-3" key={integration.id}>
               <input type="hidden" name="integrationId" value={integration.id} />
               <h3 className="font-semibold">Connected as {integration.provider_account_name}</h3>
+              {integration.last_sync_error ? (
+                <p className="error">{integration.last_sync_error}</p>
+              ) : null}
+              {!properties.length ? (
+                <div className="card">
+                  Metric Mage can&apos;t see any Search Console sites on this login yet. Add the
+                  site in Search Console with this Google account, then connect again.
+                </div>
+              ) : null}
               {properties.map((property) => (
                 <label className="card flex gap-3" key={property.siteUrl}>
                   <input

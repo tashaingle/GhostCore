@@ -28,8 +28,24 @@ export function googlePlayOAuthEnv() {
   return {clientId, clientSecret, redirectUri};
 }
 
-/** Google sometimes returns scopes as one comma-separated string. */
+const PLAY_REQUIRED = [
+  ["https://www.googleapis.com/auth/playdeveloperreporting", "Play reporting"],
+  ["https://www.googleapis.com/auth/androidpublisher", "Play reviews"],
+] as const;
+
+/**
+ * Names of the Play permissions still missing.
+ * An empty scope means Google granted every permission we asked for: OAuth leaves
+ * scope off the token response in that case. `email` may also come back as the
+ * userinfo address, so this check only looks for the two Play permissions.
+ */
+export function missingPlayScopes(scope: string | undefined) {
+  const raw = (scope ?? "").trim();
+  if (!raw) return [];
+  const parts = new Set(raw.split(/[\s,]+/).filter(Boolean));
+  return PLAY_REQUIRED.filter(([url]) => !parts.has(url)).map(([, label]) => label);
+}
+
 export function scopesGranted(scope: string | undefined) {
-  const parts = new Set((scope ?? "").split(/[\s,]+/).filter(Boolean));
-  return PLAY_SCOPES.every((item) => parts.has(item));
+  return missingPlayScopes(scope).length === 0;
 }

@@ -1,6 +1,7 @@
 import {describe, expect, it} from "vitest";
 import {providerRegistry} from "@/lib/integrations/registry";
 import {GSC_LIMITS, GSC_SCOPE} from "@/lib/integrations/google-search-console/config";
+import {GoogleSearchConsoleConnector} from "@/lib/integrations/google-search-console/connector";
 import {stateMatches} from "@/lib/integrations/google-search-console/oauth";
 import {translateSearchConsole} from "@/lib/integrations/google-search-console/translator";
 import type {PropertySnapshot} from "@/lib/integrations/google-search-console/types";
@@ -46,6 +47,29 @@ const ctx = {
     inspections: [],
   };
 describe("Search Console provider", () => {
+  it("waits for a site instead of failing the sync", async () => {
+    const connector = new GoogleSearchConsoleConnector(
+      {credentialUpdate: () => undefined} as never,
+      {
+        properties: [
+          {
+            siteUrl: "https://example.com/",
+            permissionLevel: "siteOwner",
+            type: "url_prefix",
+            selected: false,
+          },
+        ],
+      },
+    );
+    await expect(
+      connector.sync({organisationId: "org", integrationId: "integration"}),
+    ).resolves.toMatchObject({
+      received: 0,
+      events: [],
+      settings: {configurationStatus: "property_required"},
+    });
+  });
+
   it("is registered read-only", () => {
     expect(providerRegistry.google_search_console.connector).toBe("google_search_console");
     expect(providerRegistry.google_search_console.capabilities).toContain("read_only");

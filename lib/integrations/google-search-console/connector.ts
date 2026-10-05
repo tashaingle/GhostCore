@@ -43,11 +43,16 @@ export class GoogleSearchConsoleConnector implements IntegrationConnector {
     const selected = (this.settings.properties ?? [])
       .filter((p) => p.selected)
       .slice(0, GSC_LIMITS.properties);
+    // A reconnect can run before anyone ticks a site. That is unfinished setup, so the
+    // scheduled sync waits instead of recording a failed sync.
     if (!selected.length)
-      throw new SearchConsoleError(
-        "forbidden",
-        "Choose at least one Search Console property before syncing.",
-      );
+      return {
+        received: 0,
+        events: [],
+        filtered: 0,
+        credentials: this.client.credentialUpdate(),
+        settings: {...this.settings, configurationStatus: "property_required"},
+      };
     const initial = !this.settings.initialSyncComplete,
       days = initial ? 45 : GSC_LIMITS.comparisonDays,
       end = new Date(this.now());

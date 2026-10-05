@@ -43,6 +43,10 @@ export async function saveSearchConsoleProperties(form: FormData) {
         minimumClicks: minimum,
         configurationStatus: selected.size ? "ready" : "property_required",
       },
+      // Saving a site clears the failure left by the sync that ran before setup finished.
+      ...(selected.size
+        ? {status: "connected" as const, last_sync_status: "connected", last_sync_error: null}
+        : {}),
     })
     .eq("id", integrationId)
     .eq("organisation_id", ctx.organisation.id);

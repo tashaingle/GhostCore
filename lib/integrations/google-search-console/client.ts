@@ -72,7 +72,11 @@ export class SearchConsoleClient {
     } catch {
       throw new SearchConsoleError("timeout", "Google Search Console timed out.");
     }
-    if (!response.ok)
+    if (!response.ok) {
+      const body = (await response.json().catch(() => null)) as {
+        error?: {message?: string};
+      } | null;
+      const detail = body?.error?.message?.replace(/\s+/g, " ").trim().slice(0, 160);
       throw new SearchConsoleError(
         response.status === 401
           ? "unauthorized"
@@ -81,10 +85,17 @@ export class SearchConsoleClient {
             : response.status === 429
               ? "rate_limit"
               : "provider",
-        response.status === 403
-          ? "Search Console property permission was denied."
-          : "Google Search Console request failed.",
+        response.status === 401
+          ? "Google authorization expired. Reconnect Search Console."
+          : response.status === 403
+            ? "Search Console property permission was denied."
+            : response.status === 429
+              ? "Search Console quota was reached. Try again later."
+              : detail
+                ? `Google Search Console request failed: ${detail}`
+                : "Google Search Console request failed.",
       );
+    }
     return response.json() as Promise<T>;
   }
   async properties() {

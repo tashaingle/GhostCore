@@ -18,6 +18,7 @@ const providerNames: Record<string, string> = {
   slack: "Slack",
   vercel: "Vercel",
   tiktok: "TikTok",
+  google_play: "Google Play",
 };
 
 export function providerLabel(id: string | null | undefined) {
@@ -80,6 +81,9 @@ export function configureIntegrationLabel(providerId: string, configurationRequi
   }
   if (providerId === "vercel") {
     return configurationRequired ? "Choose projects" : "Projects";
+  }
+  if (providerId === "google_play") {
+    return configurationRequired ? "Choose apps" : "Apps";
   }
   if (providerId === "mailchimp") {
     return configurationRequired ? "Choose audiences" : "Audiences";

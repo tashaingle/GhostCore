@@ -16,7 +16,8 @@ export type ProviderId =
   | "notion"
   | "slack"
   | "vercel"
-  | "tiktok";
+  | "tiktok"
+  | "google_play";
 export type ProviderDefinition = {
   id: ProviderId;
   displayName: string;
@@ -46,6 +47,7 @@ export type ProviderDefinition = {
     | "slack"
     | "vercel"
     | "tiktok"
+    | "google_play"
     | null;
   description?: string;
   healthSupport?: boolean;
@@ -350,6 +352,26 @@ export const providerRegistry = {
     connector: "tiktok",
     healthSupport: true,
     connectPath: "/api/integrations/tiktok/connect",
+  },
+  google_play: {
+    id: "google_play",
+    displayName: "Google Play",
+    description:
+      "New Play Store reviews and the daily crash rate for the apps you choose. Metric Mage only reads them.",
+    icon: "GP",
+    colour: "#34a853",
+    category: "Commerce",
+    oauth: true,
+    sync: true,
+    // Google's review permission can also reply and refund, so this isn't marked read_only; the code only reads.
+    capabilities: ["oauth", "polling"],
+    schedule: "daily",
+    recommendedFrequency: "Daily",
+    connector: "google_play",
+    healthSupport: true,
+    propertySelection: true,
+    connectPath: "/api/integrations/google-play/connect",
+    configurationPath: "/app/integrations/google-play/settings",
   },
 } as const satisfies Record<ProviderId, ProviderDefinition>;
 export const providers = Object.values(providerRegistry);

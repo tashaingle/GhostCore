@@ -2,7 +2,7 @@ import {NextResponse} from "next/server";
 import {cookies} from "next/headers";
 import {createClient} from "@/lib/supabase/server";
 import {hasPermission, type OrganisationRole} from "@/lib/auth/permissions";
-import {scopesGranted} from "@/lib/integrations/google-play/config";
+import {missingPlayScopes} from "@/lib/integrations/google-play/config";
 import {exchangeCode, stateMatches} from "@/lib/integrations/google-play/oauth";
 import {GooglePlayClient} from "@/lib/integrations/google-play/client";
 import {encryptToken} from "@/lib/security/token-crypto";
@@ -45,10 +45,13 @@ export async function GET(request: Request) {
       .maybeSingle();
     if (!member || !hasPermission(member.role as OrganisationRole, "integration.manage"))
       throw new Error("You no longer have permission to connect Google Play here.");
-    const tokens = await exchangeCode(code, verifier);
-    if (!scopesGranted(tokens.scope))
+    const tokens = await exchangeCode(code, verifier),
+      missing = missingPlayScopes(tokens.scope);
+    if (missing.length)
       throw new Error(
-        "Google did not grant Play access. Connect again and accept both permissions.",
+        missing.length === 2
+          ? "Google did not grant Play access. On the Google screen, accept both Play permissions and try again."
+          : `Google did not grant ${missing[0]}. On the Google screen, accept that permission and try again.`,
       );
     const profileResponse = await fetch("https://openidconnect.googleapis.com/v1/userinfo", {
         headers: {Authorization: `Bearer ${tokens.access_token}`},

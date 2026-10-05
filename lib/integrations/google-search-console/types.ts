@@ -42,6 +42,7 @@ export type PropertySnapshot = {
 };
 export type SearchConsoleSettings = {
   accountEmail?: string;
+  configurationStatus?: "property_required" | "ready";
   properties?: SearchConsoleProperty[];
   thresholdPercent?: number;
   minimumClicks?: number;

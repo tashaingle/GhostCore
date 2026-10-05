@@ -57,7 +57,21 @@ describe("connection status", () => {
 
   it("reports failing syncs and unfinished setup", () => {
     expect(status({last_sync_status: "error"}).state).toBe("failing");
+    expect(
+      status({
+        last_sync_status: "error",
+        last_sync_error: "Search Console property permission was denied.",
+      }).detail,
+    ).toBe("Search Console property permission was denied.");
     expect(status({settings: {configurationStatus: "property_required"}}).state).toBe("setup");
+    expect(
+      status({
+        provider: "google_search_console",
+        last_sync_status: "error",
+        last_sync_error: "Choose at least one Search Console property before syncing.",
+        settings: {configurationStatus: "property_required"},
+      }).state,
+    ).toBe("setup");
   });
 
   it("puts the most urgent problems first", () => {

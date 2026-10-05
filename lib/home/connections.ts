@@ -7,6 +7,7 @@ export type ConnectionRow = {
   status: string;
   last_sync_at: string | null;
   last_sync_status: string | null;
+  last_sync_error?: string | null;
   settings: unknown;
 };
 
@@ -83,23 +84,26 @@ export function connectionStatus(
       needsAttention: true,
       action: {label: "Reconnect", href: reconnectHref(provider, settings)},
     };
-  if (row.status === "error" || row.last_sync_status === "error")
-    return {
-      ...base,
-      state: "failing",
-      label: "Sync failing",
-      detail: `The last sync didn't finish. Last successful sync ${lastSync}.`,
-      needsAttention: true,
-      action: {label: "View", href: "/app/integrations"},
-    };
+  // Unfinished setup is the reason a sync failed, so it comes before the generic failure.
   if (settings.configurationStatus === "property_required")
     return {
       ...base,
       state: "setup",
       label: "Finish setup",
-      detail: "Choose what to import before Metric Mage can sync.",
+      detail: row.last_sync_error?.trim() || "Choose what to import before Metric Mage can sync.",
       needsAttention: true,
       action: {label: "Finish setup", href: provider?.configurationPath ?? "/app/integrations"},
+    };
+  if (row.status === "error" || row.last_sync_status === "error")
+    return {
+      ...base,
+      state: "failing",
+      label: "Sync failing",
+      detail:
+        row.last_sync_error?.trim() ||
+        `The last sync didn't finish. Last successful sync ${lastSync}.`,
+      needsAttention: true,
+      action: {label: "View", href: "/app/integrations"},
     };
   if (row.status === "syncing")
     return {

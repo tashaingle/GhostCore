@@ -77,14 +77,18 @@ export async function GET(request: Request) {
       oldProps = Array.isArray(old.properties)
         ? (old.properties as {siteUrl: string; selected?: boolean}[])
         : [],
-      settings = {
+      listed = properties.map((p) => ({
+        ...p,
+        selected: Boolean(oldProps.find((x) => x.siteUrl === p.siteUrl)?.selected),
+      }));
+    if (listed.length === 1) listed[0] = {...listed[0], selected: true};
+    const settings = {
         ...old,
         accountEmail: profile.email ?? null,
-        configurationStatus: "property_required",
-        properties: properties.map((p) => ({
-          ...p,
-          selected: Boolean(oldProps.find((x) => x.siteUrl === p.siteUrl)?.selected),
-        })),
+        configurationStatus: listed.some((property) => property.selected)
+          ? "ready"
+          : "property_required",
+        properties: listed,
         thresholdPercent: Number(old.thresholdPercent ?? 25),
         minimumClicks: Number(old.minimumClicks ?? 10),
         initialSyncComplete: Boolean(old.initialSyncComplete),

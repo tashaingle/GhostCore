@@ -53,6 +53,9 @@ export async function POST(request: Request) {
           minimumClicks,
           configurationStatus: selected.size ? "ready" : "property_required",
         },
+        ...(selected.size
+          ? {status: "connected" as const, last_sync_status: "connected", last_sync_error: null}
+          : {}),
       })
       .eq("id", body.integrationId!)
       .eq("organisation_id", ctx.organisationId);

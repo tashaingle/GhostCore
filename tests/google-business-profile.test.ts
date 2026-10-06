@@ -47,6 +47,7 @@ describe("Google Business Profile connection", () => {
     expect(businessScopeGranted(BUSINESS_PROFILE_SCOPES.join(" "))).toBe(true);
     expect(businessScopeGranted("openid email")).toBe(false);
     expect(providerRegistry.google_business_profile.capabilities).not.toContain("read_only");
+    expect(providerRegistry.google_business_profile.comingSoon).toBe(true);
     expect(providerRegistry.google_business_profile.connectPath).toBe(
       "/api/integrations/google-business-profile/connect",
     );

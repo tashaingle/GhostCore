@@ -31,8 +31,11 @@ export default async function ConnectAppStore({
           <strong>Integrations</strong>, then <strong>Team Keys</strong>.
         </li>
         <li>
-          Generate a key with the <strong>Customer Support</strong> role. It can read reviews
-          without seeing sales or changing your apps.
+          Generate a key with the <strong>App Manager</strong> role. Metric Mage only reads with it.
+        </li>
+        <li>
+          If App Store Connect shows an agreement to accept under <strong>Business</strong>, the
+          Account Holder needs to accept it first. Apple blocks every key until they do.
         </li>
         <li>Download the .p8 file. Apple only lets you download it once.</li>
         <li>Copy the Issuer ID shown above the keys, and the new key&apos;s Key ID.</li>

@@ -33,7 +33,7 @@ const place = (stars: number, ago: number, replied: boolean): IntelligenceEvent 
 describe("review insights", () => {
   it("flags a single low review with its words and where to reply", () => {
     const [insight] = lowRatingReviewsRule.evaluate([play(1, 1), play(5, 1)], {now});
-    expect(insight.title).toBe("A 1-star review on Ghost this week");
+    expect(insight.title).toBe("An unanswered 1-star review on Ghost this week");
     expect(insight.summary).toBe('Someone left Ghost 1 star on Google Play: "Crashes on start"');
     expect(insight.severity).toBe("warning");
     expect(insight.recommendation).toContain("Play Console");
@@ -53,9 +53,9 @@ describe("review insights", () => {
       {now},
     );
     expect(insights.map((i) => i.title).sort()).toEqual([
-      "3 low reviews on Ghost this week",
-      "A 2-star review on Ghost Café this week",
-      "A 2-star review on Ghost this week",
+      "3 unanswered low reviews on Ghost this week",
+      "An unanswered 2-star review on Ghost Café this week",
+      "An unanswered 2-star review on Ghost this week",
     ]);
     const playInsight = insights.find((i) => i.title.startsWith("3"))!;
     expect(playInsight.severity).toBe("critical");

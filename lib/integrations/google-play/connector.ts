@@ -7,6 +7,7 @@ import type {
 import {GooglePlayClient, GooglePlayError} from "./client";
 import {PLAY_LIMITS} from "./config";
 import {translatePlayCrash, translatePlayReview} from "./translator";
+import {REPLY_CHECK_DAYS, translateReviewReply} from "../review-replies";
 import type {CrashDay, GooglePlaySettings, PlayReview} from "./types";
 
 type PlayRecord =
@@ -77,6 +78,7 @@ export class GooglePlayConnector implements IntegrationConnector {
         const cutoff =
           lastReviewSeconds[app.packageName] ??
           Math.floor(now.getTime() / 1000) - PLAY_LIMITS.initialReviewDays * 86400;
+        const replyStart = Math.floor(now.getTime() / 1000) - REPLY_CHECK_DAYS * 86400;
         let pageToken: string | undefined,
           newest = cutoff,
           kept = 0;
@@ -87,12 +89,26 @@ export class GooglePlayConnector implements IntegrationConnector {
         ) {
           const batch = await this.client.reviews(app.packageName, pageToken);
           if (!batch.reviews.length) break;
-          let older = false;
           for (const review of batch.reviews) {
             received++;
             if (review.seconds <= cutoff) {
-              filtered++;
-              older = true;
+              // Already imported: note a reply to a recent low review, so its alert can clear.
+              const reply =
+                review.replied && review.starRating <= 2 && review.seconds >= replyStart
+                  ? translateReviewReply(
+                      {
+                        source: "google_play",
+                        idKey: "packageName",
+                        id: app.packageName,
+                        reviewId: review.reviewId,
+                        starRating: review.starRating,
+                        name: app.displayName,
+                      },
+                      ctx,
+                    )
+                  : null;
+              if (reply) events.push(reply);
+              else filtered++;
               continue;
             }
             const event = translatePlayReview(review, app, ctx);
@@ -105,7 +121,8 @@ export class GooglePlayConnector implements IntegrationConnector {
             if (review.seconds > newest) newest = review.seconds;
           }
           pageToken = batch.nextPageToken;
-          if (!pageToken || older) break;
+          const oldest = Math.min(...batch.reviews.map((review) => review.seconds));
+          if (!pageToken || oldest <= Math.min(cutoff, replyStart)) break;
         }
         lastReviewSeconds[app.packageName] = newest;
       } catch (error) {

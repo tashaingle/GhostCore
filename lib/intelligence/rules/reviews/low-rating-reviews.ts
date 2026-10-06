@@ -6,8 +6,8 @@ const DAY = 86_400_000;
 const WINDOW_DAYS = 7;
 
 /**
- * A heads-up for 1- and 2-star reviews in the last week: one insight per app or place each
- * week, updated as more arrive. Answered Business Profile reviews are left out.
+ * A heads-up for unanswered 1- and 2-star reviews in the last week: one insight per app or place
+ * each week, updated as more arrive. Replying clears it at the next sync.
  */
 export const lowRatingReviewsRule: IntelligenceRule = {
   id: "reviews.low_rating",
@@ -26,13 +26,16 @@ export const lowRatingReviewsRule: IntelligenceRule = {
       const first = items[0],
         ones = items.filter((r) => r.stars === 1).length,
         count = items.length,
-        what = count === 1 ? `A ${first.stars}-star review` : `${count} low reviews`;
+        what =
+          count === 1
+            ? `An unanswered ${first.stars}-star review`
+            : `${count} unanswered low reviews`;
       return {
         title: `${what} on ${first.name} this week`,
         summary:
           count === 1
             ? `Someone left ${first.name} ${first.stars} star${first.stars === 1 ? "" : "s"} on ${first.store}${first.event.description ? `: "${first.event.description}"` : "."}`
-            : `${first.name} had ${count} reviews of 1 or 2 stars on ${first.store} in the last ${WINDOW_DAYS} days${ones ? `, ${ones} of them 1 star` : ""}.`,
+            : `${first.name} has ${count} reviews of 1 or 2 stars on ${first.store} from the last ${WINDOW_DAYS} days without a reply${ones ? `, ${ones} of them 1 star` : ""}.`,
         severity: count >= 3 ? ("critical" as const) : ("warning" as const),
         confidence: Math.min(95, 80 + count * 3),
         explanation: `Reviews of 1 or 2 stars lower the rating people see before installing or visiting, and an unanswered one is visible to everyone who reads the reviews.`,

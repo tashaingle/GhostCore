@@ -113,6 +113,44 @@ export function metaAccountDays(events: IntelligenceEvent[], now: Date): MetaAcc
   return [...latest.values()];
 }
 
+/**
+ * Google Ads account days in the same shape, keeping the latest revision of each account/day
+ * (Google updates conversions for several days). Conversions stand in for purchases.
+ */
+export function googleAdsAccountDays(events: IntelligenceEvent[], now: Date): MetaAccountDay[] {
+  const today = now.toISOString().slice(0, 10),
+    latest = new Map<string, MetaAccountDay>();
+  for (const event of events) {
+    if (event.eventType !== "google_ads.performance.daily_recorded") continue;
+    const m = event.metadata,
+      accountId = metadataString(m, "sourceAccountId"),
+      date = metadataString(m, "reportingDate"),
+      currency = metadataString(m, "currency"),
+      metrics = (m.metrics ?? {}) as Record<string, unknown>,
+      micros = metrics.spendMicros;
+    if (!accountId || !date || !currency || date >= today) continue;
+    const spend =
+      typeof micros === "string" && /^\d+$/.test(micros)
+        ? Number(BigInt(micros)) / 1_000_000
+        : numeric(metrics.spend);
+    if (spend === null) continue;
+    const day: MetaAccountDay = {
+        event,
+        accountId,
+        currency,
+        date,
+        spend,
+        purchases: numeric(metrics.conversions),
+        purchaseValue: numeric(metrics.conversionsValue),
+      },
+      key = `${accountId}|${date}`,
+      existing = latest.get(key);
+    if (!existing || (event.recordedAt ?? "") > (existing.event.recordedAt ?? ""))
+      latest.set(key, day);
+  }
+  return [...latest.values()];
+}
+
 /** Splits Meta account days into the last `days` complete dates and the `days` before them. */
 export function splitMetaDays(days: MetaAccountDay[], now: Date, windowDays: number) {
   const date = (offset: number) =>

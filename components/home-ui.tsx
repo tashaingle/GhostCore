@@ -8,6 +8,7 @@ const PROVIDER_MARKS: Record<string, string> = {
   app_store: "/providers/app_store.png",
   github: "/providers/github.png",
   gmail: "/providers/gmail.png",
+  google_ads: "/providers/google_ads.png",
   google_analytics: "/providers/google_analytics.png",
   google_business_profile: "/providers/google_business_profile.png",
   google_calendar: "/providers/google_calendar.png",

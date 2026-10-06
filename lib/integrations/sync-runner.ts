@@ -20,6 +20,7 @@ import {TikTokError} from "./tiktok/client";
 import {GooglePlayError} from "./google-play/client";
 import {AppStoreError} from "./app-store/client";
 import {BusinessProfileError} from "./google-business-profile/client";
+import {GoogleAdsError} from "./google-ads/client";
 export type SyncSummary = {
   provider: string;
   received: number;
@@ -221,7 +222,8 @@ export async function runIntegrationSync(input: RunnerInput): Promise<SyncSummar
       (error instanceof TikTokError && error.kind === "rate_limit") ||
       (error instanceof GooglePlayError && error.kind === "rate_limit") ||
       (error instanceof AppStoreError && error.kind === "rate_limit") ||
-      (error instanceof BusinessProfileError && error.kind === "rate_limit");
+      (error instanceof BusinessProfileError && error.kind === "rate_limit") ||
+      (error instanceof GoogleAdsError && error.kind === "rate_limit");
     const expired =
       (error instanceof GitHubApiError && error.kind === "unauthorized") ||
       (error instanceof GoogleAnalyticsError && error.kind === "unauthorized") ||
@@ -237,7 +239,8 @@ export async function runIntegrationSync(input: RunnerInput): Promise<SyncSummar
       (error instanceof TikTokError && error.kind === "unauthorized") ||
       (error instanceof GooglePlayError && error.kind === "unauthorized") ||
       (error instanceof AppStoreError && error.kind === "unauthorized") ||
-      (error instanceof BusinessProfileError && error.kind === "unauthorized");
+      (error instanceof BusinessProfileError && error.kind === "unauthorized") ||
+      (error instanceof GoogleAdsError && error.kind === "unauthorized");
     const message = error instanceof Error ? error.message : "Sync failed. Please try again.";
     await input.supabase
       .from("integrations")

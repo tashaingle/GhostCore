@@ -21,6 +21,7 @@ const providerNames: Record<string, string> = {
   google_play: "Google Play",
   app_store: "App Store",
   google_business_profile: "Google Business Profile",
+  google_ads: "Google Ads",
 };
 
 export function providerLabel(id: string | null | undefined) {
@@ -83,6 +84,9 @@ export function configureIntegrationLabel(providerId: string, configurationRequi
   }
   if (providerId === "vercel") {
     return configurationRequired ? "Choose projects" : "Projects";
+  }
+  if (providerId === "google_ads") {
+    return configurationRequired ? "Choose accounts" : "Accounts";
   }
   if (providerId === "google_business_profile") {
     return configurationRequired ? "Choose locations" : "Locations";

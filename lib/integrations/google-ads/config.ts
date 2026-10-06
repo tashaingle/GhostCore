@@ -6,8 +6,9 @@ export const ADS_SCOPES = ["openid", "email", "https://www.googleapis.com/auth/a
 export const ADS_LIMITS = {
   accounts: 10,
   storedAccounts: 50,
-  // Complete days only; Google keeps updating conversions for a few days, so recent days are re-read.
-  days: 7,
+  // Complete days only. Two weeks, so week-on-week comparisons work from the first sync, and
+  // because Google keeps updating conversions for days afterwards.
+  days: 14,
   campaignsPerDay: 10,
   pages: 5,
   requests: 60,

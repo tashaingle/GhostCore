@@ -32,12 +32,13 @@ class FakeConnector implements IntegrationConnector {
 }
 describe("provider registry", () => {
   it("is unique and complete", () => {
-    expect(providers).toHaveLength(18);
+    expect(providers).toHaveLength(19);
     expect(new Set(providers.map((provider) => provider.id)).size).toBe(providers.length);
     expect(getProvider("github")).toBe(providerRegistry.github);
     expect(getProvider("meta_social")?.connector).toBe("meta_social");
     expect(getProvider("tiktok")?.connector).toBe("tiktok");
     expect(getProvider("google_play")?.connector).toBe("google_play");
+    expect(getProvider("app_store")?.connector).toBe("app_store");
   });
   it("declares capabilities and schedules", () => {
     expect(hasCapability(providerRegistry.github, "oauth")).toBe(true);

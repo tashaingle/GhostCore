@@ -19,7 +19,8 @@ export type ProviderId =
   | "tiktok"
   | "google_play"
   | "app_store"
-  | "google_business_profile";
+  | "google_business_profile"
+  | "google_ads";
 export type ProviderDefinition = {
   id: ProviderId;
   displayName: string;
@@ -52,6 +53,7 @@ export type ProviderDefinition = {
     | "google_play"
     | "app_store"
     | "google_business_profile"
+    | "google_ads"
     | null;
   description?: string;
   healthSupport?: boolean;
@@ -420,6 +422,26 @@ export const providerRegistry = {
     configurationPath: "/app/integrations/google-business-profile/settings",
     // Google must approve Metric Mage for the Business Profile APIs first. Remove to offer it.
     comingSoon: true,
+  },
+  google_ads: {
+    id: "google_ads",
+    displayName: "Google Ads",
+    description:
+      "Daily spend, clicks and conversions for the ad accounts you choose, with a flag when spend jumps. Metric Mage only reads them.",
+    icon: "GA",
+    colour: "#4285f4",
+    category: "Marketing",
+    oauth: true,
+    sync: true,
+    // Google's only Ads permission can also change campaigns, so this isn't marked read_only; the code only reads.
+    capabilities: ["oauth", "polling"],
+    schedule: "daily",
+    recommendedFrequency: "Daily",
+    connector: "google_ads",
+    healthSupport: true,
+    propertySelection: true,
+    connectPath: "/api/integrations/google-ads/connect",
+    configurationPath: "/app/integrations/google-ads/settings",
   },
 } as const satisfies Record<ProviderId, ProviderDefinition>;
 export const providers = Object.values(providerRegistry);

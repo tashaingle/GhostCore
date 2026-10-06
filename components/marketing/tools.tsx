@@ -19,6 +19,7 @@ const LOGOS: Logo[] = [
   {slug: "tiktok", name: "TikTok", w: 142, h: 160, big: true},
   {slug: "google-play", name: "Google Play", w: 649, h: 160},
   {slug: "app-store", name: "App Store", w: 466, h: 160},
+  {slug: "google-ads", name: "Google Ads", w: 426, h: 160},
 ];
 
 type Logo = {slug: string; name: string; w: number; h: number; big?: boolean};

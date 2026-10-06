@@ -60,6 +60,9 @@ import type {AppStoreSettings} from "./app-store/types";
 import {BusinessProfileConnector} from "./google-business-profile/connector";
 import {BusinessProfileClient} from "./google-business-profile/client";
 import type {BusinessProfileSettings} from "./google-business-profile/types";
+import {GoogleAdsConnector} from "./google-ads/connector";
+import {GoogleAdsClient} from "./google-ads/client";
+import type {GoogleAdsSettings} from "./google-ads/types";
 export type ConnectorCredentials = {
   accessToken?: string;
   refreshToken?: string;
@@ -250,6 +253,17 @@ export function loadConnector(
         expiresAt: credentials.expiresAt,
       }),
       (credentials.settings ?? {}) as BusinessProfileSettings,
+    );
+  }
+  if (provider.connector === "google_ads") {
+    if (!credentials.accessToken) throw new Error("Google Ads credentials are missing.");
+    return new GoogleAdsConnector(
+      new GoogleAdsClient({
+        accessToken: credentials.accessToken,
+        refreshToken: credentials.refreshToken,
+        expiresAt: credentials.expiresAt,
+      }),
+      (credentials.settings ?? {}) as GoogleAdsSettings,
     );
   }
   return new PlaceholderConnector(provider.id);

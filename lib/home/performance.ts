@@ -1,6 +1,11 @@
 import {formatMinorAmount} from "@/lib/integrations/stripe/translator";
 import type {IntelligenceEvent} from "@/lib/intelligence/types";
-import {metaAccountDays, percentChange, sum} from "@/lib/intelligence/windows";
+import {
+  googleAdsAccountDays,
+  metaAccountDays,
+  percentChange,
+  sum,
+} from "@/lib/intelligence/windows";
 
 export type Period = "week" | "month" | "year";
 export const PERIOD_DAYS: Record<Period, number> = {week: 7, month: 30, year: 365};
@@ -57,6 +62,7 @@ export const PERFORMANCE_EVENT_TYPES = [
   "shopify.order_created",
   "shopify.order_refunded",
   "meta_ads.performance.daily_recorded",
+  "google_ads.performance.daily_recorded",
   "meta_social.facebook.performance.daily_recorded",
   "google_search_console.performance_summary",
   "mailchimp.audience.daily_recorded",
@@ -253,8 +259,13 @@ export function performanceMetrics(input: {
     });
   }
 
-  // Ad spend and return on ad spend (Meta, latest revision per account-day, one currency).
-  const adDays = metaAccountDays(input.events, now);
+  // Ad spend and return on ad spend (Meta and Google Ads, latest revision per account-day, one currency).
+  const metaDays = metaAccountDays(input.events, now),
+    googleDays = googleAdsAccountDays(input.events, now),
+    adDays = [...metaDays, ...googleDays],
+    adSource = [metaDays.length ? "Meta Ads" : "", googleDays.length ? "Google Ads" : ""]
+      .filter(Boolean)
+      .join(" + ");
   const adCurrencies = new Set(adDays.map((d) => d.currency));
   if (adDays.length && adCurrencies.size === 1) {
     const [currency] = adCurrencies,
@@ -270,7 +281,7 @@ export function performanceMetrics(input: {
       label: "Ad spend",
       value: money(spend(cur), currency),
       change: change(spend(prev), spend(cur)),
-      source: "Meta Ads",
+      source: adSource,
       higherIsBetter: null,
       comparable: prev.length >= MIN_PREVIOUS_COUNT,
       trend: trend(
@@ -286,7 +297,7 @@ export function performanceMetrics(input: {
         label: "Return on ad spend",
         value: `${roas(cur).toFixed(2)}×`,
         change: roas(prev) > 0 ? change(roas(prev), roas(cur)) : null,
-        source: "Meta Ads (reported)",
+        source: `${adSource} (reported)`,
         higherIsBetter: true,
         comparable: prev.length >= MIN_PREVIOUS_COUNT && value(prev) > 0,
       });

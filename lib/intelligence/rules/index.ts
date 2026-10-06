@@ -2,6 +2,7 @@ import type {IntelligenceRule} from "../types";
 import {analyticsRecoveredRule} from "./analytics/analytics-recovered";
 import {trackingInactiveRule} from "./analytics/tracking-inactive";
 import {metaReturnDeclineRule} from "./advertising/meta-return-decline";
+import {googleAdsReturnDeclineRule} from "./advertising/google-ads-return-decline";
 import {shopifyOrderDeclineRule} from "./commerce/shopify-order-decline";
 import {shopifyRefundRateRule} from "./commerce/shopify-refund-rate";
 import {adSpendUpOrdersDownRule} from "./cross-provider/ad-spend-up-orders-down";
@@ -28,6 +29,7 @@ export const intelligenceRules: IntelligenceRule[] = [
   stripeDisputeRule,
   stripePayoutFailedRule,
   metaReturnDeclineRule,
+  googleAdsReturnDeclineRule,
   adSpendUpOrdersDownRule,
   lowRatingReviewsRule,
   ratingDropRule,
@@ -46,6 +48,7 @@ export {
   stripeDisputeRule,
   stripePayoutFailedRule,
   metaReturnDeclineRule,
+  googleAdsReturnDeclineRule,
   adSpendUpOrdersDownRule,
   lowRatingReviewsRule,
   ratingDropRule,

@@ -121,7 +121,7 @@ describe("Google Ads connection", () => {
   it("syncs one event per account day and feeds home ad spend", async () => {
     const request = vi.fn(async (_url: RequestInfo | URL, init?: RequestInit) => {
       const body = JSON.parse(String(init?.body));
-      expect(body.query).toContain("BETWEEN '2026-10-01' AND '2026-10-07'");
+      expect(body.query).toContain("BETWEEN '2026-09-24' AND '2026-10-07'");
       return reply({
         results: [
           {

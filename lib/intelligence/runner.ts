@@ -7,6 +7,32 @@ import {intelligenceRules} from "./rules";
 import type {InsightCandidate, IntelligenceEvent, IntelligenceRule} from "./types";
 
 export type EvaluatedInsight = InsightCandidate & {ruleId: string; fingerprint: string};
+
+/** Set on an insight Metric Mage closed itself, so it can reopen if the rule reports it again. */
+export const AUTO_RESOLVED = "autoResolved";
+
+type OpenInsight = {id: string; rule_id: string; fingerprint: string};
+
+/**
+ * Open insights from these rules that the latest run no longer reports: the problem has gone
+ * (or, for weekly insights, the week has passed), so they should close.
+ */
+export function staleInsights<T extends OpenInsight>(
+  open: T[],
+  reported: Set<string>,
+  ruleIds: Set<string> = new Set(intelligenceRules.map((rule) => rule.id)),
+) {
+  return open.filter((row) => ruleIds.has(row.rule_id) && !reported.has(row.fingerprint));
+}
+
+/** A resolved insight reopens when reported again, unless a person resolved it. */
+export function reopens(previous: {status: string; metadata: unknown}) {
+  const metadata =
+    previous.metadata && typeof previous.metadata === "object"
+      ? (previous.metadata as Record<string, unknown>)
+      : {};
+  return previous.status === "resolved" && metadata[AUTO_RESOLVED] === true;
+}
 export type IntelligenceRunSummary = {
   evaluatedRules: number;
   candidates: number;
@@ -62,16 +88,17 @@ export async function runIntelligence(
   }));
   const candidates = evaluateRules(events),
     fingerprints = candidates.map((item) => item.fingerprint);
-  const existing = new Map<string, {id: string; status: string}>();
+  const existing = new Map<string, {id: string; status: string; metadata: unknown}>();
   if (fingerprints.length) {
     const {data: rows, error: existingError} = await supabase
       .from("insights")
-      .select("id,fingerprint,status")
+      .select("id,fingerprint,status,metadata")
       .eq("organisation_id", organisationId)
       .in("fingerprint", fingerprints);
     if (existingError)
       throw new Error(`Intelligence could not inspect existing insights: ${existingError.message}`);
-    for (const row of rows ?? []) existing.set(row.fingerprint, {id: row.id, status: row.status});
+    for (const row of rows ?? [])
+      existing.set(row.fingerprint, {id: row.id, status: row.status, metadata: row.metadata});
   }
   let inserted = 0,
     updated = 0,
@@ -94,7 +121,7 @@ export async function runIntelligence(
     if (previous) {
       const {error: updateError} = await supabase
         .from("insights")
-        .update(values)
+        .update(reopens(previous) ? {...values, status: "active", resolved_at: null} : values)
         .eq("id", previous.id)
         .eq("organisation_id", organisationId);
       if (updateError)
@@ -125,6 +152,35 @@ export async function runIntelligence(
         );
       resolved += resolvedRows?.length ?? 0;
     }
+  }
+  // Close what the rules no longer report. Dismissed insights and ones from other sources stay as they are.
+  const {data: open, error: openError} = await supabase
+    .from("insights")
+    .select("id,rule_id,fingerprint,metadata")
+    .eq("organisation_id", organisationId)
+    .in("status", ["active", "acknowledged"])
+    .limit(500);
+  if (openError)
+    throw new Error(`Intelligence could not inspect open insights: ${openError.message}`);
+  for (const row of staleInsights(open ?? [], new Set(fingerprints))) {
+    const metadata =
+      row.metadata && typeof row.metadata === "object" && !Array.isArray(row.metadata)
+        ? (row.metadata as Record<string, Json>)
+        : {};
+    const {error: closeError} = await supabase
+      .from("insights")
+      .update({
+        status: "resolved",
+        resolved_at: now,
+        updated_at: now,
+        metadata: {...metadata, [AUTO_RESOLVED]: true},
+      })
+      .eq("id", row.id)
+      .eq("organisation_id", organisationId)
+      .in("status", ["active", "acknowledged"]);
+    if (closeError)
+      throw new Error(`Intelligence could not close a finished insight: ${closeError.message}`);
+    resolved++;
   }
   return {
     evaluatedRules: intelligenceRules.length,

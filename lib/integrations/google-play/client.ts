@@ -46,6 +46,7 @@ type RawReview = {
       appVersionName?: string;
       lastModified?: {seconds?: string};
     };
+    developerComment?: {text?: string};
   }[];
 };
 
@@ -72,6 +73,7 @@ function parseReview(raw: RawReview): PlayReview | null {
     text: comment.text ?? "",
     seconds,
     ...(comment.appVersionName ? {appVersionName: comment.appVersionName.slice(0, 40)} : {}),
+    replied: (raw.comments ?? []).some((item) => Boolean(item.developerComment?.text)),
   };
 }
 

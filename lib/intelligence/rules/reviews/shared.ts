@@ -23,7 +23,24 @@ export type Review = {
   replied: boolean;
 };
 
+/** "store:id:reviewId" for every review a reply event says has been answered. */
+function answered(events: IntelligenceEvent[]) {
+  const done = new Set<string>();
+  for (const event of events) {
+    const source =
+      REVIEW_SOURCES[
+        event.eventType.replace(/\.replied$/, ".received") as keyof typeof REVIEW_SOURCES
+      ];
+    if (!source || !event.eventType.endsWith(".replied")) continue;
+    const id = metadataString(event.metadata, source.key),
+      reviewId = metadataString(event.metadata, "reviewId");
+    if (id && reviewId) done.add(`${event.source}:${id}:${reviewId}`);
+  }
+  return done;
+}
+
 export function reviews(events: IntelligenceEvent[]): Review[] {
+  const done = answered(events);
   return events.flatMap((event) => {
     const source = REVIEW_SOURCES[event.eventType as keyof typeof REVIEW_SOURCES];
     if (!source) return [];
@@ -40,7 +57,9 @@ export function reviews(events: IntelligenceEvent[]): Review[] {
         store: source.store,
         reply: source.reply,
         stars,
-        replied: event.metadata.replied === true,
+        replied:
+          event.metadata.replied === true ||
+          done.has(`${event.source}:${id}:${metadataString(event.metadata, "reviewId")}`),
       },
     ];
   });

@@ -37,6 +37,7 @@ export function translateAppStoreReview(
       appId: app.appId,
       reviewId: review.reviewId,
       starRating: stars,
+      replied: Boolean(review.replied),
       ...(review.territory ? {territory: review.territory} : {}),
       privacy: "excerpt_only",
     },

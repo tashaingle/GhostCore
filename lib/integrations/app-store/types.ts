@@ -29,4 +29,6 @@ export type AppStoreReview = {
   body: string;
   seconds: number;
   territory?: string;
+  /** The developer has answered it. */
+  replied?: boolean;
 };

@@ -43,6 +43,7 @@ export function translatePlayReview(
       packageName: app.packageName,
       reviewId: review.reviewId,
       starRating: stars,
+      replied: Boolean(review.replied),
       ...(review.appVersionName ? {appVersionName: clean(review.appVersionName, 40)} : {}),
       privacy: "excerpt_only",
     },

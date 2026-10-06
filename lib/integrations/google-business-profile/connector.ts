@@ -7,6 +7,7 @@ import type {
 import {BusinessProfileClient, BusinessProfileError} from "./client";
 import {BUSINESS_PROFILE_LIMITS} from "./config";
 import {translateBusinessActivity, translateBusinessReview} from "./translator";
+import {REPLY_CHECK_DAYS, translateReviewReply} from "../review-replies";
 import type {ActivityDay, BusinessProfileSettings, BusinessReview} from "./types";
 
 type BusinessRecord =
@@ -79,6 +80,9 @@ export class BusinessProfileConnector implements IntegrationConnector {
         const cutoff =
           lastReviewSeconds[place.location] ??
           Math.floor(now.getTime() / 1000) - BUSINESS_PROFILE_LIMITS.initialReviewDays * 86400;
+        const replyStart = Math.floor(now.getTime() / 1000) - REPLY_CHECK_DAYS * 86400,
+          // Updates can move a review between pages while they are read.
+          seen = new Set<string>();
         let pageToken: string | undefined,
           newest = cutoff,
           kept = 0;
@@ -90,12 +94,28 @@ export class BusinessProfileConnector implements IntegrationConnector {
         ) {
           const batch = await this.client.reviews(place.account, place.location, pageToken);
           if (!batch.reviews.length) break;
-          let older = false;
           for (const review of batch.reviews) {
+            if (seen.has(review.reviewId)) continue;
+            seen.add(review.reviewId);
             received++;
             if (review.seconds <= cutoff) {
-              filtered++;
-              older = true;
+              // Already imported: note a reply to a recent low review, so its alert can clear.
+              const reply =
+                review.replied && review.starRating <= 2 && review.seconds >= replyStart
+                  ? translateReviewReply(
+                      {
+                        source: "google_business_profile",
+                        idKey: "location",
+                        id: place.location,
+                        reviewId: review.reviewId,
+                        starRating: review.starRating,
+                        name: place.title,
+                      },
+                      ctx,
+                    )
+                  : null;
+              if (reply) events.push(reply);
+              else filtered++;
               continue;
             }
             const event = translateBusinessReview(review, place, ctx);
@@ -108,7 +128,8 @@ export class BusinessProfileConnector implements IntegrationConnector {
             if (review.seconds > newest) newest = review.seconds;
           }
           pageToken = batch.nextPageToken;
-          if (!pageToken || older) break;
+          // Google sorts by last update, and a reply updates a review, so read both pages.
+          if (!pageToken) break;
         }
         lastReviewSeconds[place.location] = newest;
       } catch (error) {

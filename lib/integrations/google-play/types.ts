@@ -20,6 +20,8 @@ export type PlayReview = {
   text: string;
   seconds: number;
   appVersionName?: string;
+  /** The developer has answered it. */
+  replied?: boolean;
 };
 
 export type CrashDay = {

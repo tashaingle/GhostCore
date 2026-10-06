@@ -7,6 +7,7 @@ import type {
 import {AppStoreClient, AppStoreError} from "./client";
 import {APP_STORE_LIMITS} from "./config";
 import {translateAppStoreReview} from "./translator";
+import {REPLY_CHECK_DAYS, translateReviewReply} from "../review-replies";
 import type {AppStoreReview, AppStoreSettings} from "./types";
 
 type AppStoreRecord = AppStoreReview & {appId: string; name: string};
@@ -58,6 +59,7 @@ export class AppStoreConnector implements IntegrationConnector {
         const cutoff =
           lastReviewSeconds[app.appId] ??
           Math.floor(now.getTime() / 1000) - APP_STORE_LIMITS.initialReviewDays * 86400;
+        const replyStart = Math.floor(now.getTime() / 1000) - REPLY_CHECK_DAYS * 86400;
         let next: string | undefined,
           newest = cutoff,
           kept = 0;
@@ -68,12 +70,26 @@ export class AppStoreConnector implements IntegrationConnector {
         ) {
           const batch = await this.client.reviews(app.appId, next);
           if (!batch.reviews.length) break;
-          let older = false;
           for (const review of batch.reviews) {
             received++;
             if (review.seconds <= cutoff) {
-              filtered++;
-              older = true;
+              // Already imported: note a reply to a recent low review, so its alert can clear.
+              const reply =
+                review.replied && review.rating <= 2 && review.seconds >= replyStart
+                  ? translateReviewReply(
+                      {
+                        source: "app_store",
+                        idKey: "appId",
+                        id: app.appId,
+                        reviewId: review.reviewId,
+                        starRating: review.rating,
+                        name: app.name,
+                      },
+                      ctx,
+                    )
+                  : null;
+              if (reply) events.push(reply);
+              else filtered++;
               continue;
             }
             const event = translateAppStoreReview(review, app, ctx);
@@ -86,7 +102,8 @@ export class AppStoreConnector implements IntegrationConnector {
             if (review.seconds > newest) newest = review.seconds;
           }
           next = batch.next;
-          if (!next || older) break;
+          const oldest = Math.min(...batch.reviews.map((review) => review.seconds));
+          if (!next || oldest <= Math.min(cutoff, replyStart)) break;
         }
         lastReviewSeconds[app.appId] = newest;
       } catch (error) {

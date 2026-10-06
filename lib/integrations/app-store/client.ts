@@ -45,6 +45,7 @@ type RawReview = {
     createdDate?: string;
     territory?: string;
   };
+  relationships?: {response?: {data?: {id?: string} | null}};
 };
 
 function parseReview(raw: RawReview): AppStoreReview | null {
@@ -60,6 +61,7 @@ function parseReview(raw: RawReview): AppStoreReview | null {
     body: a.body ?? "",
     seconds: Math.floor(millis / 1000),
     ...(a.territory && /^[A-Z]{3}$/.test(a.territory) ? {territory: a.territory} : {}),
+    replied: Boolean(raw.relationships?.response?.data?.id),
   };
 }
 
@@ -162,7 +164,7 @@ export class AppStoreClient {
   async reviews(appId: string, next?: string) {
     const url =
       next ??
-      `${APP_STORE_API}/v1/apps/${appStoreAppId(appId)}/customerReviews?sort=-createdDate&limit=100&fields[customerReviews]=rating,title,body,createdDate,territory`;
+      `${APP_STORE_API}/v1/apps/${appStoreAppId(appId)}/customerReviews?sort=-createdDate&limit=100&fields[customerReviews]=rating,title,body,createdDate,territory,response&include=response`;
     const body = await this.call<{data?: RawReview[]; links?: {next?: string}}>(url);
     return {
       reviews: (body.data ?? [])

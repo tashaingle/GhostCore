@@ -12,6 +12,8 @@ import {repeatedWorkflowFailuresRule} from "./github/repeated-workflow-failures"
 import {stripeFailureRateRule} from "./payments/stripe-failure-rate";
 import {stripeDisputeRule, stripePayoutFailedRule} from "./payments/stripe-money-at-risk";
 import {stripeRevenueDeclineRule} from "./payments/stripe-revenue-decline";
+import {lowRatingReviewsRule} from "./reviews/low-rating-reviews";
+import {ratingDropRule} from "./reviews/rating-drop";
 export const intelligenceRules: IntelligenceRule[] = [
   trackingInactiveRule,
   failedDeploymentTrafficDeclineRule,
@@ -27,6 +29,8 @@ export const intelligenceRules: IntelligenceRule[] = [
   stripePayoutFailedRule,
   metaReturnDeclineRule,
   adSpendUpOrdersDownRule,
+  lowRatingReviewsRule,
+  ratingDropRule,
 ].sort((a, b) => a.priority - b.priority);
 export {
   analyticsRecoveredRule,
@@ -43,4 +47,6 @@ export {
   stripePayoutFailedRule,
   metaReturnDeclineRule,
   adSpendUpOrdersDownRule,
+  lowRatingReviewsRule,
+  ratingDropRule,
 };

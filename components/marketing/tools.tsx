@@ -18,6 +18,7 @@ const LOGOS: Logo[] = [
   {slug: "vercel", name: "Vercel", w: 520, h: 104},
   {slug: "tiktok", name: "TikTok", w: 142, h: 160, big: true},
   {slug: "google-play", name: "Google Play", w: 649, h: 160},
+  {slug: "app-store", name: "App Store", w: 466, h: 160},
 ];
 
 type Logo = {slug: string; name: string; w: number; h: number; big?: boolean};

@@ -72,7 +72,8 @@ describe("chart formatting", () => {
     expect(niceMax(0)).toBe(1);
     expect(formatValue(1234.5, {kind: "money", currency: "gbp"})).toBe("£1,235");
     expect(formatValue(35.5, {kind: "money", currency: "gbp"})).toBe("£35.50");
-    expect(formatTick(2500, {kind: "count"})).toBe("2.5k");
+    expect(formatTick(2500, {kind: "count"})).toBe("2.5K");
+    expect(formatTick(1200, {kind: "money", currency: "gbp"})).toBe("£1.2K");
   });
 
   it("breaks lines where there's no data", () => {

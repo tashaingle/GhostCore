@@ -16,11 +16,14 @@ export function formatValue(value: number, unit: TrendUnit) {
 
 /** Short axis labels: £1.2K, 3.4K. */
 export function formatTick(value: number, unit: TrendUnit) {
+  // ICU versions disagree on "k" or "K" for en-GB, so pin it; server and browser must match.
   return new Intl.NumberFormat("en-GB", {
     notation: "compact",
     maximumFractionDigits: 1,
     ...(unit.kind === "money" ? {style: "currency", currency: unit.currency.toUpperCase()} : {}),
-  }).format(value);
+  })
+    .format(value)
+    .replace(/(\d)k\b/, "$1K");
 }
 
 export function formatBucket(start: number, bucketDays: number) {

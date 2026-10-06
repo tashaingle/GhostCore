@@ -17,7 +17,7 @@ export const PERIOD_LABEL: Record<Period, {current: string; previous: string}> =
 export const parsePeriod = (value: unknown): Period =>
   value === "month" || value === "year" ? value : "week";
 
-export type MetricGroup = "Money" | "Marketing" | "Operations";
+export type MetricGroup = "Money" | "Marketing" | "Customers" | "Operations";
 export type Metric = {
   key: string;
   group: MetricGroup;
@@ -34,7 +34,7 @@ export type Metric = {
   trend?: Trend;
 };
 
-export type TrendUnit = {kind: "money"; currency: string} | {kind: "count"};
+export type TrendUnit = {kind: "money"; currency: string} | {kind: "count"} | {kind: "rating"};
 export type Trend = {
   /** One value per bucket; null where there's nothing yet (e.g. before the first snapshot). */
   current: (number | null)[];
@@ -67,6 +67,8 @@ export const PERFORMANCE_EVENT_TYPES = [
   "google_search_console.performance_summary",
   "mailchimp.audience.daily_recorded",
   "mailchimp.campaign.results_recorded",
+  "google_play.review.received",
+  "app_store.review.received",
 ];
 
 const DAY = 86_400_000;
@@ -439,6 +441,55 @@ export function performanceMetrics(input: {
     ["deployments", "Deployments", "GitHub", null],
     ["failedBuilds", "Failed builds", "GitHub", false],
   ];
+  // App rating: the average stars of new reviews in each period, across the app stores.
+  const reviews = input.events.filter(
+      (e) =>
+        (e.eventType === "google_play.review.received" ||
+          e.eventType === "app_store.review.received") &&
+        (num(meta(e, "starRating")) ?? 0) >= 1 &&
+        (num(meta(e, "starRating")) ?? 0) <= 5,
+    ),
+    stars = (e: IntelligenceEvent) => num(meta(e, "starRating"))!,
+    average = (list: IntelligenceEvent[]) => sum(list.map(stars)) / list.length,
+    curReviews = reviews.filter(inCurrent),
+    prevReviews = reviews.filter(inPrevious);
+  if (curReviews.length) {
+    const stores = [
+        reviews.some((e) => e.source === "google_play") ? "Google Play" : "",
+        reviews.some((e) => e.source === "app_store") ? "App Store" : "",
+      ]
+        .filter(Boolean)
+        .join(" + "),
+      // Each bucket shows that day's (or week's) average, with gaps where nobody reviewed.
+      averages = (start: number) => {
+        const totals = Array.from({length: bucketCount}, () => ({stars: 0, n: 0}));
+        for (const e of reviews) {
+          const i = Math.floor((at(e) - start) / bucketMs);
+          if (i < 0 || i >= bucketCount) continue;
+          totals[i].stars += stars(e);
+          totals[i].n++;
+        }
+        return totals.map((b) => (b.n ? Math.round((b.stars / b.n) * 10) / 10 : null));
+      };
+    metrics.push({
+      key: "appRating",
+      group: "Customers",
+      label: "App rating",
+      value: `${average(curReviews).toFixed(1)}★`,
+      change: prevReviews.length ? change(average(prevReviews), average(curReviews)) : null,
+      source: `New reviews · ${stores}`,
+      higherIsBetter: true,
+      comparable: prevReviews.length >= MIN_PREVIOUS_COUNT,
+      trend: {
+        current: averages(currentStart),
+        previous: averages(previousStart),
+        starts: Array.from({length: bucketCount}, (_, i) => currentStart + i * bucketMs),
+        bucketDays,
+        unit: {kind: "rating"},
+      },
+    });
+  }
+
   for (const [key, label, source, higherIsBetter] of activity) {
     const c = input.counts[key];
     if (!c || (c.current === 0 && c.previous === 0)) continue;

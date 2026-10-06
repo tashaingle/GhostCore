@@ -6,6 +6,7 @@ export const notificationCategories = [
   "credential",
   "correlation",
   "financial",
+  "customer",
   "task",
   "deployment",
   "import",

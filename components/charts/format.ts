@@ -5,6 +5,7 @@ export const CURRENT_COLOUR = "#1d66b8";
 export const PREVIOUS_COLOUR = "#8b8b95";
 
 export function formatValue(value: number, unit: TrendUnit) {
+  if (unit.kind === "rating") return `${value.toFixed(1)}★`;
   if (unit.kind === "money")
     return new Intl.NumberFormat("en-GB", {
       style: "currency",
@@ -16,6 +17,7 @@ export function formatValue(value: number, unit: TrendUnit) {
 
 /** Short axis labels: £1.2K, 3.4K. */
 export function formatTick(value: number, unit: TrendUnit) {
+  if (unit.kind === "rating") return value.toFixed(1);
   // ICU versions disagree on "k" or "K" for en-GB, so pin it; server and browser must match.
   return new Intl.NumberFormat("en-GB", {
     notation: "compact",

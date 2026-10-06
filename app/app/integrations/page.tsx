@@ -62,7 +62,8 @@ function Controls({
     );
   }
 
-  if (provider.connector === null) {
+  // A connection someone already made keeps working; only new connections wait.
+  if (provider.connector === null || (provider.comingSoon && !integration)) {
     return (
       <button className="button button-secondary" disabled>
         Coming soon

@@ -61,6 +61,8 @@ export type ProviderDefinition = {
   callbackPath?: string;
   connectPath?: string;
   configurationPath?: string;
+  /** Built but not offered yet: Connections shows "Coming soon" instead of Connect. */
+  comingSoon?: boolean;
 };
 export const providerRegistry = {
   github: {
@@ -416,6 +418,8 @@ export const providerRegistry = {
     propertySelection: true,
     connectPath: "/api/integrations/google-business-profile/connect",
     configurationPath: "/app/integrations/google-business-profile/settings",
+    // Google must approve Metric Mage for the Business Profile APIs first. Remove to offer it.
+    comingSoon: true,
   },
 } as const satisfies Record<ProviderId, ProviderDefinition>;
 export const providers = Object.values(providerRegistry);

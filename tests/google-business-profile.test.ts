@@ -180,6 +180,17 @@ describe("Google Business Profile connection", () => {
         429,
       )) as typeof fetch);
     await expect(client.locations()).rejects.toThrow(/approved/);
+    const plain = new BusinessProfileClient(token, (async () =>
+      reply(
+        {
+          error: {
+            message:
+              "Quota exceeded for quota metric 'Requests' and limit 'Requests per minute' of service 'mybusinessaccountmanagement.googleapis.com'",
+          },
+        },
+        429,
+      )) as typeof fetch);
+    await expect(plain.locations()).rejects.toThrow(/hasn't approved Business Profile API access/);
     await expect(
       new BusinessProfileConnector(client, {locations: []}).sync(context),
     ).rejects.toThrow(/Choose at least one/);

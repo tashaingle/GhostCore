@@ -169,6 +169,8 @@ export class BusinessProfileClient {
         "Google Business Profile authorization has expired. Connect it again.",
       );
     // Google starts every new project on a quota of zero until it approves API access.
+    // Its message doesn't always say so, but a sync sends far fewer requests than an
+    // approved project's quota, so any quota refusal most likely means "not approved yet".
     if (response.status === 429 && /quota.*\b0\b|limit.*\b0\b/i.test(message))
       throw new BusinessProfileError(
         "permission",
@@ -177,7 +179,7 @@ export class BusinessProfileClient {
     if (response.status === 429)
       throw new BusinessProfileError(
         "rate_limit",
-        "Google Business Profile quota was reached. Try again later.",
+        "Google refused for quota. If Google hasn't approved Business Profile API access for this site yet, that's the cause: request access in Google Cloud. Otherwise, try again later.",
       );
     if (
       response.status === 403 &&

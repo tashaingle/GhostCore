@@ -18,7 +18,8 @@ export type ProviderId =
   | "vercel"
   | "tiktok"
   | "google_play"
-  | "app_store";
+  | "app_store"
+  | "google_business_profile";
 export type ProviderDefinition = {
   id: ProviderId;
   displayName: string;
@@ -50,6 +51,7 @@ export type ProviderDefinition = {
     | "tiktok"
     | "google_play"
     | "app_store"
+    | "google_business_profile"
     | null;
   description?: string;
   healthSupport?: boolean;
@@ -394,6 +396,26 @@ export const providerRegistry = {
     propertySelection: true,
     connectPath: "/app/integrations/app-store/connect",
     configurationPath: "/app/integrations/app-store/settings",
+  },
+  google_business_profile: {
+    id: "google_business_profile",
+    displayName: "Google Business Profile",
+    description:
+      "New Google reviews, plus how many people viewed, called, visited your website or asked for directions. Metric Mage only reads them.",
+    icon: "GB",
+    colour: "#4285f4",
+    category: "Marketing",
+    oauth: true,
+    sync: true,
+    // Google's only Business Profile permission can also edit and reply, so this isn't marked read_only; the code only reads.
+    capabilities: ["oauth", "polling"],
+    schedule: "daily",
+    recommendedFrequency: "Daily",
+    connector: "google_business_profile",
+    healthSupport: true,
+    propertySelection: true,
+    connectPath: "/api/integrations/google-business-profile/connect",
+    configurationPath: "/app/integrations/google-business-profile/settings",
   },
 } as const satisfies Record<ProviderId, ProviderDefinition>;
 export const providers = Object.values(providerRegistry);

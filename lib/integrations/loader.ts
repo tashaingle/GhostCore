@@ -57,6 +57,9 @@ import {AppStoreConnector} from "./app-store/connector";
 import {AppStoreClient} from "./app-store/client";
 import {storedAppStoreKey} from "./app-store/key";
 import type {AppStoreSettings} from "./app-store/types";
+import {BusinessProfileConnector} from "./google-business-profile/connector";
+import {BusinessProfileClient} from "./google-business-profile/client";
+import type {BusinessProfileSettings} from "./google-business-profile/types";
 export type ConnectorCredentials = {
   accessToken?: string;
   refreshToken?: string;
@@ -235,6 +238,18 @@ export function loadConnector(
     return new AppStoreConnector(
       new AppStoreClient(storedAppStoreKey(credentials.accessToken)),
       (credentials.settings ?? {}) as AppStoreSettings,
+    );
+  }
+  if (provider.connector === "google_business_profile") {
+    if (!credentials.accessToken)
+      throw new Error("Google Business Profile credentials are missing.");
+    return new BusinessProfileConnector(
+      new BusinessProfileClient({
+        accessToken: credentials.accessToken,
+        refreshToken: credentials.refreshToken,
+        expiresAt: credentials.expiresAt,
+      }),
+      (credentials.settings ?? {}) as BusinessProfileSettings,
     );
   }
   return new PlaceholderConnector(provider.id);

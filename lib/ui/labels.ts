@@ -20,6 +20,7 @@ const providerNames: Record<string, string> = {
   tiktok: "TikTok",
   google_play: "Google Play",
   app_store: "App Store",
+  google_business_profile: "Google Business Profile",
 };
 
 export function providerLabel(id: string | null | undefined) {
@@ -82,6 +83,9 @@ export function configureIntegrationLabel(providerId: string, configurationRequi
   }
   if (providerId === "vercel") {
     return configurationRequired ? "Choose projects" : "Projects";
+  }
+  if (providerId === "google_business_profile") {
+    return configurationRequired ? "Choose locations" : "Locations";
   }
   if (providerId === "google_play" || providerId === "app_store") {
     return configurationRequired ? "Choose apps" : "Apps";

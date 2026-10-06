@@ -17,7 +17,8 @@ export type ProviderId =
   | "slack"
   | "vercel"
   | "tiktok"
-  | "google_play";
+  | "google_play"
+  | "app_store";
 export type ProviderDefinition = {
   id: ProviderId;
   displayName: string;
@@ -48,6 +49,7 @@ export type ProviderDefinition = {
     | "vercel"
     | "tiktok"
     | "google_play"
+    | "app_store"
     | null;
   description?: string;
   healthSupport?: boolean;
@@ -372,6 +374,26 @@ export const providerRegistry = {
     propertySelection: true,
     connectPath: "/api/integrations/google-play/connect",
     configurationPath: "/app/integrations/google-play/settings",
+  },
+  app_store: {
+    id: "app_store",
+    displayName: "App Store",
+    description:
+      "New App Store reviews for the iPhone, iPad and Mac apps you choose. Metric Mage only reads them.",
+    icon: "AS",
+    colour: "#0d96f6",
+    category: "Commerce",
+    oauth: false,
+    sync: true,
+    // Apple has no OAuth for App Store Connect: people paste an API key. Its roles can also reply, so this isn't marked read_only.
+    capabilities: ["polling"],
+    schedule: "daily",
+    recommendedFrequency: "Daily",
+    connector: "app_store",
+    healthSupport: true,
+    propertySelection: true,
+    connectPath: "/app/integrations/app-store/connect",
+    configurationPath: "/app/integrations/app-store/settings",
   },
 } as const satisfies Record<ProviderId, ProviderDefinition>;
 export const providers = Object.values(providerRegistry);

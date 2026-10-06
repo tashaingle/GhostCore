@@ -18,6 +18,7 @@ import {LinkedInError} from "./linkedin/client";
 import {VercelError} from "./vercel/client";
 import {TikTokError} from "./tiktok/client";
 import {GooglePlayError} from "./google-play/client";
+import {AppStoreError} from "./app-store/client";
 export type SyncSummary = {
   provider: string;
   received: number;
@@ -217,7 +218,8 @@ export async function runIntegrationSync(input: RunnerInput): Promise<SyncSummar
       (error instanceof LinkedInError && error.kind === "rate_limit") ||
       (error instanceof VercelError && error.kind === "rate_limit") ||
       (error instanceof TikTokError && error.kind === "rate_limit") ||
-      (error instanceof GooglePlayError && error.kind === "rate_limit");
+      (error instanceof GooglePlayError && error.kind === "rate_limit") ||
+      (error instanceof AppStoreError && error.kind === "rate_limit");
     const expired =
       (error instanceof GitHubApiError && error.kind === "unauthorized") ||
       (error instanceof GoogleAnalyticsError && error.kind === "unauthorized") ||
@@ -231,7 +233,8 @@ export async function runIntegrationSync(input: RunnerInput): Promise<SyncSummar
       (error instanceof LinkedInError && error.kind === "unauthorized") ||
       (error instanceof VercelError && error.kind === "unauthorized") ||
       (error instanceof TikTokError && error.kind === "unauthorized") ||
-      (error instanceof GooglePlayError && error.kind === "unauthorized");
+      (error instanceof GooglePlayError && error.kind === "unauthorized") ||
+      (error instanceof AppStoreError && error.kind === "unauthorized");
     const message = error instanceof Error ? error.message : "Sync failed. Please try again.";
     await input.supabase
       .from("integrations")

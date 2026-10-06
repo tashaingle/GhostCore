@@ -53,6 +53,10 @@ import type {TikTokSettings} from "./tiktok/types";
 import {GooglePlayConnector} from "./google-play/connector";
 import {GooglePlayClient} from "./google-play/client";
 import type {GooglePlaySettings} from "./google-play/types";
+import {AppStoreConnector} from "./app-store/connector";
+import {AppStoreClient} from "./app-store/client";
+import {storedAppStoreKey} from "./app-store/key";
+import type {AppStoreSettings} from "./app-store/types";
 export type ConnectorCredentials = {
   accessToken?: string;
   refreshToken?: string;
@@ -223,6 +227,14 @@ export function loadConnector(
         expiresAt: credentials.expiresAt,
       }),
       (credentials.settings ?? {}) as GooglePlaySettings,
+    );
+  }
+  if (provider.connector === "app_store") {
+    // The access token column holds the encrypted App Store Connect key, not an OAuth token.
+    if (!credentials.accessToken) throw new Error("App Store credentials are missing.");
+    return new AppStoreConnector(
+      new AppStoreClient(storedAppStoreKey(credentials.accessToken)),
+      (credentials.settings ?? {}) as AppStoreSettings,
     );
   }
   return new PlaceholderConnector(provider.id);

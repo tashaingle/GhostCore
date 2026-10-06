@@ -17,7 +17,7 @@ const PERIODS: {key: Period; label: string}[] = [
   {key: "month", label: "Month"},
   {key: "year", label: "Year"},
 ];
-const GROUPS: MetricGroup[] = ["Money", "Marketing", "Operations"];
+const GROUPS: MetricGroup[] = ["Money", "Marketing", "Customers", "Operations"];
 /** Which figure leads the main chart: the first of these with something to draw. */
 const HEADLINE = ["revenue", "orders", "emailSubscribers", "reach", "adSpend", "followers"];
 const hasShape = (m: Metric) =>

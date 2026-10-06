@@ -214,6 +214,7 @@ export function humanCategory(category: string) {
     credential: "Login / access",
     correlation: "Related events",
     financial: "Money",
+    customer: "Customers",
     task: "Task",
     deployment: "Deploy",
     import: "Import",

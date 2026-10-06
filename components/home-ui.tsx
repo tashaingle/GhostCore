@@ -5,6 +5,7 @@ import {getProvider} from "@/lib/integrations/registry";
 
 /** Square icon files in /public/providers. Meta Ads and Meta Social share one mark. */
 const PROVIDER_MARKS: Record<string, string> = {
+  app_store: "/providers/app_store.png",
   github: "/providers/github.png",
   gmail: "/providers/gmail.png",
   google_analytics: "/providers/google_analytics.png",

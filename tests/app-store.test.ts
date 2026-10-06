@@ -146,6 +146,13 @@ describe("App Store connection", () => {
     await expect(client(401).apps()).rejects.toMatchObject({kind: "unauthorized"});
     await expect(client(403).apps()).rejects.toMatchObject({kind: "permission"});
     await expect(client(429).apps()).rejects.toMatchObject({kind: "rate_limit"});
+    await expect(client(403).apps()).rejects.toThrow(/Apple refused this key: x/);
+    const agreement = new AppStoreClient(key, (async () =>
+      reply(
+        {errors: [{code: "FORBIDDEN.REQUIRED_AGREEMENTS_MISSING_OR_EXPIRED", detail: "x"}]},
+        403,
+      )) as typeof fetch);
+    await expect(agreement.apps()).rejects.toThrow(/accept an agreement/);
   });
 
   it("syncs new reviews for chosen apps and remembers the newest", async () => {

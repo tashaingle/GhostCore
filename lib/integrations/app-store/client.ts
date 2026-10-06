@@ -104,7 +104,7 @@ export class AppStoreClient {
       throw new AppStoreError("timeout", "App Store Connect timed out.");
     }
     const body = (await response.json().catch(() => null)) as {
-      errors?: {detail?: string; title?: string}[];
+      errors?: {code?: string; detail?: string; title?: string}[];
     } | null;
     if (response.ok && body) return body as T;
     const first = body?.errors?.[0],
@@ -123,10 +123,16 @@ export class AppStoreClient {
         "rate_limit",
         "App Store Connect's limit was reached. Try again later.",
       );
+    // Apple refuses every key until the Account Holder accepts new agreements.
+    if (response.status === 403 && /AGREEMENT/i.test(`${first?.code ?? ""} ${message}`))
+      throw new AppStoreError(
+        "permission",
+        "Apple is waiting for the Account Holder to accept an agreement in App Store Connect (Business). Accept it, then connect again.",
+      );
     if (response.status === 403)
       throw new AppStoreError(
         "permission",
-        "This API key can't read that app. Give the key the Customer Support role or higher.",
+        `Apple refused this key: ${message} Check the key's role in App Store Connect (App Manager works), then connect again.`,
       );
     throw new AppStoreError("provider", message);
   }

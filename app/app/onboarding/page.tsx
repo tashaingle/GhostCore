@@ -10,10 +10,13 @@ function WorkspaceForm({
   params,
   returnPath,
   title,
+  note,
 }: {
   params: Record<string, string | string[] | undefined>;
   returnPath: string;
   title: string;
+  /** e.g. what this organisation adds to the monthly bill. */
+  note?: string;
 }) {
   return (
     <section className="mx-auto max-w-lg space-y-5">
@@ -23,6 +26,7 @@ function WorkspaceForm({
         <p className="page-subtitle">
           Each organisation is a separate, secure workspace for your team and tools.
         </p>
+        {note ? <p className="mt-2 text-sm font-medium text-zinc-700">{note}</p> : null}
       </div>
       <Notice searchParams={params} />
       <form action={createWorkspace} className="card space-y-4">

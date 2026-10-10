@@ -7,6 +7,9 @@ import {z} from "zod";
 import {requireUser} from "@/lib/auth/user";
 import {getActiveOrganisation, ACTIVE_ORGANISATION_COOKIE} from "@/lib/organisations/active";
 import {uniqueSlug} from "@/lib/organisations/slug";
+import {after} from "next/server";
+import {hasAccess} from "@/lib/billing/plan";
+import {billingAccount, billingEnabled, syncOrganisationCount} from "@/lib/billing/stripe";
 import {emailConfig, sendEmail} from "@/lib/email/resend";
 import {invitationEmail} from "@/lib/email/templates";
 import {
@@ -118,6 +121,12 @@ export async function createWorkspace(form: FormData) {
     .eq("id", id);
   await supabase.from("profiles").update({active_organisation_id: id}).eq("id", user.id);
   await setActive(id);
+  if (billingEnabled()) {
+    // No subscription yet: start the free trial, then carry on setting up.
+    if (!hasAccess(await billingAccount(user.id)))
+      redirect(`/api/billing/checkout?next=${encodeURIComponent("/welcome")}`);
+    after(() => syncOrganisationCount(user.id).catch((e) => console.error("Billing count", e)));
+  }
   redirect("/welcome");
 }
 export async function switchOrganisation(form: FormData) {

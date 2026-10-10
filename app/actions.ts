@@ -17,6 +17,9 @@ import {
 } from "@/types/events";
 import {requirePermission} from "@/lib/auth/permissions";
 import {safeNext} from "@/lib/auth/next";
+import {after} from "next/server";
+import {hasAccess} from "@/lib/billing/plan";
+import {billingAccount, billingEnabled, syncOrganisationCount} from "@/lib/billing/stripe";
 
 const messageUrl = (path: string, kind: "error" | "success", message: string) =>
   `${path}?${kind}=${encodeURIComponent(message)}`;
@@ -149,7 +152,7 @@ export async function createOrganisation(form: FormData) {
   const name = z.string().trim().min(2).max(100).safeParse(form.get("name"));
   if (!name.success)
     redirect(messageUrl("/app/onboarding", "error", "Organisation name must be 2–100 characters."));
-  const {supabase} = await requireUser();
+  const {supabase, user} = await requireUser();
   const {error} = await supabase.rpc("create_organisation_with_owner", {
     organisation_name: name.data,
     organisation_slug: uniqueSlug(name.data),
@@ -162,6 +165,11 @@ export async function createOrganisation(form: FormData) {
         "Your workspace couldn't be created. Please try again.",
       ),
     );
+  if (billingEnabled()) {
+    if (!hasAccess(await billingAccount(user.id)))
+      redirect(`/api/billing/checkout?next=${encodeURIComponent("/app")}`);
+    after(() => syncOrganisationCount(user.id).catch((e) => console.error("Billing count", e)));
+  }
   redirect("/app");
 }
 export async function addIntegration(form: FormData) {

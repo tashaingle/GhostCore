@@ -18,6 +18,7 @@ import {acquireLock, releaseLock} from "./locks";
 import {classifyError, retryDelayMs, retryable} from "./retries";
 import {nextRun} from "./scheduler";
 import {trulyExpired} from "./expiry";
+import {organisationBillingActive} from "@/lib/billing/access";
 import type {Job, JobMetrics} from "./types";
 async function actor(client: SupabaseClient<Database>, org: string) {
   const {data} = await client
@@ -33,6 +34,12 @@ async function actor(client: SupabaseClient<Database>, org: string) {
   return data.user_id;
 }
 async function handle(client: SupabaseClient<Database>, job: Job): Promise<JobMetrics> {
+  // Paused organisations (subscription lapsed) don't sync their tools until renewed.
+  if (
+    job.job_type.startsWith("integration.") &&
+    !(await organisationBillingActive(client, job.organisation_id))
+  )
+    return {processed: 0, created: 0, updated: 0, skipped: 1};
   if (job.job_type === "work.recurring.generate")
     return generateRecurringWork(client, job.organisation_id);
   if (job.job_type === "work.sla.evaluate") return evaluateWorkSla(client, job.organisation_id);

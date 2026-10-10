@@ -5,10 +5,10 @@ import {Reveal, SetType} from "./motion";
 const LOGOS: Logo[] = [
   {slug: "shopify", name: "Shopify", w: 520, h: 148},
   {slug: "stripe", name: "Stripe", w: 381, h: 160},
-  {slug: "google-analytics", name: "Google Analytics", w: 220, h: 160, big: true},
+  {slug: "google-analytics", name: "Google Analytics", w: 220, h: 160, size: "lg"},
   {slug: "google-search-console", name: "Google Search Console", w: 349, h: 160},
   {slug: "meta-ads", name: "Meta Ads", w: 319, h: 160},
-  {slug: "mailchimp", name: "Mailchimp", w: 160, h: 160, big: true},
+  {slug: "mailchimp", name: "Mailchimp", w: 160, h: 160, size: "xl"},
   {slug: "gmail", name: "Gmail", w: 491, h: 160},
   {slug: "meta", name: "Facebook and Instagram", w: 520, h: 118},
   {slug: "outlook", name: "Outlook", w: 520, h: 107},
@@ -16,15 +16,21 @@ const LOGOS: Logo[] = [
   {slug: "linkedin", name: "LinkedIn", w: 520, h: 128},
   {slug: "slack", name: "Slack", w: 520, h: 133},
   {slug: "notion", name: "Notion", w: 467, h: 160},
-  {slug: "github", name: "GitHub", w: 177, h: 160, big: true},
+  {slug: "github", name: "GitHub", w: 177, h: 160, size: "lg"},
   {slug: "vercel", name: "Vercel", w: 520, h: 104},
   {slug: "google-play", name: "Google Play", w: 649, h: 160},
   {slug: "app-store", name: "App Store", w: 466, h: 160},
   {slug: "google-ads", name: "Google Ads", w: 426, h: 160},
-  {slug: "google-business-profile", name: "Google Business Profile", w: 380, h: 160},
+  {slug: "google-business-profile", name: "Google Business Profile", w: 380, h: 160, size: "xl"},
 ];
 
-type Logo = {slug: string; name: string; w: number; h: number; big?: boolean};
+/** Most logos are wide wordmarks; square or text-light ones need more height to look the same size. */
+type Logo = {slug: string; name: string; w: number; h: number; size?: "lg" | "xl"};
+const HEIGHT = {
+  base: "max-h-10 md:max-h-12",
+  lg: "max-h-14 md:max-h-16",
+  xl: "max-h-[72px] md:max-h-[84px]",
+};
 
 function Row({items, reverse}: {items: Logo[]; reverse?: boolean}) {
   // Rendered twice so the loop is seamless; the copy is hidden from screen readers.
@@ -46,7 +52,7 @@ function Row({items, reverse}: {items: Logo[]; reverse?: boolean}) {
                 alt={copy === 0 ? logo.name : ""}
                 width={logo.w}
                 height={logo.h}
-                className={`w-auto object-contain opacity-80 grayscale-[35%] transition-all duration-500 hover:opacity-100 hover:grayscale-0 ${logo.big ? "max-h-16 md:max-h-[72px]" : "max-h-11 md:max-h-12"}`}
+                className={`w-auto object-contain opacity-80 grayscale-[35%] transition-all duration-500 hover:opacity-100 hover:grayscale-0 ${HEIGHT[logo.size ?? "base"]}`}
               />
             </li>
           ))}
@@ -58,7 +64,7 @@ function Row({items, reverse}: {items: Logo[]; reverse?: boolean}) {
 
 export function Tools() {
   return (
-    <section id="tools" data-tone="paper" className="bg-paper py-24 text-ink md:py-36">
+    <section id="tools" data-tone="paper" className="bg-paper py-16 text-ink md:py-36">
       <div className="mx-auto max-w-[1320px] px-5 md:px-10">
         <div className="grid gap-8 md:grid-cols-[1fr_1fr] md:items-end">
           <div>
@@ -81,7 +87,7 @@ export function Tools() {
           </Reveal>
         </div>
       </div>
-      <div className="mt-16 space-y-6 md:mt-20">
+      <div className="mt-12 space-y-4 md:mt-20 md:space-y-6">
         <Row items={LOGOS.slice(0, Math.ceil(LOGOS.length / 2))} />
         <Row items={LOGOS.slice(Math.ceil(LOGOS.length / 2))} reverse />
       </div>

@@ -143,7 +143,7 @@ function Step({index, onActive}: {index: number; onActive: (i: number) => void})
   }, [inView, index, onActive]);
   const step = STEPS[index];
   return (
-    <div ref={ref} className="flex min-h-[78vh] flex-col justify-center py-12">
+    <div ref={ref} className="flex flex-col justify-center py-10 lg:min-h-[70vh] lg:py-12">
       <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-spark lg:hidden">
         0{index + 1} · {step.title}
       </p>
@@ -169,7 +169,7 @@ export function HowItWorks() {
       data-tone="ink"
       className="mm-grain relative bg-ink text-white"
     >
-      <div className="mx-auto max-w-[1320px] px-5 pt-24 md:px-10 md:pt-36">
+      <div className="mx-auto max-w-[1320px] px-5 pt-16 md:px-10 md:pt-36">
         <Reveal>
           <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-spark">
             02 · How it works
@@ -183,9 +183,9 @@ export function HowItWorks() {
         </h2>
       </div>
 
-      <div className="mx-auto grid max-w-[1320px] gap-10 px-5 pb-24 md:px-10 md:pb-32 lg:grid-cols-[0.8fr_1.2fr]">
+      <div className="mx-auto grid max-w-[1320px] gap-10 px-5 pb-16 md:px-10 md:pb-32 lg:grid-cols-[0.8fr_1.2fr]">
         <div className="hidden lg:block">
-          <div className="sticky top-0 flex h-screen items-center">
+          <div className="sticky top-32 pt-12">
             <div className="flex gap-8">
               <div className="relative w-px bg-white/10">
                 <motion.div

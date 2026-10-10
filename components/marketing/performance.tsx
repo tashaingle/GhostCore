@@ -80,7 +80,7 @@ export function Performance() {
     period === "Week" ? "last week" : period === "Month" ? "last month" : "last year";
 
   return (
-    <section data-tone="paper" className="bg-paper-deep py-24 text-ink md:py-36">
+    <section data-tone="paper" className="bg-paper-deep py-16 text-ink md:py-36">
       <div className="mx-auto max-w-[1320px] px-5 md:px-10">
         <div className="grid gap-10 lg:grid-cols-[1fr_1.4fr] lg:gap-20">
           <div>

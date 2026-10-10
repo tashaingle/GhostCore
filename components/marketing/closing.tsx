@@ -28,11 +28,11 @@ export function Trust() {
     <section
       id="trust"
       data-tone="ink"
-      className="mm-grain relative bg-ink py-24 text-white md:py-36"
+      className="mm-grain relative bg-ink py-16 text-white md:py-36"
     >
       <div className="mx-auto max-w-[1320px] px-5 md:px-10">
         <Reveal>
-          <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-spark">05 · Trust</p>
+          <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-spark">06 · Trust</p>
         </Reveal>
         <h2 className="mt-5 max-w-4xl font-display text-5xl font-semibold leading-[0.95] tracking-[-0.04em] md:text-7xl">
           <SetType text="Your data stays" className="block" />
@@ -40,7 +40,7 @@ export function Trust() {
             <SetType text="yours." delay={0.12} />
           </span>
         </h2>
-        <ul className="mt-16 grid gap-px overflow-hidden rounded-3xl bg-white/10 md:mt-24 md:grid-cols-2">
+        <ul className="mt-10 grid gap-px overflow-hidden rounded-3xl bg-white/10 md:mt-24 md:grid-cols-2">
           {PROMISES.map((p, i) => (
             <Reveal as="li" key={p.big} delay={i * 0.08} className="group bg-ink p-8 md:p-12">
               <p className="font-mono text-[11px] text-white/35">0{i + 1}</p>
@@ -60,7 +60,7 @@ export function FinalCall() {
   return (
     <section
       data-tone="paper"
-      className="relative overflow-hidden bg-paper py-28 text-ink md:py-44"
+      className="relative overflow-hidden bg-paper py-20 text-ink md:py-44"
     >
       <Star className="absolute left-[12%] top-[20%] h-6 w-6 text-mage" />
       <Star className="absolute right-[14%] top-[30%] h-4 w-4 text-spark" delay={1.4} />
@@ -85,7 +85,7 @@ export function FinalCall() {
               href="/register"
               className="group inline-flex items-center gap-3 rounded-full bg-ink px-8 py-4 text-base font-semibold text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-mage"
             >
-              Get started
+              Start your free trial
               <span className="transition-transform duration-300 group-hover:translate-x-1">→</span>
             </Link>
             <Link

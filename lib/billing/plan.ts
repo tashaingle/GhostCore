@@ -41,8 +41,13 @@ export function monthlyMinor(organisations: number) {
   return PLAN.baseMinor + extra * PLAN.extraOrganisationMinor;
 }
 
+/** £4.99, or £1 rather than £1.00 for whole pounds. */
 export const pounds = (minor: number) =>
-  new Intl.NumberFormat("en-GB", {style: "currency", currency: "GBP"}).format(minor / 100);
+  new Intl.NumberFormat("en-GB", {
+    style: "currency",
+    currency: "GBP",
+    minimumFractionDigits: minor % 100 === 0 ? 0 : 2,
+  }).format(minor / 100);
 
 /** "£4.99 a month for up to 3 organisations" / "£6.99 a month for 5 organisations". */
 export function describePrice(organisations: number) {

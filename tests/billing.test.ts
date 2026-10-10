@@ -19,9 +19,7 @@ describe("pricing", () => {
 
   it("explains the price in plain English", () => {
     expect(describePrice(2)).toBe("£4.99 a month, including up to 3 organisations");
-    expect(describePrice(5)).toBe(
-      "£6.99 a month for 5 organisations (3 included, then £1.00 each)",
-    );
+    expect(describePrice(5)).toBe("£6.99 a month for 5 organisations (3 included, then £1 each)");
   });
 });
 

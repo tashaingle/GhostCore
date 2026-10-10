@@ -9,7 +9,7 @@ const NAV = [
   {href: "/#how-it-works", label: "How it works"},
   {href: "/#what-it-notices", label: "What it notices"},
   {href: "/#tools", label: "Tools"},
-  {href: "/#trust", label: "Trust"},
+  {href: "/#pricing", label: "Pricing"},
 ];
 
 /**

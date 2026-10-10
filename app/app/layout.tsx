@@ -1,14 +1,23 @@
 import Link from "next/link";
-import {LogOut, Plus} from "lucide-react";
+import {CreditCard, LogOut, Plus} from "lucide-react";
 import {getActiveOrganisation} from "@/lib/organisations/active";
 import {signOut} from "@/app/actions";
 import {OrganisationSwitcher} from "@/components/organisation-switcher";
 import {SidebarNav} from "@/components/sidebar-nav";
 import {BrandMark} from "@/components/brand-mark";
 import {roleLabel} from "@/lib/ui/labels";
+import {redirect} from "next/navigation";
+import {billingEnabled} from "@/lib/billing/stripe";
 
 export default async function AppLayout({children}: {children: React.ReactNode}) {
   const ctx = await getActiveOrganisation(true);
+  // An organisation whose creator's subscription has lapsed is paused until it's renewed.
+  if (ctx && billingEnabled()) {
+    const {data: allowed} = await ctx.supabase.rpc("organisation_has_access", {
+      target_organisation_id: ctx.organisation.id,
+    });
+    if (!allowed) redirect("/billing");
+  }
 
   return (
     <div className="min-h-screen md:grid md:grid-cols-[264px_1fr]">
@@ -66,12 +75,23 @@ export default async function AppLayout({children}: {children: React.ReactNode})
           <SidebarNav />
         </div>
 
-        <form action={signOut} className="mt-6 border-t border-zinc-100 pt-3">
-          <button className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900">
-            <LogOut aria-hidden className="h-[18px] w-[18px]" strokeWidth={1.75} />
-            Sign out
-          </button>
-        </form>
+        <div className="mt-6 border-t border-zinc-100 pt-3">
+          {billingEnabled() ? (
+            <Link
+              href="/billing"
+              className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900"
+            >
+              <CreditCard aria-hidden className="h-[18px] w-[18px]" strokeWidth={1.75} />
+              Billing
+            </Link>
+          ) : null}
+          <form action={signOut}>
+            <button className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900">
+              <LogOut aria-hidden className="h-[18px] w-[18px]" strokeWidth={1.75} />
+              Sign out
+            </button>
+          </form>
+        </div>
       </aside>
 
       <main className="min-w-0 px-4 py-6 md:px-10 md:py-9">{children}</main>

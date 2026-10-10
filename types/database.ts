@@ -753,6 +753,48 @@ export type Database = {
         Update: {expires_at?: string; heartbeat_at?: string};
         Relationships: EmptyRelationships;
       };
+      billing_accounts: {
+        Row: {
+          user_id: string;
+          stripe_customer_id: string | null;
+          stripe_subscription_id: string | null;
+          status: string;
+          trial_ends_at: string | null;
+          current_period_end: string | null;
+          cancel_at_period_end: boolean;
+          organisations_billed: number;
+          trial_used: boolean;
+          comped: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          user_id: string;
+          stripe_customer_id?: string | null;
+          stripe_subscription_id?: string | null;
+          status?: string;
+          trial_ends_at?: string | null;
+          current_period_end?: string | null;
+          cancel_at_period_end?: boolean;
+          organisations_billed?: number;
+          trial_used?: boolean;
+          comped?: boolean;
+          updated_at?: string;
+        };
+        Update: {
+          stripe_customer_id?: string | null;
+          stripe_subscription_id?: string | null;
+          status?: string;
+          trial_ends_at?: string | null;
+          current_period_end?: string | null;
+          cancel_at_period_end?: boolean;
+          organisations_billed?: number;
+          trial_used?: boolean;
+          comped?: boolean;
+          updated_at?: string;
+        };
+        Relationships: EmptyRelationships;
+      };
       email_outbox: {
         Row: {
           id: string;
@@ -2346,6 +2388,10 @@ export type Database = {
         Returns: string;
       };
       accept_organisation_invitation: {Args: {invitation_token_hash: string}; Returns: string};
+      organisation_has_access: {
+        Args: {target_organisation_id: string};
+        Returns: boolean;
+      };
       is_email_organisation_member: {
         Args: {target_organisation_id: string; target_email: string};
         Returns: boolean;

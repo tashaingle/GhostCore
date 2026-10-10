@@ -6,6 +6,8 @@ import type {Database} from "@/types/database";
 import {requireUser} from "@/lib/auth/user";
 import {ACTIVE_ORGANISATION_COOKIE, getActiveOrganisation} from "@/lib/organisations/active";
 import {createServiceClient} from "@/lib/supabase/service";
+import {after} from "next/server";
+import {syncOrganisationCount} from "@/lib/billing/stripe";
 import {githubAppEnv, uninstall} from "@/lib/integrations/github/app";
 import {
   confirmsAccountDeletion,
@@ -48,6 +50,9 @@ export async function deleteOrganisation(form: FormData) {
     console.error("Organisation deletion failed", error);
     redirect(settings("error", "The organisation could not be deleted. Please try again."));
   }
+  // The person who created it pays for it; their bill drops by one organisation.
+  const creator = ctx.organisation.created_by;
+  after(() => syncOrganisationCount(creator).catch((e) => console.error("Billing count", e)));
 
   // Move to another organisation the user belongs to, or to onboarding if none remain.
   const next = ctx.organisations.find((o) => o.id !== id),

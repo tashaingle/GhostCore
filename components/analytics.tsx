@@ -73,20 +73,25 @@ gtag('config', '${MEASUREMENT_ID}');`}
         <div
           role="dialog"
           aria-label="Cookies"
-          className="fixed inset-x-4 bottom-4 z-50 mx-auto max-w-xl rounded-2xl border border-zinc-200 bg-white p-4 shadow-lg sm:flex sm:items-center sm:gap-4"
+          className="fixed inset-x-0 bottom-0 z-50 flex items-center gap-3 border-t border-zinc-200 bg-white/95 px-4 py-2.5 shadow-[0_-8px_30px_-12px_rgba(0,0,0,0.25)] backdrop-blur sm:inset-x-auto sm:bottom-4 sm:left-4 sm:max-w-sm sm:flex-col sm:items-start sm:rounded-2xl sm:border sm:p-4"
         >
-          <p className="text-sm text-zinc-600">
-            Can we use analytics cookies to see how people find and use this site? They&apos;re
-            never used inside the app.{" "}
+          <p className="min-w-0 flex-1 text-xs leading-snug text-zinc-600 sm:text-sm">
+            Analytics cookies help us see how people find this site. Never used in the app.{" "}
             <Link className="underline" href="/privacy">
-              Privacy policy
+              More
             </Link>
           </p>
-          <div className="mt-3 flex shrink-0 gap-2 sm:mt-0">
-            <button className="button button-secondary" onClick={() => choose("denied")}>
+          <div className="flex shrink-0 gap-2">
+            <button
+              className="rounded-lg px-2.5 py-1.5 text-xs font-medium text-zinc-600 hover:bg-zinc-100 sm:text-sm"
+              onClick={() => choose("denied")}
+            >
               No thanks
             </button>
-            <button className="button" onClick={() => choose("granted")}>
+            <button
+              className="rounded-lg bg-zinc-900 px-3 py-1.5 text-xs font-semibold text-white hover:bg-zinc-700 sm:text-sm"
+              onClick={() => choose("granted")}
+            >
               Allow
             </button>
           </div>

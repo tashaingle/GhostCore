@@ -77,7 +77,7 @@ function Example({index}: {index: number}) {
 export function Notices() {
   const [active, setActive] = useState(0);
   return (
-    <section id="what-it-notices" data-tone="paper" className="bg-paper py-24 text-ink md:py-36">
+    <section id="what-it-notices" data-tone="paper" className="bg-paper py-16 text-ink md:py-36">
       <div className="mx-auto max-w-[1320px] px-5 md:px-10">
         <Reveal>
           <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-mage">
@@ -89,7 +89,7 @@ export function Notices() {
           <SetType text="if you had the time." className="block" delay={0.12} />
         </h2>
 
-        <div className="mt-16 grid gap-12 lg:mt-24 lg:grid-cols-[1.15fr_1fr] lg:gap-20">
+        <div className="mt-10 grid gap-12 lg:mt-24 lg:grid-cols-[1.15fr_1fr] lg:gap-20">
           <ul className="border-t border-ink/15">
             {NOTICES.map((item, i) => {
               const on = active === i;
@@ -101,7 +101,7 @@ export function Notices() {
                     onFocus={() => setActive(i)}
                     onClick={() => setActive(i)}
                     aria-expanded={on}
-                    className="group grid w-full grid-cols-[3rem_1fr_auto] items-baseline gap-4 py-6 text-left md:py-7"
+                    className="group grid w-full grid-cols-[2.5rem_1fr] items-baseline gap-3 py-5 text-left md:grid-cols-[3rem_1fr] md:gap-4 md:py-6"
                   >
                     <span
                       className={`font-mono text-xs transition-colors duration-300 ${on ? "text-mage" : "text-ink/35"}`}
@@ -109,14 +109,9 @@ export function Notices() {
                       0{i + 1}
                     </span>
                     <span
-                      className={`font-display text-2xl font-medium tracking-tight transition-all duration-500 md:text-3xl xl:text-[34px] ${on ? "translate-x-2 text-ink" : "text-ink/45 group-hover:text-ink/75"}`}
+                      className={`font-display text-2xl font-medium tracking-tight transition-all duration-500 md:text-3xl ${on ? "translate-x-2 text-ink" : "text-ink/45 group-hover:text-ink/75"}`}
                     >
                       {item.title}
-                    </span>
-                    <span
-                      className={`hidden font-mono text-[10px] uppercase tracking-[0.2em] transition-opacity duration-300 sm:block ${on ? "text-ink/60 opacity-100" : "opacity-0"}`}
-                    >
-                      {item.tools}
                     </span>
                   </button>
                   {/* On small screens the example opens under the row. */}

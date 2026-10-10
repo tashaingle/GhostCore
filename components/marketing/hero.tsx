@@ -238,9 +238,12 @@ export function Hero() {
             >
               See how it works
             </Link>
+            <p className="w-full text-sm text-white/55">
+              7-day free trial, then £4.99 a month. Cancel any time.
+            </p>
           </motion.div>
 
-          <dl className="mt-16 grid max-w-lg grid-cols-3 gap-6 border-t border-white/10 pt-6">
+          <dl className="mt-12 grid max-w-lg grid-cols-3 gap-6 border-t border-white/10 pt-6">
             {[
               {value: 19, suffix: "", label: "tools it reads"},
               {value: 60, suffix: " min", label: "between checks"},

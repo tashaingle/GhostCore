@@ -6,6 +6,7 @@ import {Tools} from "@/components/marketing/tools";
 import {HowItWorks} from "@/components/marketing/how-it-works";
 import {Notices} from "@/components/marketing/notices";
 import {Performance} from "@/components/marketing/performance";
+import {Pricing} from "@/components/marketing/pricing";
 import {FinalCall, SiteFooter, Trust} from "@/components/marketing/closing";
 
 export default async function Home() {
@@ -23,6 +24,7 @@ export default async function Home() {
       <HowItWorks />
       <Notices />
       <Performance />
+      <Pricing />
       <Trust />
       <FinalCall />
       <SiteFooter />

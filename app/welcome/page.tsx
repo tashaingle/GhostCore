@@ -8,6 +8,8 @@ import {createWorkspace} from "@/app/organisation-actions";
 import {signOut} from "@/app/actions";
 import {Notice} from "@/components/notice";
 import {SubmitButton} from "@/components/submit-button";
+import {hasAccess, PLAN, pounds} from "@/lib/billing/plan";
+import {billingAccount, billingEnabled} from "@/lib/billing/stripe";
 import {ProviderMark} from "@/components/home-ui";
 import {BrandMark} from "@/components/brand-mark";
 
@@ -78,6 +80,8 @@ export default async function Welcome({
   const params = await searchParams;
   const {user} = await requireUser();
   const ctx = await getActiveOrganisation(true);
+  // Say up front that the next step is the free trial, so the card form isn't a surprise.
+  const trialNext = billingEnabled() && !hasAccess(await billingAccount(user.id));
   const firstName =
     (user.user_metadata?.full_name as string | undefined)?.trim().split(/\s+/)[0] ?? null;
 
@@ -153,8 +157,13 @@ export default async function Welcome({
                   />
                 </label>
                 <SubmitButton className="button w-full" pendingLabel="Creating your workspace…">
-                  Continue
+                  {trialNext ? `Continue to your ${PLAN.trialDays}-day free trial` : "Continue"}
                 </SubmitButton>
+                {trialNext ? (
+                  <p className="text-center text-xs text-zinc-500">
+                    {`Free for ${PLAN.trialDays} days, then ${pounds(PLAN.baseMinor)} a month for up to ${PLAN.includedOrganisations} organisations. You'll add a card next; cancel before the trial ends and you won't pay anything.`}
+                  </p>
+                ) : null}
               </form>
             </div>
           </section>

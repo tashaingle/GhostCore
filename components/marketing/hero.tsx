@@ -242,7 +242,7 @@ export function Hero() {
 
           <dl className="mt-16 grid max-w-lg grid-cols-3 gap-6 border-t border-white/10 pt-6">
             {[
-              {value: 14, suffix: "", label: "tools it reads"},
+              {value: 19, suffix: "", label: "tools it reads"},
               {value: 60, suffix: " min", label: "between checks"},
               {value: 100, suffix: "%", label: "reading, never changing"},
             ].map((s) => (

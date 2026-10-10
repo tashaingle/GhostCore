@@ -23,7 +23,6 @@ const PROVIDER_MARKS: Record<string, string> = {
   shopify: "/providers/shopify.png",
   slack: "/providers/slack.png",
   stripe: "/providers/stripe.png",
-  tiktok: "/providers/tiktok.png",
   vercel: "/providers/vercel.png",
 };
 

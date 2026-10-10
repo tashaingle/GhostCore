@@ -16,7 +16,6 @@ const LOGOS: Logo[] = [
   {slug: "notion", name: "Notion", w: 467, h: 160},
   {slug: "github", name: "GitHub", w: 177, h: 160, big: true},
   {slug: "vercel", name: "Vercel", w: 520, h: 104},
-  {slug: "tiktok", name: "TikTok", w: 142, h: 160, big: true},
   {slug: "google-play", name: "Google Play", w: 649, h: 160},
   {slug: "app-store", name: "App Store", w: 466, h: 160},
   {slug: "google-ads", name: "Google Ads", w: 426, h: 160},
@@ -80,8 +79,8 @@ export function Tools() {
         </div>
       </div>
       <div className="mt-16 space-y-6 md:mt-20">
-        <Row items={LOGOS.slice(0, 6)} />
-        <Row items={LOGOS.slice(6)} reverse />
+        <Row items={LOGOS.slice(0, Math.ceil(LOGOS.length / 2))} />
+        <Row items={LOGOS.slice(Math.ceil(LOGOS.length / 2))} reverse />
       </div>
     </section>
   );

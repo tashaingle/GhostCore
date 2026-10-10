@@ -16,7 +16,6 @@ import {ShopifyError} from "./shopify/client";
 import {MetaAdsError} from "./meta-ads/client";
 import {LinkedInError} from "./linkedin/client";
 import {VercelError} from "./vercel/client";
-import {TikTokError} from "./tiktok/client";
 import {GooglePlayError} from "./google-play/client";
 import {AppStoreError} from "./app-store/client";
 import {BusinessProfileError} from "./google-business-profile/client";
@@ -219,7 +218,6 @@ export async function runIntegrationSync(input: RunnerInput): Promise<SyncSummar
       (error instanceof MetaAdsError && error.kind === "rate_limit") ||
       (error instanceof LinkedInError && error.kind === "rate_limit") ||
       (error instanceof VercelError && error.kind === "rate_limit") ||
-      (error instanceof TikTokError && error.kind === "rate_limit") ||
       (error instanceof GooglePlayError && error.kind === "rate_limit") ||
       (error instanceof AppStoreError && error.kind === "rate_limit") ||
       (error instanceof BusinessProfileError && error.kind === "rate_limit") ||
@@ -236,7 +234,6 @@ export async function runIntegrationSync(input: RunnerInput): Promise<SyncSummar
       (error instanceof MetaAdsError && error.kind === "unauthorized") ||
       (error instanceof LinkedInError && error.kind === "unauthorized") ||
       (error instanceof VercelError && error.kind === "unauthorized") ||
-      (error instanceof TikTokError && error.kind === "unauthorized") ||
       (error instanceof GooglePlayError && error.kind === "unauthorized") ||
       (error instanceof AppStoreError && error.kind === "unauthorized") ||
       (error instanceof BusinessProfileError && error.kind === "unauthorized") ||

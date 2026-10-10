@@ -8,8 +8,10 @@ const LOGOS: Logo[] = [
   {slug: "google-analytics", name: "Google Analytics", w: 220, h: 160, big: true},
   {slug: "google-search-console", name: "Google Search Console", w: 349, h: 160},
   {slug: "meta-ads", name: "Meta Ads", w: 319, h: 160},
+  {slug: "mailchimp", name: "Mailchimp", w: 160, h: 160, big: true},
   {slug: "gmail", name: "Gmail", w: 491, h: 160},
   {slug: "meta", name: "Facebook and Instagram", w: 520, h: 118},
+  {slug: "outlook", name: "Outlook", w: 520, h: 107},
   {slug: "google-calendar", name: "Google Calendar", w: 520, h: 158},
   {slug: "linkedin", name: "LinkedIn", w: 520, h: 128},
   {slug: "slack", name: "Slack", w: 520, h: 133},
@@ -19,6 +21,7 @@ const LOGOS: Logo[] = [
   {slug: "google-play", name: "Google Play", w: 649, h: 160},
   {slug: "app-store", name: "App Store", w: 466, h: 160},
   {slug: "google-ads", name: "Google Ads", w: 426, h: 160},
+  {slug: "google-business-profile", name: "Google Business Profile", w: 380, h: 160},
 ];
 
 type Logo = {slug: string; name: string; w: number; h: number; big?: boolean};

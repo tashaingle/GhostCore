@@ -16,7 +16,6 @@ export type ProviderId =
   | "notion"
   | "slack"
   | "vercel"
-  | "tiktok"
   | "google_play"
   | "app_store"
   | "google_business_profile"
@@ -49,7 +48,6 @@ export type ProviderDefinition = {
     | "notion"
     | "slack"
     | "vercel"
-    | "tiktok"
     | "google_play"
     | "app_store"
     | "google_business_profile"
@@ -344,22 +342,6 @@ export const providerRegistry = {
     propertySelection: true,
     connectPath: "/api/integrations/vercel/connect",
     configurationPath: "/app/integrations/vercel/settings",
-  },
-  tiktok: {
-    id: "tiktok",
-    displayName: "TikTok",
-    description: "Followers, likes and new public posts from the account you connect. Read-only.",
-    icon: "TT",
-    colour: "#111111",
-    category: "Marketing",
-    oauth: true,
-    sync: true,
-    capabilities: ["oauth", "polling", "read_only"],
-    schedule: "daily",
-    recommendedFrequency: "Daily",
-    connector: "tiktok",
-    healthSupport: true,
-    connectPath: "/api/integrations/tiktok/connect",
   },
   google_play: {
     id: "google_play",

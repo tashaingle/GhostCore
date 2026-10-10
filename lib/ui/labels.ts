@@ -17,6 +17,7 @@ const providerNames: Record<string, string> = {
   notion: "Notion",
   slack: "Slack",
   vercel: "Vercel",
+  // Kept so past TikTok activity still reads nicely; the connection itself was removed.
   tiktok: "TikTok",
   google_play: "Google Play",
   app_store: "App Store",

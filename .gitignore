@@ -49,3 +49,6 @@ next-env.d.ts
 
 # Private keys (e.g. SSL certificates from the domain registrar)
 *.key
+
+# Apple private keys (App Store Connect / Sign in with Apple)
+*.p8

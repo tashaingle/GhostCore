@@ -2,7 +2,7 @@ import "server-only";
 import type Stripe from "stripe";
 import {stripeClient} from "@/lib/integrations/stripe/client";
 import {createServiceClient} from "@/lib/supabase/service";
-import {PLAN, toBillingStatus} from "./plan";
+import {isCancelling, PLAN, toBillingStatus} from "./plan";
 
 /**
  * Billing turns on once the webhook secret is set, so deploying this code changes nothing until
@@ -143,7 +143,7 @@ export async function saveSubscription(subscription: Stripe.Subscription, userId
       status: toBillingStatus(subscription.status),
       trial_ends_at: toIso(subscription.trial_end),
       current_period_end: toIso(item?.current_period_end),
-      cancel_at_period_end: subscription.cancel_at_period_end,
+      cancel_at_period_end: isCancelling(subscription),
       organisations_billed: item?.quantity ?? 0,
       trial_used: true,
       updated_at: new Date().toISOString(),
@@ -173,4 +173,16 @@ export async function syncOrganisationCount(userId: string) {
     proration_behavior: "create_prorations",
   });
   await saveSubscription(updated, userId);
+}
+
+/**
+ * Re-reads the person's subscription from Stripe and saves it. The Billing page calls this, so a
+ * missed or misread webhook is corrected the next time they look.
+ */
+export async function refreshSubscription(userId: string) {
+  if (!billingEnabled()) return;
+  const account = await billingAccount(userId);
+  if (!account?.stripe_subscription_id) return;
+  const subscription = await stripeClient().subscriptions.retrieve(account.stripe_subscription_id);
+  await saveSubscription(subscription, userId);
 }

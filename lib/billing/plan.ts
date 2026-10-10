@@ -66,3 +66,12 @@ export function toBillingStatus(status: string): BillingStatus {
   ];
   return (known as string[]).includes(status) ? (status as BillingStatus) : "none";
 }
+
+/**
+ * Whether a subscription is set to end. Newer Stripe versions and the billing portal set a
+ * cancel_at date instead of cancel_at_period_end, so either counts.
+ */
+export const isCancelling = (subscription: {
+  cancel_at_period_end: boolean;
+  cancel_at: number | null;
+}) => subscription.cancel_at_period_end || subscription.cancel_at !== null;

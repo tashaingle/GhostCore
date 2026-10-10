@@ -1,6 +1,12 @@
 import {readFileSync} from "node:fs";
 import {describe, expect, it} from "vitest";
-import {describePrice, hasAccess, monthlyMinor, toBillingStatus} from "@/lib/billing/plan";
+import {
+  describePrice,
+  hasAccess,
+  isCancelling,
+  monthlyMinor,
+  toBillingStatus,
+} from "@/lib/billing/plan";
 
 describe("pricing", () => {
   it("is £4.99 for up to three organisations, then £1 each", () => {
@@ -57,5 +63,13 @@ describe("billing migration", () => {
   it("only tells members whether their organisation has access, using the same rule", () => {
     expect(sql).toContain("b.comped or b.status in ('trialing', 'active', 'past_due')");
     expect(sql).toContain("m.user_id = auth.uid()");
+  });
+});
+
+describe("cancelling", () => {
+  it("counts the billing portal's cancel date as cancelled, as well as the older flag", () => {
+    expect(isCancelling({cancel_at_period_end: false, cancel_at: 1_792_000_000})).toBe(true);
+    expect(isCancelling({cancel_at_period_end: true, cancel_at: null})).toBe(true);
+    expect(isCancelling({cancel_at_period_end: false, cancel_at: null})).toBe(false);
   });
 });

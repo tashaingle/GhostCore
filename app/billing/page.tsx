@@ -7,7 +7,12 @@ import {signOut} from "@/app/actions";
 import {BrandMark} from "@/components/brand-mark";
 import {Notice} from "@/components/notice";
 import {describePrice, hasAccess, PLAN} from "@/lib/billing/plan";
-import {billingAccount, billingEnabled, ownedOrganisations} from "@/lib/billing/stripe";
+import {
+  billingAccount,
+  billingEnabled,
+  ownedOrganisations,
+  refreshSubscription,
+} from "@/lib/billing/stripe";
 
 const date = (iso: string | null) =>
   iso ? new Date(iso).toLocaleDateString("en-GB", {day: "numeric", month: "long"}) : "";
@@ -20,6 +25,10 @@ export default async function Billing({
 }) {
   const ctx = await getActiveOrganisation(true);
   if (!ctx) return null;
+  // Check with Stripe first, so the page never shows an out-of-date status.
+  await refreshSubscription(ctx.user.id).catch((error) =>
+    console.error("Billing refresh failed", error),
+  );
   const enabled = billingEnabled(),
     [account, owned] = await Promise.all([
       billingAccount(ctx.user.id),

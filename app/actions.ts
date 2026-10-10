@@ -91,15 +91,16 @@ export async function signUp(form: FormData) {
       ),
     );
   // Supabase answers a sign-up for an existing address with a user that has no identities and
-  // sends no email. From an invitation the inviter already knows the address, so say so and send
-  // them to sign in; elsewhere keep the generic reply so the form can't reveal who has an account.
-  if (next?.startsWith("/invite/") && data.user && !data.user.identities?.length)
+  // sends no email, so say so rather than leaving them waiting for an email that never comes.
+  if (data.user && !data.user.identities?.length)
     redirect(
       withNext(
         messageUrl(
           "/login",
-          "success",
-          "This email already has a Metric Mage account. Sign in to accept your invitation.",
+          "error",
+          next?.startsWith("/invite/")
+            ? "This email already has a Metric Mage account. Sign in to accept your invitation."
+            : "There's already a Metric Mage account with this email. Sign in, or use Forgot password if you've forgotten it.",
         ),
         next,
       ),

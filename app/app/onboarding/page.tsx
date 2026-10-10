@@ -47,11 +47,25 @@ function WorkspaceForm({
         </label>
         <label className="label">
           Logo URL (optional)
-          <input className="field" name="logoUrl" type="url" placeholder="https://…" />
+          <input
+            className="field"
+            name="logoUrl"
+            type="text"
+            inputMode="url"
+            autoComplete="url"
+            placeholder="Link to your logo (optional)"
+          />
         </label>
         <label className="label">
           Website (optional)
-          <input className="field" name="website" type="url" placeholder="https://…" />
+          <input
+            className="field"
+            name="website"
+            type="text"
+            inputMode="url"
+            autoComplete="url"
+            placeholder="yourbusiness.co.uk"
+          />
         </label>
         <label className="label">
           Industry (optional)

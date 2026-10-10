@@ -57,10 +57,11 @@ export default async function Settings({
           />
         </label>
         <label className="label">
-          Logo URL
+          Logo link
           <input
             className="field"
-            type="url"
+            type="text"
+            inputMode="url"
             name="logoUrl"
             defaultValue={ctx.organisation.logo_url ?? ""}
             disabled={!editable}
@@ -70,7 +71,10 @@ export default async function Settings({
           Website
           <input
             className="field"
-            type="url"
+            type="text"
+            inputMode="url"
+            autoComplete="url"
+            placeholder="yourbusiness.co.uk"
             name="website"
             defaultValue={ctx.organisation.website ?? ""}
             disabled={!editable}

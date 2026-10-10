@@ -7,6 +7,16 @@ import {z} from "zod";
 import {requireUser} from "@/lib/auth/user";
 import {getActiveOrganisation, ACTIVE_ORGANISATION_COOKIE} from "@/lib/organisations/active";
 import {uniqueSlug} from "@/lib/organisations/slug";
+import {optionalWebAddress} from "@/lib/forms/web-address";
+
+/** The first thing wrong with a form, in words; our own messages win over zod's defaults. */
+function firstProblem(error: z.ZodError) {
+  const issue = error.issues[0];
+  if (issue?.code === "custom") return issue.message;
+  if (issue?.path[0] === "name") return "Organisation names must be 2 to 100 characters.";
+  if (issue?.path[0] === "currency") return "Currency should be a 3-letter code, like GBP.";
+  return "Check the details and try again.";
+}
 import {after} from "next/server";
 import {hasAccess} from "@/lib/billing/plan";
 import {billingAccount, billingEnabled, syncOrganisationCount} from "@/lib/billing/stripe";
@@ -82,13 +92,17 @@ export async function createWorkspace(form: FormData) {
   const parsed = z
     .object({
       name: z.string().trim().min(2).max(100),
-      logoUrl: z.string().url().or(z.literal("")),
-      website: z.string().url().or(z.literal("")),
+      logoUrl: optionalWebAddress(
+        "The logo link doesn't look like a web address. Paste the link to an image, or leave it blank.",
+      ).default(""),
+      website: optionalWebAddress(
+        "That website doesn't look right. Try something like yourbusiness.co.uk, or leave it blank.",
+      ).default(""),
       industry: z.string().trim().max(100),
     })
     .safeParse(Object.fromEntries(form));
   const path = String(form.get("returnPath") || "/app/organisations/new");
-  if (!parsed.success) redirect(message(path, "error", "Check the details and try again."));
+  if (!parsed.success) redirect(message(path, "error", firstProblem(parsed.error)));
   const {supabase, user} = await requireUser();
   // A repeated submit (e.g. a double click) within a minute reuses the organisation just created.
   const {data: recent} = await supabase
@@ -153,8 +167,12 @@ export async function updateOrganisation(form: FormData) {
   const parsed = z
     .object({
       name: z.string().trim().min(2).max(100),
-      logoUrl: z.string().url().or(z.literal("")),
-      website: z.string().url().or(z.literal("")),
+      logoUrl: optionalWebAddress(
+        "The logo link doesn't look like a web address. Paste the link to an image, or leave it blank.",
+      ).default(""),
+      website: optionalWebAddress(
+        "That website doesn't look right. Try something like yourbusiness.co.uk, or leave it blank.",
+      ).default(""),
       industry: z.string().trim().max(100),
       timezone: z.string().trim().min(1).max(80),
       currency: z
@@ -164,8 +182,7 @@ export async function updateOrganisation(form: FormData) {
         .transform((v) => v.toUpperCase()),
     })
     .safeParse(Object.fromEntries(form));
-  if (!parsed.success)
-    redirect(message("/app/settings", "error", "Check the organisation settings."));
+  if (!parsed.success) redirect(message("/app/settings", "error", firstProblem(parsed.error)));
   const {error} = await ctx.supabase
     .from("organisations")
     .update({

@@ -143,7 +143,14 @@ export default async function Welcome({
                 </label>
                 <label className="label">
                   Website <span className="font-normal text-zinc-400">(optional)</span>
-                  <input className="field" name="website" type="url" placeholder="https://…" />
+                  <input
+                    className="field"
+                    name="website"
+                    type="text"
+                    inputMode="url"
+                    autoComplete="url"
+                    placeholder="yourbusiness.co.uk"
+                  />
                 </label>
                 <SubmitButton className="button w-full" pendingLabel="Creating your workspace…">
                   Continue

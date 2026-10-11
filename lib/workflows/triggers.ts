@@ -40,6 +40,33 @@ export async function dispatchWorkflowTrigger(
   }
   return results;
 }
+/** Failed builds and deploys from GitHub and Vercel start "When a build or deploy fails". */
+export const BUILD_FAILURE_EVENTS = [
+  "workflow.failed",
+  "github.deployment_failed",
+  "vercel.deployment.failed",
+];
+/** What an automation gets to know about the failure; a cancelled run isn't a failure. */
+export function buildFailurePayload(event: {
+  source: string;
+  event_type: string;
+  title: string;
+  metadata: unknown;
+}) {
+  const m =
+    event.metadata && typeof event.metadata === "object"
+      ? (event.metadata as Record<string, unknown>)
+      : {};
+  if (m.conclusion === "cancelled") return null;
+  return {
+    source: event.source,
+    eventType: event.event_type,
+    title: event.title,
+    repository: m.repository ?? m.project ?? null,
+    branch: m.branch ?? null,
+    url: m.url ?? null,
+  };
+}
 export async function discoverStoredTriggers(
   client: SupabaseClient<Database>,
   organisationId: string,
@@ -56,10 +83,10 @@ export async function discoverStoredTriggers(
   ] = await Promise.all([
     client
       .from("events")
-      .select("id,event_type,severity")
+      .select("id,event_type,severity,source,title,metadata")
       .eq("organisation_id", organisationId)
       .gte("created_at", since)
-      .in("event_type", ["notification.created", "notification.resolved"]),
+      .in("event_type", ["notification.created", "notification.resolved", ...BUILD_FAILURE_EVENTS]),
     client
       .from("background_job_runs")
       .select("id,job_id,error")
@@ -83,7 +110,20 @@ export async function discoverStoredTriggers(
       .eq("organisation_id", organisationId)
       .gte("created_at", since),
   ]);
-  for (const e of events ?? [])
+  for (const e of events ?? []) {
+    if (BUILD_FAILURE_EVENTS.includes(e.event_type)) {
+      const payload = buildFailurePayload(e);
+      if (payload)
+        results.push(
+          await dispatchWorkflowTrigger(client, {
+            organisationId,
+            triggerType: "deployment.failed",
+            sourceId: e.id,
+            payload,
+          }),
+        );
+      continue;
+    }
     results.push(
       await dispatchWorkflowTrigger(client, {
         organisationId,
@@ -92,6 +132,7 @@ export async function discoverStoredTriggers(
         payload: {severity: e.severity},
       }),
     );
+  }
   for (const j of jobs ?? [])
     results.push(
       await dispatchWorkflowTrigger(client, {

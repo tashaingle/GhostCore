@@ -10,11 +10,11 @@ export const workflowTemplates: WorkflowTemplate[] = [
     key: "deployment_failure",
     name: "Deployment failure review",
     description:
-      "When a GitHub build fails: assign someone to look into it, ask an owner to approve, then re-sync GitHub.",
+      "When a build or deploy fails on GitHub or Vercel: give someone a task to look into it, ask an owner to approve the fix, then re-sync GitHub.",
     definition: {
       name: "Deployment failure review",
-      description: "Recover from a failed deployment, with an owner's approval.",
-      triggerType: "notification.created",
+      description: "Recover from a failed build or deploy, with an owner's approval.",
+      triggerType: "deployment.failed",
       steps: [
         {
           name: "Assign someone to investigate",

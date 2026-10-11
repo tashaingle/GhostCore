@@ -354,6 +354,7 @@ const triggerLabels: Record<string, string> = {
   "background_job.failed": "When a background task fails",
   "integration.error": "When a connection stops working",
   "integration.reconnected": "When a connection is fixed",
+  "deployment.failed": "When a build or deploy fails",
   "csv_import.completed": "When a spreadsheet import finishes",
   "csv_import.failed": "When a spreadsheet import fails",
   "organisation.created": "When the organisation is created",

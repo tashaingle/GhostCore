@@ -8,9 +8,17 @@ import {
   timeAgo,
   type ConnectionStatus,
 } from "@/lib/home/connections";
-import {PERIOD_DAYS, parsePeriod} from "@/lib/home/performance";
+import {PERIOD_DAYS, PERIOD_LABEL, parsePeriod} from "@/lib/home/performance";
 import {loadPerformance} from "@/lib/home/load-performance";
-import {HowYoureDoing} from "@/components/how-youre-doing";
+import {
+  arrangeFigures,
+  FigureTiles,
+  GoingWellCards,
+  MainChart,
+  MoreFigures,
+  PeriodPills,
+} from "@/components/how-youre-doing";
+import {LatestActivity} from "@/components/latest-activity";
 import {insightNeedsAction} from "@/lib/notifications/insight-rules";
 import {runIntelligenceAction} from "@/app/intelligence-actions";
 import {Notice} from "@/components/notice";
@@ -100,6 +108,7 @@ export default async function Home({
     {count: memberCount},
     {count: invitationCount},
     {count: myPreferences},
+    {data: activity},
   ] = await Promise.all([
     ctx.supabase
       .from("integrations")
@@ -147,6 +156,14 @@ export default async function Home({
       .select("id", {count: "exact", head: true})
       .eq("organisation_id", org)
       .eq("user_id", ctx.user.id),
+    // What's been happening across the tools; Metric Mage's own audit trail isn't included.
+    ctx.supabase
+      .from("events")
+      .select("id,source,title,severity,occurred_at")
+      .eq("organisation_id", org)
+      .neq("source", "ghost")
+      .order("occurred_at", {ascending: false})
+      .limit(6),
   ]);
 
   const connections = sortConnections(
@@ -241,7 +258,8 @@ export default async function Home({
       .slice(0, 4),
     attentionTotal = (notificationCount ?? 0) + (approvals?.length ?? 0);
 
-  const {metrics, highlights, updates} = performance;
+  const {metrics, highlights, updates} = performance,
+    figures = arrangeFigures(metrics);
 
   const firstName =
       (ctx.user.user_metadata?.full_name as string | undefined)?.trim().split(/\s+/)[0] ?? null,
@@ -261,7 +279,7 @@ export default async function Home({
         : "Let's get your tools connected.";
 
   return (
-    <div className="mx-auto max-w-6xl space-y-10">
+    <div className="mx-auto max-w-[1400px] space-y-6">
       <header className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-sm font-medium text-violet-700">
@@ -356,124 +374,150 @@ export default async function Home({
       )}
 
       {connections.length && !(firstSync && !metrics.length) ? (
-        <HowYoureDoing
-          period={period}
-          metrics={metrics}
-          highlights={highlights}
-          updates={updates ?? 0}
-          notes={(insights ?? []).flatMap((insight) => {
-            const t = Date.parse(insight.updated_at);
-            return t >= now.getTime() - PERIOD_DAYS[period] * 86_400_000
-              ? [{t, title: insight.title}]
-              : [];
-          })}
-          healthy={[
-            ...(connections.length && !broken.length
-              ? [
-                  connections.length === 1
-                    ? "Your connected tool is up to date"
-                    : `All ${connections.length} connected tools are up to date`,
-                ]
-              : []),
-            ...(attentionTotal === 0 ? ["Nothing urgent is waiting for you"] : []),
-          ]}
-        />
-      ) : null}
-
-      {connections.length ? (
-        <div className="grid gap-10 lg:grid-cols-5">
-          <section className="lg:col-span-3" aria-label="Needs your attention">
-            <SectionHeading
-              title="Needs your attention"
-              description="Approvals waiting on you and the most important alerts."
-              href="/app/action-centre"
-              linkLabel={attentionTotal > 5 ? `All ${attentionTotal}` : "Action Centre"}
+        <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(320px,380px)]">
+          <div className="min-w-0 space-y-6">
+            <div className="flex flex-wrap items-end justify-between gap-3">
+              <div>
+                <h2 className="text-lg font-semibold tracking-tight text-zinc-950">
+                  How you&apos;re doing
+                </h2>
+                <p className="mt-0.5 text-sm text-zinc-500">
+                  {`${PERIOD_LABEL[period].current[0].toUpperCase()}${PERIOD_LABEL[period].current.slice(1)} compared with ${PERIOD_LABEL[period].previous}.`}
+                </p>
+              </div>
+              {figures.chart ? null : <PeriodPills period={period} />}
+            </div>
+            <FigureTiles metrics={figures.top} period={period} />
+            <MainChart
+              figure={figures.chart}
+              period={period}
+              notes={(insights ?? []).flatMap((insight) => {
+                const t = Date.parse(insight.updated_at);
+                return t >= now.getTime() - PERIOD_DAYS[period] * 86_400_000
+                  ? [{t, title: insight.title}]
+                  : [];
+              })}
             />
-            {approvals?.length || attention.length ? (
-              <ul className="overflow-hidden rounded-2xl border border-zinc-200/80 bg-white shadow-sm shadow-zinc-900/[0.03]">
-                {(approvals ?? []).map((a) => (
-                  <li key={a.id} className="border-b border-zinc-100 last:border-0">
-                    <Link
-                      href={`/app/approvals/${a.id}`}
-                      className="flex items-center gap-4 px-5 py-4 transition-colors hover:bg-zinc-50"
-                    >
-                      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-violet-100 text-violet-700">
-                        <Stamp aria-hidden className="h-[18px] w-[18px]" />
-                      </span>
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate font-medium text-zinc-900">
-                          Approve: {workflowNames.get(a.run_id) ?? "an automation"}
-                        </p>
-                        <p className="text-sm text-zinc-500">
-                          {a.due_at
-                            ? `Due ${new Date(a.due_at).toLocaleString("en-GB", {day: "numeric", month: "short", hour: "2-digit", minute: "2-digit"})}`
-                            : `Waiting since ${timeAgo(a.created_at, now)}`}
-                        </p>
-                      </div>
-                      <ArrowRight aria-hidden className="h-4 w-4 text-zinc-300" />
-                    </Link>
-                  </li>
-                ))}
-                {attention.map((n) => (
-                  <li key={n.id} className="border-b border-zinc-100 last:border-0">
-                    <Link
-                      href={`/app/action-centre/${n.id}`}
-                      className="flex items-start gap-4 px-5 py-4 transition-colors hover:bg-zinc-50"
-                    >
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-3">
-                          <SeverityLabel severity={n.severity} />
-                          <span className="text-xs text-zinc-400">
-                            {timeAgo(n.last_detected_at, now)}
-                          </span>
+            {!metrics.length ? (
+              <p className="rounded-3xl bg-white/70 px-5 py-6 text-sm text-zinc-500 ring-1 ring-zinc-200/60">
+                Connect Stripe, Shopify, Meta Ads, Facebook, Search Console, Gmail, Calendar or
+                GitHub to see how your business is doing here.
+              </p>
+            ) : null}
+            <LatestActivity rows={activity ?? []} now={now} />
+            <MoreFigures metrics={figures.rest} period={period} updates={updates ?? 0} />
+          </div>
+
+          <div className="space-y-6">
+            <GoingWellCards
+              period={period}
+              metrics={metrics}
+              highlights={highlights}
+              healthy={[
+                ...(connections.length && !broken.length
+                  ? [
+                      connections.length === 1
+                        ? "Your connected tool is up to date"
+                        : `All ${connections.length} connected tools are up to date`,
+                    ]
+                  : []),
+                ...(attentionTotal === 0 ? ["Nothing urgent is waiting for you"] : []),
+              ]}
+            />
+            <section aria-label="Needs your attention">
+              <SectionHeading
+                title="Needs your attention"
+                description="Approvals waiting on you and the most important alerts."
+                href="/app/action-centre"
+                linkLabel={attentionTotal > 5 ? `All ${attentionTotal}` : "Action Centre"}
+              />
+              {approvals?.length || attention.length ? (
+                <ul className="overflow-hidden rounded-2xl border border-zinc-200/80 bg-white shadow-sm shadow-zinc-900/[0.03]">
+                  {(approvals ?? []).map((a) => (
+                    <li key={a.id} className="border-b border-zinc-100 last:border-0">
+                      <Link
+                        href={`/app/approvals/${a.id}`}
+                        className="flex items-center gap-4 px-5 py-4 transition-colors hover:bg-zinc-50"
+                      >
+                        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-violet-100 text-violet-700">
+                          <Stamp aria-hidden className="h-[18px] w-[18px]" />
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate font-medium text-zinc-900">
+                            Approve: {workflowNames.get(a.run_id) ?? "an automation"}
+                          </p>
+                          <p className="text-sm text-zinc-500">
+                            {a.due_at
+                              ? `Due ${new Date(a.due_at).toLocaleString("en-GB", {day: "numeric", month: "short", hour: "2-digit", minute: "2-digit"})}`
+                              : `Waiting since ${timeAgo(a.created_at, now)}`}
+                          </p>
                         </div>
-                        <p className="mt-1 truncate font-medium text-zinc-900">{n.title}</p>
-                        <p className="mt-0.5 line-clamp-1 text-sm text-zinc-500">{n.summary}</p>
-                      </div>
-                      <ArrowRight aria-hidden className="mt-6 h-4 w-4 shrink-0 text-zinc-300" />
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <div className="flex flex-col items-center rounded-2xl border border-dashed border-zinc-200 bg-white/60 px-6 py-12 text-center">
-                <span className="grid h-11 w-11 place-items-center rounded-2xl bg-emerald-50 text-emerald-600">
-                  <CircleCheck aria-hidden className="h-5 w-5" />
-                </span>
-                <p className="mt-3 font-medium text-zinc-900">You&apos;re all caught up</p>
-                <p className="mt-1 text-sm text-zinc-500">
-                  Nothing needs you right now. New alerts and approvals will appear here.
-                </p>
-              </div>
-            )}
-          </section>
-
-          <section className="lg:col-span-2" aria-label="Insights">
-            <SectionHeading
-              title="Insights"
-              description="What Metric Mage noticed in your business."
-              href="/app/insights"
-              linkLabel={insightCount && insightCount > 4 ? `All ${insightCount}` : "All insights"}
-            />
-            {topInsights.length ? (
-              <div className="space-y-3">
-                {topInsights.map((insight) => (
-                  <InsightCard key={insight.id} insight={insight} />
-                ))}
-              </div>
-            ) : (
-              <div className="flex flex-col items-center rounded-2xl border border-dashed border-zinc-200 bg-white/60 px-6 py-12 text-center">
-                <span className="grid h-11 w-11 place-items-center rounded-2xl bg-violet-50 text-violet-600">
-                  <Sparkles aria-hidden className="h-5 w-5" />
-                </span>
-                <p className="mt-3 font-medium text-zinc-900">No insights right now</p>
-                <p className="mt-1 max-w-xs text-sm text-zinc-500">
-                  When Metric Mage spots a change in your sales, payments, ads or website, it will
-                  explain it here.
-                </p>
-              </div>
-            )}
-          </section>
+                        <ArrowRight aria-hidden className="h-4 w-4 text-zinc-300" />
+                      </Link>
+                    </li>
+                  ))}
+                  {attention.map((n) => (
+                    <li key={n.id} className="border-b border-zinc-100 last:border-0">
+                      <Link
+                        href={`/app/action-centre/${n.id}`}
+                        className="flex items-start gap-4 px-5 py-4 transition-colors hover:bg-zinc-50"
+                      >
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-3">
+                            <SeverityLabel severity={n.severity} />
+                            <span className="text-xs text-zinc-400">
+                              {timeAgo(n.last_detected_at, now)}
+                            </span>
+                          </div>
+                          <p className="mt-1 truncate font-medium text-zinc-900">{n.title}</p>
+                          <p className="mt-0.5 line-clamp-1 text-sm text-zinc-500">{n.summary}</p>
+                        </div>
+                        <ArrowRight aria-hidden className="mt-6 h-4 w-4 shrink-0 text-zinc-300" />
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <div className="flex flex-col items-center rounded-2xl border border-dashed border-zinc-200 bg-white/60 px-6 py-12 text-center">
+                  <span className="grid h-11 w-11 place-items-center rounded-2xl bg-emerald-50 text-emerald-600">
+                    <CircleCheck aria-hidden className="h-5 w-5" />
+                  </span>
+                  <p className="mt-3 font-medium text-zinc-900">You&apos;re all caught up</p>
+                  <p className="mt-1 text-sm text-zinc-500">
+                    Nothing needs you right now. New alerts and approvals will appear here.
+                  </p>
+                </div>
+              )}
+            </section>
+            <section aria-label="Insights">
+              <SectionHeading
+                title="Insights"
+                description="What Metric Mage noticed in your business."
+                href="/app/insights"
+                linkLabel={
+                  insightCount && insightCount > 4 ? `All ${insightCount}` : "All insights"
+                }
+              />
+              {topInsights.length ? (
+                <div className="space-y-3">
+                  {topInsights.map((insight) => (
+                    <InsightCard key={insight.id} insight={insight} />
+                  ))}
+                </div>
+              ) : (
+                <div className="flex flex-col items-center rounded-2xl border border-dashed border-zinc-200 bg-white/60 px-6 py-12 text-center">
+                  <span className="grid h-11 w-11 place-items-center rounded-2xl bg-violet-50 text-violet-600">
+                    <Sparkles aria-hidden className="h-5 w-5" />
+                  </span>
+                  <p className="mt-3 font-medium text-zinc-900">No insights right now</p>
+                  <p className="mt-1 max-w-xs text-sm text-zinc-500">
+                    When Metric Mage spots a change in your sales, payments, ads or website, it will
+                    explain it here.
+                  </p>
+                </div>
+              )}
+            </section>
+          </div>
         </div>
       ) : null}
     </div>

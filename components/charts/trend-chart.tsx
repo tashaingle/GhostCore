@@ -1,5 +1,12 @@
 "use client";
-import {useEffect, useRef, useState, type KeyboardEvent, type PointerEvent} from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type KeyboardEvent,
+  type PointerEvent,
+  type ReactNode,
+} from "react";
 import type {Trend} from "@/lib/home/performance";
 import {
   CURRENT_COLOUR,
@@ -29,12 +36,18 @@ export function TrendChart({
   currentLabel,
   previousLabel,
   notes = [],
+  headline,
+  actions,
 }: {
   trend: Trend;
   label: string;
   currentLabel: string;
   previousLabel: string;
   notes?: ChartNote[];
+  /** The big number under the title, e.g. this period's total and its change. */
+  headline?: ReactNode;
+  /** Controls in the card's header, e.g. Week / Month / Year. */
+  actions?: ReactNode;
 }) {
   const box = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
@@ -79,9 +92,13 @@ export function TrendChart({
     tipLeft = shown === null ? 0 : Math.min(Math.max(x(shown) - 90, 0), Math.max(width - 180, 0));
 
   return (
-    <figure className="rounded-2xl border border-zinc-200/80 bg-white p-5 shadow-sm shadow-zinc-900/[0.03]">
-      <figcaption className="flex flex-wrap items-baseline justify-between gap-3">
-        <span className="font-medium text-zinc-900">{label}</span>
+    <figure className="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-zinc-200/60 sm:p-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <span className="font-semibold text-zinc-950">{label}</span>
+        {actions}
+      </div>
+      <figcaption className="mt-3 flex flex-wrap items-end justify-between gap-3">
+        {headline ?? <span />}
         {/* Legend: a short line key per series, matching the marks. */}
         <span className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-zinc-600">
           <span className="flex items-center gap-1.5 whitespace-nowrap">
@@ -272,10 +289,10 @@ export function TrendChart({
 
         {shown !== null ? (
           <div
-            className="pointer-events-none absolute top-0 w-[180px] rounded-xl border border-zinc-200 bg-white/95 p-3 text-sm shadow-lg backdrop-blur"
+            className="pointer-events-none absolute top-0 w-[184px] rounded-xl bg-ink p-3 text-sm text-white shadow-xl"
             style={{left: tipLeft}}
           >
-            <p className="text-xs text-zinc-500">
+            <p className="text-xs text-white/60">
               {formatBucket(trend.starts[shown], trend.bucketDays)}
             </p>
             {[
@@ -283,17 +300,20 @@ export function TrendChart({
               [trend.previous[shown], previousLabel, PREVIOUS_COLOUR],
             ].map(([value, name, colour]) => (
               <p key={name as string} className="mt-1.5 flex items-center gap-2">
-                <span className="h-0.5 w-3 rounded-full" style={{background: colour as string}} />
-                <span className="font-semibold text-zinc-950">
+                <span
+                  className="h-1 w-3 rounded-full ring-1 ring-white/50"
+                  style={{background: colour as string}}
+                />
+                <span className="font-semibold text-white">
                   {value === null ? "—" : formatValue(value as number, trend.unit)}
                 </span>
-                <span className="text-zinc-500">{name as string}</span>
+                <span className="text-white/60">{name as string}</span>
               </p>
             ))}
             {noteAt(shown).map((note) => (
               <p
                 key={note.title}
-                className="mt-2 border-t border-zinc-100 pt-2 text-xs text-zinc-700"
+                className="mt-2 border-t border-white/15 pt-2 text-xs text-white/85"
               >
                 Noticed: {note.title}
               </p>

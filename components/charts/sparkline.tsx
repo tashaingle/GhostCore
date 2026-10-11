@@ -6,7 +6,15 @@ const W = 120,
   PAD = 4;
 
 /** A tile's trend: this period in brand blue, the last one as a faint line behind it. */
-export function Sparkline({trend, label}: {trend: Trend; label: string}) {
+export function Sparkline({
+  trend,
+  label,
+  className = "h-8 w-[120px]",
+}: {
+  trend: Trend;
+  label: string;
+  className?: string;
+}) {
   const values = [...trend.current, ...trend.previous].filter((v): v is number => v !== null),
     max = Math.max(...values, 0),
     // Scaled to its own range: a sparkline shows shape, not size.
@@ -20,7 +28,7 @@ export function Sparkline({trend, label}: {trend: Trend; label: string}) {
   return (
     <svg
       viewBox={`0 0 ${W} ${H}`}
-      className="h-8 w-[120px] overflow-visible"
+      className={`overflow-visible ${className}`}
       role="img"
       aria-label={`${label} trend this period compared with last`}
     >

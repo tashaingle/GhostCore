@@ -61,15 +61,15 @@ function NavLink({item, active}: {item: NavItem; active: boolean}) {
     <Link
       href={item.href}
       aria-current={active ? "page" : undefined}
-      className={`group flex shrink-0 items-center gap-3 rounded-xl px-3 py-2 text-sm transition-colors ${
+      className={`group relative flex shrink-0 items-center gap-3 rounded-xl px-3 py-2 text-sm transition-colors ${
         active
-          ? "bg-zinc-900 font-medium text-white shadow-sm shadow-zinc-900/20"
-          : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-950"
+          ? "bg-white/[0.12] font-medium text-white"
+          : "text-white/65 hover:bg-white/[0.06] hover:text-white"
       }`}
     >
       <Icon
         aria-hidden
-        className={`h-[18px] w-[18px] shrink-0 ${active ? "text-violet-300" : "text-zinc-400 group-hover:text-zinc-700"}`}
+        className={`h-[18px] w-[18px] shrink-0 ${active ? "text-spark" : "text-white/45 group-hover:text-white/80"}`}
         strokeWidth={1.75}
       />
       <span className="whitespace-nowrap">{item.label}</span>
@@ -88,7 +88,7 @@ export function SidebarNav() {
         ))}
       </div>
       <details className="group/more" open={moreActive || undefined}>
-        <summary className="flex cursor-pointer list-none items-center justify-between rounded-lg px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-zinc-400 transition-colors hover:text-zinc-600 [&::-webkit-details-marker]:hidden">
+        <summary className="flex cursor-pointer list-none items-center justify-between rounded-lg px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-white/40 transition-colors hover:text-white/70 [&::-webkit-details-marker]:hidden">
           More
           <ChevronDown
             aria-hidden

@@ -17,7 +17,7 @@ export function OrganisationSwitcher({
       <select
         id="organisation-switcher"
         name="organisationId"
-        className="field text-sm font-medium"
+        className="w-full rounded-xl border border-white/15 bg-white/[0.08] px-3 py-2 text-sm font-medium text-white outline-none focus:border-spark [&>option]:text-zinc-900"
         value={activeId}
         disabled={loading}
         onChange={(event) => event.currentTarget.form?.requestSubmit()}
@@ -28,7 +28,7 @@ export function OrganisationSwitcher({
           </option>
         ))}
       </select>
-      {loading && <p className="mt-1 text-xs text-zinc-500">Switching workspace…</p>}
+      {loading && <p className="mt-1 text-xs text-white/50">Switching workspace…</p>}
     </form>
   );
 }

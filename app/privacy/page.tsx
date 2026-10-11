@@ -1,7 +1,7 @@
 import Link from "next/link";
 import {CookieChoiceButton} from "@/components/analytics";
 
-const UPDATED = "3 October 2026";
+const UPDATED = "11 October 2026";
 
 export const metadata = {
   title: "Privacy Policy · Metric Mage",
@@ -35,7 +35,7 @@ export default function PrivacyPage() {
         <p>
           This Privacy Policy describes how <strong>Metric Mage</strong> (“Metric Mage”, “we”, “us”)
           collects, uses, stores, and shares information when you use our website and application at{" "}
-          <strong>ghost-core-two.vercel.app</strong> (the “Service”).
+          <strong>www.metricmage.co.uk</strong> (the “Service”).
         </p>
 
         <h2>1. Who we are</h2>
@@ -45,9 +45,8 @@ export default function PrivacyPage() {
           organisation-scoped timeline, insights, and workflows.
         </p>
         <p>
-          Contact for privacy requests: use the email address associated with your Metric Mage
-          account owner profile, or the contact method published on the Service homepage once a
-          support address is configured.
+          Contact for privacy requests:{" "}
+          <a href="mailto:support@metricmage.co.uk">support@metricmage.co.uk</a>.
         </p>
 
         <h2>2. Information we collect</h2>
@@ -158,17 +157,56 @@ export default function PrivacyPage() {
           <Link href="/data-deletion">how to delete your data</Link>.
         </p>
 
-        <h2>9. Meta (Facebook / Instagram) specific notes</h2>
+        <h2>9. What we read from each tool</h2>
         <p>
-          When you connect <strong>Meta Social</strong> or <strong>Meta Ads</strong>, Metric Mage
-          requests only the permissions shown on the Meta consent screen. Organic social access is
-          used to import Page and Instagram professional aggregate insights for the organisation
-          that connected the account. Metric Mage does not post or message on Facebook or Instagram.
+          Every connection is chosen by someone in your organisation, and its data is only shown to
+          that organisation. Metric Mage never posts, sends messages, or changes anything in these
+          tools.
+        </p>
+        <ul>
+          <li>
+            <strong>Facebook Pages (and Instagram professional accounts, where connected):</strong>{" "}
+            the names of the Pages you choose, and daily totals such as followers, reach, post views
+            and engagement. We do not read private messages or individual people&apos;s details.
+            Meta permissions: pages_show_list, pages_read_engagement, read_insights and
+            business_management.
+          </li>
+          <li>
+            <strong>Meta Ads:</strong> the names of your ad accounts and campaigns, and daily
+            results such as spend, impressions, clicks and the purchases Meta attributes to your
+            ads. We never create, edit or pause ads. Meta permissions: ads_read and
+            business_management.
+          </li>
+          <li>
+            <strong>Microsoft Outlook:</strong> the sender, recipients, subject line and date of
+            emails, to show new enquiries. We never read the message itself, its preview or its
+            attachments. Microsoft permissions: Mail.ReadBasic, User.Read (your name and email
+            address, to label the connection) and offline_access (to keep syncing).
+          </li>
+          <li>
+            <strong>Gmail:</strong> the sender, recipients, subject line and date of emails. We
+            never read the message itself or its attachments.
+          </li>
+          <li>
+            <strong>LinkedIn:</strong> the names of your ad accounts and Company Pages, campaign
+            results such as spend, impressions and clicks, and Company Page follower and post
+            performance.
+          </li>
+        </ul>
+        <p>
+          Metric Mage&apos;s use of information received from Google APIs adheres to the{" "}
+          <a href="https://developers.google.com/terms/api-services-user-data-policy">
+            Google API Services User Data Policy
+          </a>
+          , including the Limited Use requirements. We do not use data from any connected tool for
+          advertising, sell it, or use it to train AI models, and people at Metric Mage only look at
+          it when you ask us to for support, or where needed for security or the law.
         </p>
         <p>
-          You can disconnect these integrations at any time in Metric Mage. You should also remove
-          Metric Mage from your Meta Business / Facebook settings if you want tokens revoked at the
-          provider.
+          You can disconnect any tool at any time in <strong>Connections</strong>, which deletes our
+          stored access straight away. You can also remove Metric Mage in the tool&apos;s own
+          settings, such as Facebook&apos;s Business Integrations, your Microsoft account&apos;s app
+          permissions, or your Google Account&apos;s third-party connections.
         </p>
 
         <h2>10. Children</h2>
@@ -185,8 +223,8 @@ export default function PrivacyPage() {
 
         <h2>12. Contact</h2>
         <p>
-          Privacy questions: contact the organisation that invited you, or the Metric Mage operator
-          via the support channel listed on the Service.
+          Privacy questions or requests:{" "}
+          <a href="mailto:support@metricmage.co.uk">support@metricmage.co.uk</a>.
         </p>
 
         <p className="not-prose mt-10">

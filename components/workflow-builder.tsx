@@ -119,9 +119,11 @@ export function WorkflowBuilder({defaultSteps = initial}: {defaultSteps?: StepIn
                 value={step.name}
                 onChange={(e) => update(index, {name: e.target.value})}
               />
-              <span className="mt-1 block text-xs text-zinc-500">
-                This is what people see on the task or approval.
-              </span>
+              {PEOPLE_STEPS.has(step.type) ? (
+                <span className="mt-1 block text-xs text-zinc-500">
+                  This is what people see on the task or approval.
+                </span>
+              ) : null}
             </label>
             {PEOPLE_STEPS.has(step.type) ? (
               <label>

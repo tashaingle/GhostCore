@@ -47,7 +47,7 @@ export default async function Tasks({
       <div className="flex justify-between">
         <div>
           <h1 className="text-3xl font-semibold tracking-tight text-zinc-950">Tasks</h1>
-          <p className="text-zinc-600">Bounded operational work with explicit outcomes.</p>
+          <p className="text-zinc-600">Everything your team needs to do, one job at a time.</p>
         </div>
         <Link className="button" href="/app/tasks/new">
           New task

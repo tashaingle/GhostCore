@@ -29,15 +29,19 @@ const main: NavItem[] = [
   {label: "Connections", href: "/app/integrations", icon: Plug},
   {label: "Work", href: "/app/work", icon: SquareCheckBig},
   {label: "Automations", href: "/app/workflows", icon: Workflow},
+  {label: "Team", href: "/app/team", icon: Users},
   {label: "Settings", href: "/app/settings", icon: Settings},
 ];
 
 const more: NavItem[] = [
   {label: "Timeline", href: "/app/timeline", icon: Activity},
   {label: "Approvals", href: "/app/approvals", icon: Stamp},
-  {label: "Correlations", href: "/app/correlations", icon: GitBranch},
+  {label: "Linked events", href: "/app/correlations", icon: GitBranch},
+];
+
+/** Technical pages, for owners and admins only. */
+const advanced: NavItem[] = [
   {label: "Command Centre", href: "/app/command-centre", icon: LayoutGrid},
-  {label: "Team", href: "/app/team", icon: Users},
   {label: "Background jobs", href: "/app/jobs", icon: Cpu},
   {label: "Developer tools", href: "/app/developer", icon: Code},
 ];
@@ -77,9 +81,11 @@ function NavLink({item, active}: {item: NavItem; active: boolean}) {
   );
 }
 
-export function SidebarNav() {
+export function SidebarNav({showAdvanced = false}: {showAdvanced?: boolean}) {
   const pathname = usePathname() ?? "";
-  const moreActive = more.some((item) => isActive(pathname, item));
+  const moreActive = [...more, ...(showAdvanced ? advanced : [])].some((item) =>
+    isActive(pathname, item),
+  );
   return (
     <nav aria-label="Main" className="space-y-4">
       <div className="-mx-1 flex gap-1 overflow-x-auto px-1 pb-1 md:flex-col md:overflow-visible md:pb-0">
@@ -99,6 +105,14 @@ export function SidebarNav() {
           {more.map((item) => (
             <NavLink key={item.href} item={item} active={isActive(pathname, item)} />
           ))}
+          {showAdvanced ? (
+            <>
+              <p className="mt-3 px-3 pb-1 text-[11px] text-white/35">For admins</p>
+              {advanced.map((item) => (
+                <NavLink key={item.href} item={item} active={isActive(pathname, item)} />
+              ))}
+            </>
+          ) : null}
         </div>
       </details>
     </nav>

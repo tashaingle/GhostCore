@@ -438,15 +438,15 @@ export default async function ActionCentre({
               aria-label="Action for selected items"
             >
               <option value="">Choose an action…</option>
-              {canAcknowledge ? <option value="acknowledge">Acknowledge</option> : null}
+              {canAcknowledge ? <option value="acknowledge">Mark as seen</option> : null}
               {canAssign ? <option value="assign">Assign to…</option> : null}
               {canAcknowledge ? <option value="snooze">Snooze until…</option> : null}
-              {canResolve ? <option value="resolve">Resolve</option> : null}
-              {canDismiss ? <option value="dismiss">Dismiss</option> : null}
+              {canResolve ? <option value="resolve">Mark as fixed</option> : null}
+              {canDismiss ? <option value="dismiss">Not a problem</option> : null}
             </select>
             {canAssign ? (
               <select className="field w-auto" name="assignedUserId" aria-label="Assign to">
-                <option value="">Assign to (if assigning)</option>
+                <option value="">Who (if assigning)</option>
                 {(members ?? []).map((x) => (
                   <option key={x.user_id} value={x.user_id}>
                     {profileMap.get(x.user_id) ?? "Team member"}
@@ -464,7 +464,7 @@ export default async function ActionCentre({
             <input
               className="field min-w-48 flex-1"
               name="reason"
-              placeholder="Reason (needed to resolve or dismiss)"
+              placeholder="Note (needed to mark as fixed or not a problem)"
             />
             <button className="button">Apply to selected</button>
           </div>

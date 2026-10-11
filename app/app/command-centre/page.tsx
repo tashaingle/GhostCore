@@ -568,7 +568,7 @@ export default async function CommandCentre({
       </Section>
     ),
     integrations: (
-      <Section id="integrations" title="Integrations">
+      <Section id="integrations" title="Connections">
         {!integrationRows.length ? (
           <div className="card">
             <p className="text-zinc-600">No providers are connected.</p>

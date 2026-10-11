@@ -2,6 +2,7 @@ import {DATE_TIME} from "@/lib/ui/dates";
 import Link from "next/link";
 import {notFound} from "next/navigation";
 import {getActiveOrganisation} from "@/lib/organisations/active";
+import {commentLabel, workSourceLabel, workStatusLabel} from "@/lib/ui/work-labels";
 import {WorkStatus} from "@/components/work-status";
 import {WorkDetailActions} from "@/components/work-detail-actions";
 import {organisationPeople} from "@/lib/organisations/people";
@@ -87,7 +88,9 @@ export default async function TaskDetail({
   const role = ctx.membership.role as OrganisationRole;
   return (
     <section className="space-y-6">
-      <Link href="/app/tasks">← Tasks</Link>
+      <Link className="text-sm text-zinc-500" href="/app/work">
+        ← Work
+      </Link>
       <Notice searchParams={p} />
       <div className="card">
         <div className="flex flex-wrap items-start justify-between gap-3">
@@ -116,9 +119,7 @@ export default async function TaskDetail({
           </div>
           <div>
             <dt className="text-zinc-500">Source</dt>
-            <dd>
-              {item.source_type}: {item.source_id ?? "manual"}
-            </dd>
+            <dd>{workSourceLabel(item.source_type)}</dd>
           </div>
           <div>
             <dt className="text-zinc-500">Created</dt>
@@ -182,10 +183,15 @@ export default async function TaskDetail({
             )}
           </article>
           <article className="card">
-            <h3 className="font-semibold">Dependencies</h3>
+            <h3 className="font-semibold">Linked tasks</h3>
+            {!dependencies?.length ? (
+              <p className="mt-1 text-sm text-zinc-500">
+                Link another task if this one can&apos;t be finished until that one is done.
+              </p>
+            ) : null}
             {dependencies?.map((x) => (
               <p className="mt-2 text-sm" key={x.id}>
-                {x.dependency_type} →{" "}
+                {x.dependency_type === "related" ? "Related to" : "Waiting for"}{" "}
                 <Link className="underline" href={`/app/tasks/${x.depends_on_task_id}`}>
                   {tasks?.find((t) => t.id === x.depends_on_task_id)?.title ?? x.depends_on_task_id}
                 </Link>
@@ -195,34 +201,31 @@ export default async function TaskDetail({
               <form action={dependencyAction} className="mt-4 flex flex-wrap gap-2">
                 <input type="hidden" name="taskId" value={id} />
                 <select className="field" name="dependsOnTaskId" required>
-                  <option value="">Select task</option>
+                  <option value="">Choose a task</option>
                   {tasks?.map((x) => (
                     <option key={x.id} value={x.id}>
-                      {x.title} ({x.status})
+                      {`${x.title} (${workStatusLabel(x.status)})`}
                     </option>
                   ))}
                 </select>
-                <select className="field" name="dependencyType">
-                  <option>blocks</option>
-                  <option>requires</option>
-                  <option>related</option>
+                <select aria-label="How they're linked" className="field" name="dependencyType">
+                  <option value="blocks">Must be done first</option>
+                  <option value="related">Just related</option>
                 </select>
-                <button className="button button-secondary">Add dependency</button>
+                <button className="button button-secondary">Link</button>
               </form>
             )}
           </article>
           <article className="card">
             <h3 className="font-semibold">Linked records</h3>
             {!evidence?.length ? (
-              <p className="text-sm text-zinc-500">No structured evidence linked.</p>
+              <p className="text-sm text-zinc-500">Nothing linked.</p>
             ) : (
               evidence.map((x) => (
                 <div className="mt-3 border-t pt-3 text-sm" key={x.id}>
                   <strong>{x.label}</strong>
                   <p>{x.description}</p>
-                  <p className="text-xs text-zinc-500">
-                    {x.source_type}: {x.source_id}
-                  </p>
+                  <p className="text-xs text-zinc-500">{workSourceLabel(x.source_type)}</p>
                 </div>
               ))
             )}
@@ -234,11 +237,11 @@ export default async function TaskDetail({
                 className={`mt-3 border-t pt-3 text-sm ${x.comment_type === "internal_note" ? "border-amber-300 bg-amber-50 p-2" : ""}`}
                 key={x.id}
               >
-                <strong className="capitalize">{x.comment_type.replaceAll("_", " ")}</strong>
+                <strong>{commentLabel(x.comment_type)}</strong>
                 <p className="whitespace-pre-wrap">{x.body}</p>
                 <p className="text-xs text-zinc-500">
                   {people.name(x.author_user_id, "Metric Mage")} ·{" "}
-                  {new Date(x.created_at).toLocaleString("en-GB")}
+                  {new Date(x.created_at).toLocaleString("en-GB", DATE_TIME)}
                 </p>
               </div>
             ))}
@@ -247,9 +250,10 @@ export default async function TaskDetail({
             <h3 className="font-semibold">History</h3>
             {revisions?.map((x) => (
               <p className="mt-2 text-sm" key={x.id}>
-                #{x.revision_number} <strong>{x.change_type}</strong> ·{" "}
-                {x.previous_status ?? "None"} → {x.new_status ?? "None"} ·{" "}
-                {new Date(x.created_at).toLocaleString("en-GB", DATE_TIME)}
+                {x.previous_status && x.new_status && x.previous_status !== x.new_status
+                  ? `${workStatusLabel(x.previous_status)} → ${workStatusLabel(x.new_status)}`
+                  : x.change_type.replaceAll("_", " ")}{" "}
+                · {new Date(x.created_at).toLocaleString("en-GB", DATE_TIME)}
               </p>
             ))}
           </article>

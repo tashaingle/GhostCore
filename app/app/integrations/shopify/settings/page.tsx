@@ -1,3 +1,4 @@
+import {connectionStatusLabel} from "@/lib/ui/labels";
 import {DATE_TIME} from "@/lib/ui/dates";
 import Link from "next/link";
 import {getActiveOrganisation} from "@/lib/organisations/active";
@@ -20,7 +21,7 @@ export default async function ShopifySettings({
     <section className="mx-auto max-w-3xl space-y-6">
       <div>
         <Link className="text-sm text-zinc-500" href="/app/integrations">
-          ← Integrations
+          ← Connections
         </Link>
         <h1 className="mt-2 text-3xl font-semibold tracking-tight text-zinc-950">Shopify stores</h1>
         <p className="text-zinc-600">Connect an existing store with read-only access.</p>
@@ -45,7 +46,7 @@ export default async function ShopifySettings({
           <article className="card" key={store.id}>
             <div className="flex justify-between">
               <strong>{store.provider_account_name}</strong>
-              <span>{store.status}</span>
+              <span>{connectionStatusLabel(store.status)}</span>
             </div>
             <p className="mt-2 text-sm text-zinc-600">
               {store.provider_account_id} · {String(s.currency ?? "")} · {String(s.timezone ?? "")}

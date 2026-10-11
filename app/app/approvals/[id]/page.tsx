@@ -5,6 +5,8 @@ import {getActiveOrganisation} from "@/lib/organisations/active";
 import {hasPermission, type OrganisationRole} from "@/lib/auth/permissions";
 import {Notice} from "@/components/notice";
 import {approvalAction} from "@/app/workflow-actions";
+import {organisationPeople} from "@/lib/organisations/people";
+import {roleLabel} from "@/lib/ui/labels";
 export default async function ApprovalDetail({
   params,
   searchParams,
@@ -36,71 +38,115 @@ export default async function ApprovalDetail({
         .eq("organisation_id", ctx.organisation.id)
         .maybeSingle(),
     ]),
+    [{data: workflow}, {data: stepDefinition}, people] = await Promise.all([
+      run
+        ? ctx.supabase
+            .from("workflow_definitions")
+            .select("id,name")
+            .eq("id", run.workflow_id)
+            .eq("organisation_id", ctx.organisation.id)
+            .maybeSingle()
+        : Promise.resolve({data: null}),
+      step
+        ? ctx.supabase
+            .from("workflow_steps")
+            .select("name")
+            .eq("id", step.step_id)
+            .eq("organisation_id", ctx.organisation.id)
+            .maybeSingle()
+        : Promise.resolve({data: null}),
+      organisationPeople(ctx.supabase, ctx.organisation.id, ctx.user.id),
+    ]),
     canDecide =
       hasPermission(ctx.membership.role as OrganisationRole, "approvals.decide") &&
-      item.status === "pending";
+      item.status === "pending",
+    who = item.approver_user_id
+      ? people.name(item.approver_user_id)
+      : item.approver_role
+        ? `Any ${roleLabel(item.approver_role).toLowerCase()}`
+        : "Anyone on the team",
+    STATUS: Record<string, string> = {
+      pending: "Waiting for an answer",
+      approved: "Approved",
+      rejected: "Turned down",
+      expired: "Expired",
+      cancelled: "Cancelled",
+    };
   return (
     <section className="space-y-6">
-      <Link href="/app/approvals">← Approvals</Link>
+      <Link className="text-sm text-zinc-500" href="/app/approvals">
+        ← Approvals
+      </Link>
       <Notice searchParams={p} />
-      <div className="card">
-        <h1 className="text-3xl font-semibold tracking-tight text-zinc-950">Workflow approval</h1>
-        <p className="capitalize">{item.status}</p>
-        <dl className="mt-4 grid gap-3 md:grid-cols-3">
+      <div className="card space-y-4">
+        <div>
+          <p className="text-sm text-zinc-500">
+            {workflow ? `From the "${workflow.name}" automation` : "Approval request"}
+          </p>
+          <h1 className="text-3xl font-semibold tracking-tight text-zinc-950">
+            {stepDefinition?.name ?? "Approval needed"}
+          </h1>
+          <p className="mt-1 font-medium text-zinc-700">{STATUS[item.status] ?? item.status}</p>
+        </div>
+        <p className="text-sm text-zinc-600">
+          The automation is paused at this step. Approving lets it carry on to the next step;
+          turning it down stops it.
+        </p>
+        <dl className="grid gap-3 text-sm sm:grid-cols-3">
           <div>
-            <dt>Run</dt>
+            <dt className="text-zinc-500">Who can answer</dt>
+            <dd>{who}</dd>
+          </div>
+          <div>
+            <dt className="text-zinc-500">Answer needed by</dt>
             <dd>
-              <Link className="underline" href={`/app/workflow-runs/${item.run_id}`}>
-                {item.run_id}
-              </Link>
+              {item.due_at
+                ? new Date(item.due_at).toLocaleString("en-GB", DATE_TIME)
+                : "No deadline"}
             </dd>
           </div>
-          <div>
-            <dt>Step</dt>
-            <dd>{step?.step_order ?? "None"}</dd>
-          </div>
-          <div>
-            <dt>Due</dt>
-            <dd>
-              {item.due_at ? new Date(item.due_at).toLocaleString("en-GB", DATE_TIME) : "None"}
-            </dd>
-          </div>
-          <div>
-            <dt>Approver</dt>
-            <dd>{item.approver_role ?? item.approver_user_id ?? "Unassigned"}</dd>
-          </div>
-          <div>
-            <dt>Workflow version</dt>
-            <dd>{run?.workflow_version ?? "None"}</dd>
-          </div>
-          <div>
-            <dt>Decision time</dt>
-            <dd>
-              {item.decided_at
-                ? new Date(item.decided_at).toLocaleString("en-GB", DATE_TIME)
-                : "None"}
-            </dd>
-          </div>
+          {item.decided_at ? (
+            <div>
+              <dt className="text-zinc-500">Answered</dt>
+              <dd>
+                {`${new Date(item.decided_at).toLocaleString("en-GB", DATE_TIME)}${
+                  item.decided_by ? ` by ${people.name(item.decided_by)}` : ""
+                }`}
+              </dd>
+            </div>
+          ) : null}
         </dl>
         {item.decision_comment && (
-          <p className="mt-4">
+          <p className="text-sm">
             <strong>Comment:</strong> {item.decision_comment}
           </p>
         )}
+        {workflow ? (
+          <Link
+            className="text-sm text-violet-700 hover:underline"
+            href={`/app/workflows/${workflow.id}`}
+          >
+            See the automation&apos;s steps
+          </Link>
+        ) : null}
       </div>
       {canDecide && (
         <form action={approvalAction} className="card space-y-3">
           <input type="hidden" name="id" value={item.id} />
-          <label>
-            Decision comment
-            <textarea className="field mt-1 w-full" name="comment" required />
+          <label className="block">
+            Comment <span className="text-zinc-400">(optional)</span>
+            <textarea
+              className="field mt-1 w-full"
+              name="comment"
+              placeholder="For example, why you're turning it down"
+            />
           </label>
           <div className="flex gap-2">
             <button className="button" name="decision" value="approved">
               Approve
             </button>
             <button className="button button-secondary" name="decision" value="rejected">
-              Reject
+              Turn down
             </button>
           </div>
         </form>

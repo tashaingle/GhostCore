@@ -1,3 +1,5 @@
+import {humaniseDates} from "@/lib/events/explain";
+import {humanRelationship, humanStrength, providerLabel} from "@/lib/ui/labels";
 import {DATE_TIME} from "@/lib/ui/dates";
 import Link from "next/link";
 import {notFound} from "next/navigation";
@@ -43,23 +45,24 @@ export default async function CorrelationDetail({params}: {params: Promise<{id: 
     <section className="mx-auto max-w-5xl space-y-6">
       <div>
         <Link className="text-sm text-zinc-500" href="/app/correlations">
-          ← Correlations
+          ← Linked events
         </Link>
         <h1 className="mt-2 text-3xl font-semibold tracking-tight text-zinc-950">
-          {item.relationship_type.replaceAll("_", " ")}
+          {humanRelationship(item.relationship_type)}
         </h1>
         <p className="text-zinc-600">
-          {item.strength} · deterministic score {item.score} · {item.rule_key} v{item.rule_version}{" "}
-          · {item.active ? "Active" : "Inactive"}
+          {`${humanStrength(item.strength)} · ${item.score}/100${item.active ? "" : " · No longer applies"}`}
         </p>
       </div>
       <div className="grid gap-4 md:grid-cols-[1fr_auto_1fr]">
         {[source, target].map((event, i) => (
           <article className="card" key={i}>
             <p className="text-xs uppercase text-zinc-500">
-              {event?.source} · {event?.event_type}
+              {event ? providerLabel(event.source) : ""}
             </p>
-            <h3 className="mt-2 font-semibold">{event?.title ?? "Source event unavailable"}</h3>
+            <h3 className="mt-2 font-semibold">
+              {event ? humaniseDates(event.title) : "This event is no longer available"}
+            </h3>
             <p className="mt-2 text-sm">{event?.description}</p>
             <time className="mt-3 block text-xs text-zinc-500">
               {event && new Date(event.occurred_at).toLocaleString("en-GB", DATE_TIME)}

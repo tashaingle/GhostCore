@@ -1,7 +1,7 @@
 import {DATE} from "@/lib/ui/dates";
 import {getActiveOrganisation} from "@/lib/organisations/active";
 import {PageHeader} from "@/components/page-header";
-import {ROLE_DESCRIPTIONS} from "@/lib/ui/labels";
+import {ROLE_DESCRIPTIONS, roleLabel} from "@/lib/ui/labels";
 import {hasPermission, type OrganisationRole, ORGANISATION_ROLES} from "@/lib/auth/permissions";
 import {inviteMember, updateInvitation, updateMember} from "@/app/organisation-actions";
 import {Notice} from "@/components/notice";
@@ -122,13 +122,20 @@ export default async function Team({
                         className="flex flex-wrap items-center justify-end gap-2"
                       >
                         <input type="hidden" name="id" value={member.id} />
-                        <select className="field py-1" name="role" defaultValue={member.role}>
+                        <select
+                          aria-label={`Role for ${name}`}
+                          className="field py-1"
+                          name="role"
+                          defaultValue={member.role}
+                        >
                           {ORGANISATION_ROLES.map((role) => (
-                            <option key={role}>{role}</option>
+                            <option key={role} value={role}>
+                              {roleLabel(role)}
+                            </option>
                           ))}
                         </select>
                         <button className="button button-secondary" name="action" value="role">
-                          Save
+                          Change role
                         </button>
                         <ConfirmSubmit
                           label="Remove"

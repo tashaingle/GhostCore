@@ -229,27 +229,32 @@ export async function approvalAction(form: FormData) {
   const ctx = await getActiveOrganisation();
   const role = ctx.membership.role as OrganisationRole;
   if (!hasPermission(role, "approvals.decide")) {
-    return back("/app/approvals", "You cannot decide approvals.", true);
+    return back("/app/approvals", "You don't have permission to answer approvals.", true);
   }
   const approvalId = id.safeParse(String(form.get("id") ?? ""));
   const decision = z.enum(["approved", "rejected"]).safeParse(String(form.get("decision") ?? ""));
   if (!approvalId.success || !decision.success) {
-    return back("/app/approvals", "Invalid approval decision.", true);
+    return back("/app/approvals", "Something went wrong. Please try again.", true);
   }
   try {
-    const result = await decideApproval(createServiceClient(), {
+    await decideApproval(createServiceClient(), {
       organisationId: ctx.organisation.id,
       approvalId: approvalId.data,
       userId: ctx.user.id,
       decision: decision.data,
       comment: String(form.get("comment") ?? ""),
     });
-    return back(`/app/workflow-runs/${result.runId}`, `Approval ${decision.data}.`);
+    return back(
+      `/app/approvals/${approvalId.data}`,
+      decision.data === "approved"
+        ? "Approved. The automation will carry on."
+        : "Turned down. The automation has stopped.",
+    );
   } catch (error) {
     if (isNextControlFlow(error)) throw error;
     return back(
       `/app/approvals/${approvalId.data}`,
-      error instanceof Error ? error.message : "Approval could not be decided.",
+      error instanceof Error ? error.message : "Your answer couldn't be saved. Please try again.",
       true,
     );
   }

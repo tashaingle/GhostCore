@@ -49,7 +49,7 @@ export default async function CorrelationsPage({
   return (
     <section className="space-y-6">
       <PageHeader
-        title="Correlations"
+        title="Linked events"
         description="Possible links between events from different tools - for example a deploy near a traffic drop. A link is a clue, not proof that one caused the other."
         actions={
           <>

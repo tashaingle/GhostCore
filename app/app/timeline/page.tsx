@@ -4,12 +4,25 @@ import {explainEvent} from "@/lib/events/explain";
 import {getActiveOrganisation} from "@/lib/organisations/active";
 import {parseEventFilters, periodStart} from "@/lib/events/filters";
 import {EVENT_CATEGORIES, EVENT_SEVERITIES} from "@/types/events";
+
+const SEVERITY_FILTER: Record<string, string> = {
+  good: "Good news",
+  info: "Updates",
+  warning: "Needs a look",
+  critical: "Problems",
+};
 import {Notice} from "@/components/notice";
 import {PageHeader} from "@/components/page-header";
 import {EmptyState} from "@/components/empty-state";
 import {SeverityBadge} from "@/components/severity-badge";
 import {mergeTimelineItems, type TimelineItem} from "@/lib/intelligence/timeline";
-import {humanEventLabel, isLowSignalEventType, providerLabel} from "@/lib/ui/labels";
+import {
+  humanEventLabel,
+  humanRelationship,
+  humanStrength,
+  isLowSignalEventType,
+  providerLabel,
+} from "@/lib/ui/labels";
 
 const PAGE = 25;
 
@@ -28,6 +41,11 @@ export default async function Timeline({
     ? rawView
     : "everything";
   const showNoise = params.noise === "1";
+
+  const {data: tools} = await ctx.supabase
+    .from("integrations")
+    .select("provider")
+    .eq("organisation_id", ctx.organisation.id);
 
   let eventQuery = ctx.supabase
     .from("events")
@@ -126,18 +144,18 @@ export default async function Timeline({
     severity: insight.severity,
     timestamp: insight.updated_at,
     href: `/app/insights/${insight.id}`,
-    label: `Insight · ${insight.status} · ${insight.confidence}% confidence`,
+    label: `Insight · ${insight.confidence}% sure`,
   }));
 
   const correlations: TimelineItem[] = (correlationsResult.data ?? []).map((item) => ({
     id: item.id,
     kind: "correlation" as const,
     title: `${providerLabel(item.source_provider)} linked with ${providerLabel(item.target_provider)}`,
-    summary: `${item.relationship_type.replaceAll("_", " ")} matched by ${item.rule_key} v${item.rule_version}. This is a correlation, not proof of cause.`,
+    summary: `${humanRelationship(item.relationship_type)}. Things happening together doesn't prove one caused the other.`,
     severity: item.strength === "confirmed" || item.strength === "strong" ? "good" : "info",
     timestamp: item.occurred_at,
     href: `/app/correlations/${item.id}`,
-    label: `Correlation · score ${item.score} · ${item.strength}`,
+    label: `Linked events · ${humanStrength(item.strength)}`,
   }));
 
   const merged = mergeTimelineItems(events, insights, correlations, PAGE * (filters.page + 1));
@@ -164,46 +182,68 @@ export default async function Timeline({
 
       <form className="card grid gap-3 md:grid-cols-6">
         <input
+          aria-label="Search"
           className="field md:col-span-2"
           name="q"
-          placeholder="Search titles and summaries"
+          placeholder="Search"
           defaultValue={filters.q}
         />
-        <select className="field" name="view" defaultValue={view}>
+        <select aria-label="Show" className="field" name="view" defaultValue={view}>
           <option value="everything">Everything</option>
-          <option value="insights">Insights only</option>
-          <option value="events">Events only</option>
-          <option value="correlations">Related events only</option>
+          <option value="events">Activity from your tools</option>
+          <option value="insights">Insights</option>
+          <option value="correlations">Linked events</option>
         </select>
-        <select className="field" name="severity" defaultValue={filters.severity ?? ""}>
-          <option value="">All severities</option>
+        <select
+          aria-label="Type"
+          className="field"
+          name="severity"
+          defaultValue={filters.severity ?? ""}
+        >
+          <option value="">Good and bad</option>
           {EVENT_SEVERITIES.map((x) => (
-            <option key={x}>{x}</option>
+            <option key={x} value={x}>
+              {SEVERITY_FILTER[x]}
+            </option>
           ))}
         </select>
-        <select className="field" name="category" defaultValue={filters.category ?? ""}>
-          <option value="">All categories</option>
+        <select
+          aria-label="Area"
+          className="field"
+          name="category"
+          defaultValue={filters.category ?? ""}
+        >
+          <option value="">All areas</option>
           {EVENT_CATEGORIES.map((x) => (
-            <option key={x}>{x}</option>
+            <option key={x} value={x}>
+              {x[0].toUpperCase() + x.slice(1)}
+            </option>
           ))}
         </select>
-        <select className="field" name="period" defaultValue={filters.period}>
+        <select aria-label="When" className="field" name="period" defaultValue={filters.period}>
           <option value="7d">Last 7 days</option>
           <option value="30d">Last 30 days</option>
           <option value="90d">Last 90 days</option>
           <option value="all">All time</option>
         </select>
-        <input
+        <select
+          aria-label="Tool"
           className="field"
           name="source"
-          placeholder="Source (e.g. stripe)"
-          defaultValue={filters.source}
-        />
+          defaultValue={filters.source ?? ""}
+        >
+          <option value="">All tools</option>
+          {[...new Set((tools ?? []).map((t) => t.provider))].map((provider) => (
+            <option key={provider} value={provider}>
+              {providerLabel(provider)}
+            </option>
+          ))}
+        </select>
         <label className="flex items-center gap-2 text-sm text-zinc-600 md:col-span-2">
           <input type="checkbox" name="noise" value="1" defaultChecked={showNoise} />
           Show routine activity (code pushes, discount changes, alert updates)
         </label>
-        <button className="button md:col-span-4 md:justify-self-start">Apply filters</button>
+        <button className="button md:col-span-4 md:justify-self-start">Filter</button>
       </form>
 
       {!showNoise && hiddenNoise > 0 ? (

@@ -14,7 +14,7 @@ export default async function StripeSettingsPage() {
     <section className="space-y-6">
       <div>
         <Link className="text-sm text-zinc-500" href="/app/integrations">
-          ← Integrations
+          ← Connections
         </Link>
         <h1 className="mt-2 text-3xl font-semibold tracking-tight text-zinc-950">
           Stripe accounts

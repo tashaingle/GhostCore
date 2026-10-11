@@ -106,8 +106,8 @@ export default async function WorkInbox({
           ["due-soon", "Due soon"],
           ["overdue", "Overdue"],
           ["blocked", "Blocked"],
-          ["waiting", "Waiting"],
-          ["critical", "Critical"],
+          ["waiting", "Waiting on someone"],
+          ["critical", "Urgent"],
           ["cases", "Open cases"],
           ["all", "All work"],
         ].map(([k, l]) => (
@@ -133,9 +133,6 @@ export default async function WorkInbox({
         </Link>
         <Link className="hover:text-zinc-950" href="/app/work/templates">
           Templates
-        </Link>
-        <Link className="hover:text-zinc-950" href="/app/work/views">
-          Saved views
         </Link>
       </div>
     </section>

@@ -211,6 +211,8 @@ export function weeklySummaryEmail(input: {
   weekLabel: string;
   goingWell: string[];
   needsLook: string[];
+  /** Why each "needs a look" item happened, from the other tools, keyed by the item. */
+  reasons?: Record<string, string>;
   figures: WeeklyFigure[];
   waiting: number;
   unsubscribeUrl: string;
@@ -219,7 +221,11 @@ export function weeklySummaryEmail(input: {
   const trim = (items: string[]) => items.map((i) => i.replace(/ compared with last week$/, "")),
     goingWell = trim(input.goingWell),
     needsLook = trim(input.needsLook);
-  const lead = goingWell[0] ?? needsLook[0] ?? null;
+  const lead = goingWell[0] ?? needsLook[0] ?? null,
+    explained = needsLook.map((item, i) => {
+      const why = input.reasons?.[input.needsLook[i]];
+      return why ? `${item}. ${why}` : item;
+    });
   const subject = lead
     ? `Your week at ${input.organisationName}: ${lead[0].toLowerCase()}${lead.slice(1)}`
     : `Your week at ${input.organisationName}`;
@@ -235,7 +241,7 @@ export function weeklySummaryEmail(input: {
     ],
     sections: [
       {title: "Going well", colour: "#047857", items: goingWell.slice(0, 4)},
-      {title: "Needs a look", colour: "#b45309", items: needsLook.slice(0, 4)},
+      {title: "Needs a look", colour: "#b45309", items: explained.slice(0, 4)},
     ],
     figures: input.figures
       .slice(0, 6)

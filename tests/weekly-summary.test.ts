@@ -115,3 +115,27 @@ describe("unsubscribe links", () => {
     expect(readUnsubscribeToken("")).toBeNull();
   });
 });
+
+describe("why things needed a look", () => {
+  it("adds the reason from the other tools after each item, but not to the subject", () => {
+    const email = weeklySummaryEmail({
+      appUrl: "https://www.metricmage.co.uk",
+      organisationName: "Hutch & Co",
+      firstName: null,
+      weekLabel: "5–11 October",
+      goingWell: [],
+      needsLook: ["Orders down 30% to 14 compared with last week"],
+      reasons: {
+        "Orders down 30% to 14 compared with last week":
+          "Your Meta ads stopped spending on Tuesday 6 Oct, so the Meta ads stopping is the most likely reason.",
+      },
+      figures: [],
+      waiting: 0,
+      unsubscribeUrl: "https://www.metricmage.co.uk/unsubscribe?token=abc",
+    });
+    expect(email.subject).toBe("Your week at Hutch & Co: orders down 30% to 14");
+    expect(email.text).toContain(
+      "- Orders down 30% to 14. Your Meta ads stopped spending on Tuesday 6 Oct",
+    );
+  });
+});

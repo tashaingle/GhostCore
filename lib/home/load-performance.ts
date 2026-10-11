@@ -8,6 +8,7 @@ import {
   performanceMetrics,
   type Period,
 } from "./performance";
+import {explainHighlights, WHY_EVENT_TYPES} from "./why";
 
 const DAY_MS = 86_400_000;
 
@@ -46,7 +47,7 @@ export async function loadPerformance(
         .from("events")
         .select("id,source,event_type,title,occurred_at,created_at,metadata")
         .eq("organisation_id", organisationId)
-        .in("event_type", PERFORMANCE_EVENT_TYPES)
+        .in("event_type", [...PERFORMANCE_EVENT_TYPES, ...WHY_EVENT_TYPES])
         .gte("occurred_at", previousStart)
         .limit(20000),
       // Updates from connected tools; Metric Mage's own audit trail is not business activity.
@@ -82,5 +83,13 @@ export async function loadPerformance(
     period,
     now,
   });
-  return {metrics, highlights: buildHighlights(metrics, period), updates: updates ?? 0};
+  // Each "needs a look" says what else changed (or didn't) across the other tools.
+  const highlights = explainHighlights({
+    highlights: buildHighlights(metrics, period),
+    metrics,
+    events,
+    period,
+    now,
+  });
+  return {metrics, highlights, updates: updates ?? 0};
 }

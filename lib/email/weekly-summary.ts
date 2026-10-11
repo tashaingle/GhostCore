@@ -130,6 +130,9 @@ export async function runWeeklySummary(
     good = highlights.filter((h) => h.tone === "good").map((h) => h.text),
     goingWell = good.length ? good : steadyLines(metrics),
     needsLook = [...highlights.filter((h) => h.tone === "bad").map((h) => h.text), ...broken],
+    reasons = Object.fromEntries(
+      highlights.flatMap((h) => (h.tone === "bad" && h.why ? [[h.text, h.why]] : [])),
+    ),
     waiting = (alerts ?? 0) + (approvals ?? 0);
   // Nothing to say is better than an empty email.
   if (!metrics.length && !needsLook.length && !waiting) return skip("Nothing to report this week.");
@@ -159,6 +162,7 @@ export async function runWeeklySummary(
       weekLabel,
       goingWell,
       needsLook,
+      reasons,
       figures,
       waiting,
       unsubscribeUrl: `${config.appUrl}/unsubscribe?token=${unsubscribeToken(organisationId, userId)}`,

@@ -8,16 +8,10 @@ import {
   timeAgo,
   type ConnectionStatus,
 } from "@/lib/home/connections";
-import {
-  PERFORMANCE_EVENT_TYPES,
-  PERIOD_DAYS,
-  highlights as buildHighlights,
-  parsePeriod,
-  performanceMetrics,
-} from "@/lib/home/performance";
+import {PERIOD_DAYS, parsePeriod} from "@/lib/home/performance";
+import {loadPerformance} from "@/lib/home/load-performance";
 import {HowYoureDoing} from "@/components/how-youre-doing";
 import {insightNeedsAction} from "@/lib/notifications/insight-rules";
-import type {IntelligenceEvent} from "@/lib/intelligence/types";
 import {runIntelligenceAction} from "@/app/intelligence-actions";
 import {Notice} from "@/components/notice";
 import {GettingStarted} from "@/components/getting-started";
@@ -26,7 +20,6 @@ import {InsightCard, ProviderMark, SectionHeading, SeverityLabel} from "@/compon
 
 export const metadata = {title: "Home"};
 
-const DAY_MS = 86_400_000;
 const severityRank = (s: string) => ({critical: 0, warning: 1, info: 2, good: 3})[s] ?? 4;
 // Connection problems get their own section, and Metric Mage's own housekeeping is not the user's job.
 const HOME_HIDDEN_CATEGORIES = ["background_job", "integration", "credential"];
@@ -94,37 +87,13 @@ export default async function Home({
   const ctx = await getActiveOrganisation();
   const org = ctx.organisation.id,
     now = new Date(),
-    period = parsePeriod(params.period),
-    days = PERIOD_DAYS[period],
-    currentStart = new Date(now.getTime() - days * DAY_MS).toISOString(),
-    previousStart = new Date(now.getTime() - 2 * days * DAY_MS).toISOString();
-  // Counted rather than loaded, as these can be numerous over a year.
-  const countEvents = (types: string[], from: string, to?: string) => {
-    let q = ctx.supabase
-      .from("events")
-      .select("id", {count: "exact", head: true})
-      .eq("organisation_id", org)
-      .in("event_type", types)
-      .gte("occurred_at", from);
-    if (to) q = q.lt("occurred_at", to);
-    return q.then((r) => r.count ?? 0);
-  };
-  const countPair = async (types: string[]) => ({
-    current: await countEvents(types, currentStart),
-    previous: await countEvents(types, previousStart, currentStart),
-  });
-
+    period = parsePeriod(params.period);
   const [
     {data: integrations},
     {data: notifications, count: notificationCount},
     {data: approvals},
     {data: insights, count: insightCount},
-    {data: performanceRows},
-    {count: updates},
-    emails,
-    meetings,
-    deployments,
-    failedBuilds,
+    performance,
   ] = await Promise.all([
     ctx.supabase
       .from("integrations")
@@ -156,24 +125,7 @@ export default async function Home({
       .in("status", ["active", "acknowledged"])
       .order("updated_at", {ascending: false})
       .limit(30),
-    ctx.supabase
-      .from("events")
-      .select("id,source,event_type,title,occurred_at,created_at,metadata")
-      .eq("organisation_id", org)
-      .in("event_type", PERFORMANCE_EVENT_TYPES)
-      .gte("occurred_at", previousStart)
-      .limit(20000),
-    // Updates from connected tools; Metric Mage's own audit trail is not business activity.
-    ctx.supabase
-      .from("events")
-      .select("id", {count: "exact", head: true})
-      .eq("organisation_id", org)
-      .neq("source", "ghost")
-      .gte("occurred_at", currentStart),
-    countPair(["gmail.message_received", "outlook.message_received"]),
-    countPair(["google_calendar.event_created"]),
-    countPair(["workflow.success", "release.published"]),
-    countPair(["workflow.failed"]),
+    loadPerformance(ctx.supabase, org, period, now),
   ]);
 
   const connections = sortConnections(
@@ -229,27 +181,7 @@ export default async function Home({
       .slice(0, 4),
     attentionTotal = (notificationCount ?? 0) + (approvals?.length ?? 0);
 
-  const performanceEvents: IntelligenceEvent[] = (performanceRows ?? []).map((e) => ({
-      id: e.id,
-      source: e.source,
-      eventType: e.event_type,
-      title: e.title,
-      description: null,
-      severity: "info",
-      occurredAt: e.occurred_at,
-      recordedAt: e.created_at,
-      metadata:
-        e.metadata && typeof e.metadata === "object" && !Array.isArray(e.metadata)
-          ? (e.metadata as Record<string, unknown>)
-          : {},
-    })),
-    metrics = performanceMetrics({
-      events: performanceEvents,
-      counts: {emails, meetings, deployments, failedBuilds},
-      period,
-      now,
-    }),
-    highlights = buildHighlights(metrics, period);
+  const {metrics, highlights, updates} = performance;
 
   const firstName =
       (ctx.user.user_metadata?.full_name as string | undefined)?.trim().split(/\s+/)[0] ?? null,

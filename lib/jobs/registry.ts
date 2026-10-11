@@ -77,6 +77,14 @@ export const maintenanceJobs: JobRegistration[] = [
     timeout: 120,
   },
   {
+    // Checks hourly; only sends on Monday morning in the organisation's time zone, once a week.
+    key: "email.weekly_summary",
+    type: "email.weekly_summary",
+    scheduleType: "recurring",
+    scheduleValue: "1h",
+    timeout: 120,
+  },
+  {
     key: "workflow.timeout",
     type: "workflow.timeout",
     scheduleType: "recurring",

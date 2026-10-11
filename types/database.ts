@@ -795,12 +795,18 @@ export type Database = {
         };
         Relationships: EmptyRelationships;
       };
+      weekly_summary_opt_outs: {
+        Row: {organisation_id: string; user_id: string; created_at: string};
+        Insert: {organisation_id: string; user_id: string; created_at?: string};
+        Update: {created_at?: string};
+        Relationships: EmptyRelationships;
+      };
       email_outbox: {
         Row: {
           id: string;
           organisation_id: string;
           user_id: string | null;
-          kind: "notification" | "approval";
+          kind: "notification" | "approval" | "weekly_summary";
           source_id: string;
           dedupe_key: string;
           recipient_email: string;
@@ -820,7 +826,7 @@ export type Database = {
           id?: string;
           organisation_id: string;
           user_id?: string | null;
-          kind: "notification" | "approval";
+          kind: "notification" | "approval" | "weekly_summary";
           source_id: string;
           dedupe_key: string;
           recipient_email: string;

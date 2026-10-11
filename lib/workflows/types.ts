@@ -5,6 +5,7 @@ export const workflowTriggers = [
   "background_job.failed",
   "integration.error",
   "integration.reconnected",
+  "deployment.failed",
   "csv_import.completed",
   "csv_import.failed",
   "organisation.created",

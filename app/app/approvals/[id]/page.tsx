@@ -1,3 +1,4 @@
+import {DATE_TIME} from "@/lib/ui/dates";
 import Link from "next/link";
 import {notFound} from "next/navigation";
 import {getActiveOrganisation} from "@/lib/organisations/active";
@@ -60,7 +61,9 @@ export default async function ApprovalDetail({
           </div>
           <div>
             <dt>Due</dt>
-            <dd>{item.due_at ? new Date(item.due_at).toLocaleString() : "None"}</dd>
+            <dd>
+              {item.due_at ? new Date(item.due_at).toLocaleString("en-GB", DATE_TIME) : "None"}
+            </dd>
           </div>
           <div>
             <dt>Approver</dt>
@@ -72,7 +75,11 @@ export default async function ApprovalDetail({
           </div>
           <div>
             <dt>Decision time</dt>
-            <dd>{item.decided_at ? new Date(item.decided_at).toLocaleString() : "None"}</dd>
+            <dd>
+              {item.decided_at
+                ? new Date(item.decided_at).toLocaleString("en-GB", DATE_TIME)
+                : "None"}
+            </dd>
           </div>
         </dl>
         {item.decision_comment && (

@@ -1,3 +1,4 @@
+import {DATE_TIME} from "@/lib/ui/dates";
 import Link from "next/link";
 import {getActiveOrganisation} from "@/lib/organisations/active";
 import {requireOrganisationAdmin} from "@/lib/auth/organisation-admin";
@@ -77,7 +78,7 @@ export default async function SlackSettings({
                 <p className="text-sm text-zinc-500">
                   Next continuation{" "}
                   {s.nextEligibleSyncAt
-                    ? new Date(String(s.nextEligibleSyncAt)).toLocaleString()
+                    ? new Date(String(s.nextEligibleSyncAt)).toLocaleString("en-GB", DATE_TIME)
                     : "ready"}{" "}
                   · messages {String(s.messagesImported ?? 0)} · events{" "}
                   {String(s.eventsGenerated ?? 0)} · duplicates {String(s.duplicatesSkipped ?? 0)}

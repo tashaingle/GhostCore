@@ -1,3 +1,4 @@
+import {DATE_TIME} from "@/lib/ui/dates";
 import Link from "next/link";
 import {getActiveOrganisation} from "@/lib/organisations/active";
 import {requireOrganisationAdmin} from "@/lib/auth/organisation-admin";
@@ -54,8 +55,10 @@ export default async function NotionSettings() {
                 <strong>{item.provider_account_name}</strong>
                 <p className="text-sm text-zinc-500">
                   Workspace {String(s.workspaceId)} · API {String(s.apiVersion)} · Last sync{" "}
-                  {item.last_sync_at ? new Date(item.last_sync_at).toLocaleString() : "never"} ·{" "}
-                  {item.last_sync_status}
+                  {item.last_sync_at
+                    ? new Date(item.last_sync_at).toLocaleString("en-GB", DATE_TIME)
+                    : "never"}{" "}
+                  · {item.last_sync_status}
                 </p>
                 <p className="text-sm text-zinc-500">
                   Rows {String(s.rowsImported ?? 0)} · events {String(s.eventsGenerated ?? 0)} ·
@@ -83,7 +86,8 @@ export default async function NotionSettings() {
                     </strong>
                     <span className="block text-sm text-zinc-500">
                       {d.id} · parent {d.databaseId ?? "unknown"} · edited{" "}
-                      {new Date(d.lastEditedTime).toLocaleString()} {d.inTrash ? "· in trash" : ""}
+                      {new Date(d.lastEditedTime).toLocaleString("en-GB", DATE_TIME)}{" "}
+                      {d.inTrash ? "· in trash" : ""}
                     </span>
                   </span>
                 </label>

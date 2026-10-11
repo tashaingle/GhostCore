@@ -1,3 +1,4 @@
+import {DATE_TIME} from "@/lib/ui/dates";
 import Link from "next/link";
 import {notFound} from "next/navigation";
 import {getActiveOrganisation} from "@/lib/organisations/active";
@@ -116,17 +117,23 @@ export default async function CaseDetail({
           </div>
           <div>
             <dt className="text-zinc-500">Opened</dt>
-            <dd>{new Date(item.opened_at).toLocaleString()}</dd>
+            <dd>{new Date(item.opened_at).toLocaleString("en-GB", DATE_TIME)}</dd>
           </div>
           <div>
             <dt className="text-zinc-500">First response</dt>
             <dd>
-              {item.first_response_at ? new Date(item.first_response_at).toLocaleString() : "None"}
+              {item.first_response_at
+                ? new Date(item.first_response_at).toLocaleString("en-GB", DATE_TIME)
+                : "None"}
             </dd>
           </div>
           <div>
             <dt className="text-zinc-500">Resolved</dt>
-            <dd>{item.resolved_at ? new Date(item.resolved_at).toLocaleString() : "None"}</dd>
+            <dd>
+              {item.resolved_at
+                ? new Date(item.resolved_at).toLocaleString("en-GB", DATE_TIME)
+                : "None"}
+            </dd>
           </div>
           <div>
             <dt className="text-zinc-500">Source</dt>
@@ -194,7 +201,7 @@ export default async function CaseDetail({
               <p className="mt-2 text-sm" key={x.id}>
                 #{x.revision_number} <strong>{x.change_type}</strong> ·{" "}
                 {x.previous_status ?? "None"} → {x.new_status ?? "None"} ·{" "}
-                {new Date(x.created_at).toLocaleString()}
+                {new Date(x.created_at).toLocaleString("en-GB", DATE_TIME)}
               </p>
             ))}
           </article>

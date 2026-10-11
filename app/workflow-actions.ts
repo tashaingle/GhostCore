@@ -58,7 +58,7 @@ export async function saveWorkflow(form: FormData) {
   const ctx = await getActiveOrganisation();
   const role = ctx.membership.role as OrganisationRole;
   if (!hasPermission(role, "workflows.manage")) {
-    return back("/app/workflows", "You cannot manage workflows.", true);
+    return back("/app/workflows", "Only owners and admins can change automations.", true);
   }
   try {
     const input = parse(form);
@@ -71,15 +71,15 @@ export async function saveWorkflow(form: FormData) {
           ctx.user.id,
           id.parse(workflowId),
           input,
-          String(form.get("reason") ?? "Workflow updated."),
+          String(form.get("reason") || "Steps updated."),
         )
       : await createWorkflowDefinition(service, ctx.organisation.id, ctx.user.id, input);
-    return back(`/app/workflows/${workflowId || result.id}`, "Workflow version saved.");
+    return back(`/app/workflows/${workflowId || result.id}`, "Automation saved.");
   } catch (error) {
     if (isNextControlFlow(error)) throw error;
     return back(
       "/app/workflows/new",
-      error instanceof Error ? error.message : "Workflow could not be saved.",
+      error instanceof Error ? error.message : "The automation couldn't be saved.",
       true,
     );
   }
@@ -89,7 +89,7 @@ export async function createFromTemplate(form: FormData) {
   const ctx = await getActiveOrganisation();
   const role = ctx.membership.role as OrganisationRole;
   if (!hasPermission(role, "workflows.manage")) {
-    return back("/app/workflows", "You cannot manage workflows.", true);
+    return back("/app/workflows", "Only owners and admins can change automations.", true);
   }
   const template = getWorkflowTemplate(String(form.get("templateKey") ?? ""));
   if (!template) return back("/app/workflows", "Template was not found.", true);
@@ -101,7 +101,10 @@ export async function createFromTemplate(form: FormData) {
       template.definition,
       `Created from template ${template.key}.`,
     );
-    return back(`/app/workflows/${workflow.id}`, "Workflow created from template.");
+    return back(
+      `/app/workflows/${workflow.id}`,
+      "Added from the template. It's off for now: check the steps below, then switch it on.",
+    );
   } catch (error) {
     if (isNextControlFlow(error)) throw error;
     return back(
@@ -116,12 +119,12 @@ export async function workflowDefinitionAction(form: FormData) {
   const ctx = await getActiveOrganisation();
   const role = ctx.membership.role as OrganisationRole;
   if (!hasPermission(role, "workflows.manage")) {
-    return back("/app/workflows", "You cannot manage workflows.", true);
+    return back("/app/workflows", "Only owners and admins can change automations.", true);
   }
   const workflowId = id.safeParse(String(form.get("id") ?? ""));
   const action = String(form.get("action") ?? "");
   if (!workflowId.success || !["enable", "disable", "archive"].includes(action)) {
-    return back("/app/workflows", "Invalid workflow action.", true);
+    return back("/app/workflows", "Something went wrong. Please try again.", true);
   }
   const values =
     action === "enable"
@@ -136,7 +139,10 @@ export async function workflowDefinitionAction(form: FormData) {
     .eq("organisation_id", ctx.organisation.id);
   return back(
     `/app/workflows/${workflowId.data}`,
-    error ? "Workflow could not be updated." : `Workflow ${action}d.`,
+    error
+      ? "The automation couldn't be updated."
+      : ({enable: "Automation switched on.", disable: "Automation switched off."}[action] ??
+          "Automation archived."),
     Boolean(error),
   );
 }
@@ -145,7 +151,7 @@ export async function runWorkflow(form: FormData) {
   const ctx = await getActiveOrganisation();
   const role = ctx.membership.role as OrganisationRole;
   if (!hasPermission(role, "workflow.run")) {
-    return back("/app/workflows", "You cannot run workflows.", true);
+    return back("/app/workflows", "You don't have permission to run automations.", true);
   }
   const workflowId = id.safeParse(String(form.get("id") ?? ""));
   if (!workflowId.success) return back("/app/workflows", "Invalid workflow.", true);
@@ -161,13 +167,13 @@ export async function runWorkflow(form: FormData) {
     });
     return back(
       `/app/workflow-runs/${result.runId}`,
-      result.duplicate ? "This trigger was already executed." : "Workflow run started.",
+      result.duplicate ? "This has already run." : "Automation started.",
     );
   } catch (error) {
     if (isNextControlFlow(error)) throw error;
     return back(
       `/app/workflows/${workflowId.data}`,
-      error instanceof Error ? error.message : "Workflow could not start.",
+      error instanceof Error ? error.message : "The automation couldn't start.",
       true,
     );
   }
@@ -195,7 +201,7 @@ export async function workflowRunAction(form: FormData) {
     .eq("id", runId.data)
     .eq("organisation_id", ctx.organisation.id)
     .maybeSingle();
-  if (!run) return back("/app/workflow-runs", "Workflow run was not found.", true);
+  if (!run) return back("/app/workflow-runs", "That run wasn't found.", true);
   const now = new Date().toISOString();
   if (action === "cancel") {
     await service
@@ -266,7 +272,7 @@ export async function assignmentAction(form: FormData) {
       userId: ctx.user.id,
       notes: String(form.get("notes") ?? ""),
     });
-    return back(`/app/workflow-runs/${result.runId}`, "Workflow task confirmed.");
+    return back(`/app/workflow-runs/${result.runId}`, "Confirmed.");
   } catch (error) {
     if (isNextControlFlow(error)) throw error;
     return back(

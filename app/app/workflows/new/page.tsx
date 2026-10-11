@@ -5,6 +5,7 @@ import {workflowTriggers} from "@/lib/workflows/types";
 import {WorkflowBuilder} from "@/components/workflow-builder";
 import {saveWorkflow} from "@/app/workflow-actions";
 import {Notice} from "@/components/notice";
+import {triggerLabel} from "@/lib/ui/labels";
 export default async function NewWorkflow({
   searchParams,
 }: {
@@ -13,15 +14,17 @@ export default async function NewWorkflow({
   const ctx = await getActiveOrganisation(),
     p = await searchParams;
   if (!hasPermission(ctx.membership.role as OrganisationRole, "workflows.manage"))
-    return <div className="card">You do not have permission to create workflows.</div>;
+    return <div className="card">Only owners and admins can create automations.</div>;
   return (
     <section className="space-y-6">
-      <Link href="/app/workflows">← Workflows</Link>
+      <Link className="text-sm text-zinc-500" href="/app/workflows">
+        ← Automations
+      </Link>
       <div>
         <h1 className="text-3xl font-semibold tracking-tight text-zinc-950">New automation</h1>
         <p className="text-zinc-600">
-          Add the steps you want, and drag them to change the order. Earlier versions are kept when
-          you save.
+          Pick what starts it, then the steps to follow. It starts switched off, so you can check it
+          before it runs.
         </p>
       </div>
       <Notice searchParams={p} />
@@ -32,20 +35,27 @@ export default async function NewWorkflow({
             <input className="field mt-1 w-full" name="name" required />
           </label>
           <label>
-            Trigger
+            When should it run?
             <select className="field mt-1 w-full" name="triggerType">
               {workflowTriggers.map((x) => (
-                <option key={x}>{x}</option>
+                <option key={x} value={x}>
+                  {triggerLabel(x)}
+                </option>
               ))}
             </select>
           </label>
           <label className="md:col-span-2">
-            Description
-            <textarea className="field mt-1 w-full" name="description" />
+            Description <span className="text-zinc-400">(optional)</span>
+            <textarea
+              className="field mt-1 w-full"
+              name="description"
+              placeholder="What it's for, so the team knows"
+            />
           </label>
         </div>
         <WorkflowBuilder />
-        <button className="button">Save workflow version 1</button>
+        <input type="hidden" name="reason" value="Created." />
+        <button className="button">Create automation</button>
       </form>
     </section>
   );

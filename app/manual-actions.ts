@@ -1,5 +1,5 @@
 "use server";
-import {redirect} from "next/navigation";
+import {redirect, unstable_rethrow} from "next/navigation";
 import {revalidatePath} from "next/cache";
 import {getActiveOrganisation} from "@/lib/organisations/active";
 import {hasPermission, type OrganisationRole} from "@/lib/auth/permissions";
@@ -36,6 +36,7 @@ export async function createManualRecordAction(form: FormData) {
     revalidatePath("/app/integrations/manual");
     go("success", result.duplicate ? "Duplicate ignored." : "Manual record created.");
   } catch (e) {
+    unstable_rethrow(e);
     go("error", e instanceof Error ? e.message : "Manual record is invalid.");
   }
 }

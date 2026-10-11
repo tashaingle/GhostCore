@@ -1,3 +1,4 @@
+import {DATE_TIME} from "@/lib/ui/dates";
 import Link from "next/link";
 import {getActiveOrganisation} from "@/lib/organisations/active";
 export default async function StripeSettingsPage() {
@@ -70,7 +71,7 @@ export default async function StripeSettingsPage() {
                   <dt className="text-zinc-500">Last webhook</dt>
                   <dd>
                     {settings.lastWebhookAt
-                      ? new Date(String(settings.lastWebhookAt)).toLocaleString()
+                      ? new Date(String(settings.lastWebhookAt)).toLocaleString("en-GB", DATE_TIME)
                       : "None received"}
                   </dd>
                 </div>

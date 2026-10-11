@@ -1,3 +1,4 @@
+import {DATE_TIME} from "@/lib/ui/dates";
 import Link from "next/link";
 import {notFound} from "next/navigation";
 import {getActiveOrganisation} from "@/lib/organisations/active";
@@ -85,7 +86,7 @@ export default async function InsightDetail({
               <div className="flex gap-2">
                 <strong>{event.title}</strong>
                 <time className="ml-auto text-xs text-zinc-500">
-                  {new Date(event.occurred_at).toLocaleString()}
+                  {new Date(event.occurred_at).toLocaleString("en-GB", DATE_TIME)}
                 </time>
               </div>
               {event.description && <p className="mt-2 text-sm">{event.description}</p>}

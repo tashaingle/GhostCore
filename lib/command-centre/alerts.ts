@@ -1,3 +1,4 @@
+import {DATE_TIME} from "@/lib/ui/dates";
 import {connectionStatus} from "@/lib/home/connections";
 import {getProvider} from "@/lib/integrations/registry";
 import type {CommandAlert, CommandEvent, CommandIntegration} from "./types";
@@ -51,7 +52,7 @@ export function commandAlerts(
       title: event.title,
       detail: event.description || `Detected from ${event.source}.`,
       href: `/app/timeline?q=${encodeURIComponent(event.title)}`,
-      evidence: `${event.source} · ${event.event_type} · ${new Date(event.occurred_at).toLocaleString()}`,
+      evidence: `${event.source} · ${event.event_type} · ${new Date(event.occurred_at).toLocaleString("en-GB", DATE_TIME)}`,
     });
   for (const insight of insights)
     alerts.push({
@@ -69,7 +70,7 @@ export function commandAlerts(
       title: "Checking for related events failed",
       detail: run.error || "Metric Mage couldn’t finish checking for related events.",
       href: "/app/correlations",
-      evidence: `Run started ${new Date(run.started_at).toLocaleString()}`,
+      evidence: `Run started ${new Date(run.started_at).toLocaleString("en-GB", DATE_TIME)}`,
     });
   const rank = {critical: 0, warning: 1, information: 2};
   return alerts.sort((a, b) => rank[a.severity] - rank[b.severity]).slice(0, 30);

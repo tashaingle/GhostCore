@@ -1,4 +1,6 @@
+import {DATE_TIME} from "@/lib/ui/dates";
 import Link from "next/link";
+import {explainEvent} from "@/lib/events/explain";
 import {getActiveOrganisation} from "@/lib/organisations/active";
 import {parseEventFilters, periodStart} from "@/lib/events/filters";
 import {EVENT_CATEGORIES, EVENT_SEVERITIES} from "@/types/events";
@@ -96,17 +98,22 @@ export default async function Timeline({
         event.metadata && typeof event.metadata === "object" && !Array.isArray(event.metadata)
           ? (event.metadata as Record<string, unknown>)
           : {};
+      const explained = explainEvent(event),
+        href =
+          event.event_type.startsWith("notification.") && metadata.notificationId
+            ? `/app/action-centre/${metadata.notificationId}`
+            : undefined;
       return {
         id: event.id,
         kind: "event" as const,
-        title: event.title,
-        summary: event.description,
-        severity: event.severity,
+        title: explained.title,
+        summary: explained.detail,
+        severity: explained.status,
+        advice: explained.advice,
+        // A card that's already a link can't hold another link inside it.
+        action: href ? undefined : explained.action,
         timestamp: event.occurred_at,
-        href:
-          event.event_type.startsWith("notification.") && metadata.notificationId
-            ? `/app/action-centre/${metadata.notificationId}`
-            : undefined,
+        href,
         label: humanEventLabel(event.source, event.category, event.event_type),
       };
     });
@@ -237,10 +244,29 @@ export default async function Timeline({
                   <SeverityBadge value={item.severity} />
                   <h3 className="font-semibold">{item.title}</h3>
                   <time className="ml-auto text-xs text-zinc-500">
-                    {new Date(item.timestamp).toLocaleString()}
+                    {new Date(item.timestamp).toLocaleString("en-GB", DATE_TIME)}
                   </time>
                 </div>
                 {item.summary ? <p className="mt-2 text-sm text-zinc-700">{item.summary}</p> : null}
+                {item.advice ? (
+                  <div className="mt-3 rounded-xl bg-amber-50 px-3.5 py-2.5 text-sm text-amber-950">
+                    <span className="font-semibold">What to do: </span>
+                    {item.advice}
+                    {item.action ? (
+                      <>
+                        {" "}
+                        <a
+                          className="font-medium text-violet-700 underline-offset-2 hover:underline"
+                          href={item.action.href}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          {item.action.label} ↗
+                        </a>
+                      </>
+                    ) : null}
+                  </div>
+                ) : null}
                 <p className="mt-3 text-xs text-zinc-500">{item.label}</p>
               </article>
             );

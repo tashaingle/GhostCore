@@ -1,3 +1,4 @@
+import {DATE_TIME} from "@/lib/ui/dates";
 import Link from "next/link";
 import {notFound} from "next/navigation";
 import {getActiveOrganisation} from "@/lib/organisations/active";
@@ -61,7 +62,7 @@ export default async function CorrelationDetail({params}: {params: Promise<{id: 
             <h3 className="mt-2 font-semibold">{event?.title ?? "Source event unavailable"}</h3>
             <p className="mt-2 text-sm">{event?.description}</p>
             <time className="mt-3 block text-xs text-zinc-500">
-              {event && new Date(event.occurred_at).toLocaleString()}
+              {event && new Date(event.occurred_at).toLocaleString("en-GB", DATE_TIME)}
             </time>
           </article>
         ))}
@@ -89,7 +90,8 @@ export default async function CorrelationDetail({params}: {params: Promise<{id: 
           <strong>Invalidated</strong>
           <p>{item.invalidation_reason}</p>
           <time className="text-xs">
-            {item.invalidated_at && new Date(item.invalidated_at).toLocaleString()}
+            {item.invalidated_at &&
+              new Date(item.invalidated_at).toLocaleString("en-GB", DATE_TIME)}
           </time>
         </div>
       )}
@@ -97,13 +99,15 @@ export default async function CorrelationDetail({params}: {params: Promise<{id: 
         <h3 className="font-semibold">History</h3>
         {!revisions?.length ? (
           <p className="mt-2 text-sm text-zinc-500">
-            No revisions. First detected {new Date(item.first_detected_at).toLocaleString()}, last
-            confirmed {new Date(item.last_confirmed_at).toLocaleString()}.
+            No revisions. First detected{" "}
+            {new Date(item.first_detected_at).toLocaleString("en-GB", DATE_TIME)}, last confirmed{" "}
+            {new Date(item.last_confirmed_at).toLocaleString("en-GB", DATE_TIME)}.
           </p>
         ) : (
           revisions.map((r, i) => (
             <p className="mt-2 text-sm" key={i}>
-              Rule v{r.rule_version} · {r.reason} · {new Date(r.created_at).toLocaleString()}
+              Rule v{r.rule_version} · {r.reason} ·{" "}
+              {new Date(r.created_at).toLocaleString("en-GB", DATE_TIME)}
             </p>
           ))
         )}

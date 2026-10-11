@@ -41,7 +41,7 @@ type EmailContent = {
 
 function layout(input: EmailContent) {
   const footer = input.footerUrl
-    ? `You can change which emails you receive in <a href="${escapeHtml(input.footerUrl)}" style="color:#71717a">notification preferences</a>.`
+    ? `You can change which emails you receive in <a href="${escapeHtml(input.footerUrl)}" style="color:#71717a">email settings</a>.`
     : escapeHtml(input.footerText ?? "");
   const sections = (input.sections ?? [])
     .filter((s) => s.items.length)

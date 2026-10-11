@@ -1,3 +1,4 @@
+import {DATE_TIME} from "@/lib/ui/dates";
 import Link from "next/link";
 import {getActiveOrganisation} from "@/lib/organisations/active";
 import {Notice} from "@/components/notice";
@@ -86,7 +87,7 @@ export default async function WorkflowRuns({
                 <td className="capitalize">{x.status}</td>
                 <td>{x.workflow_version}</td>
                 <td>{x.trigger_type}</td>
-                <td>{new Date(x.created_at).toLocaleString()}</td>
+                <td>{new Date(x.created_at).toLocaleString("en-GB", DATE_TIME)}</td>
                 <td>{x.retry_count}</td>
               </tr>
             ))}

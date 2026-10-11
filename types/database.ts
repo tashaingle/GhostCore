@@ -806,7 +806,7 @@ export type Database = {
           id: string;
           organisation_id: string;
           user_id: string | null;
-          kind: "notification" | "approval" | "weekly_summary";
+          kind: "notification" | "approval" | "weekly_summary" | "trial";
           source_id: string;
           dedupe_key: string;
           recipient_email: string;
@@ -826,7 +826,7 @@ export type Database = {
           id?: string;
           organisation_id: string;
           user_id?: string | null;
-          kind: "notification" | "approval" | "weekly_summary";
+          kind: "notification" | "approval" | "weekly_summary" | "trial";
           source_id: string;
           dedupe_key: string;
           recipient_email: string;

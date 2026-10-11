@@ -147,7 +147,11 @@ describe("going well and needs a look", () => {
     );
     expect(h).toEqual([
       {tone: "good", text: "Revenue up 25% to £400 compared with last week"},
-      {tone: "bad", text: "Orders down 50% to 5 compared with last week"},
+      {
+        tone: "bad",
+        text: "Orders down 50% to 5 compared with last week",
+        tip: expect.stringContaining("fewer people visited"),
+      },
       {tone: "good", text: "Refunds down 75% to 1 compared with last week"},
     ]);
   });
@@ -199,6 +203,7 @@ describe("going well and needs a look", () => {
       {
         tone: "bad",
         text: "Ad spend up 40% but return on ad spend fell 35% compared with last month",
+        tip: expect.stringContaining("Meta Ads Manager"),
       },
     ]);
   });

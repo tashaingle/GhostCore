@@ -1,8 +1,8 @@
 import type {CaseStatus, TaskStatus, UnifiedWork, WorkPriority} from "./types";
 const taskTransitions: Record<TaskStatus, readonly TaskStatus[]> = {
   backlog: ["open"],
-  open: ["in_progress", "blocked", "waiting", "cancelled"],
-  in_progress: ["blocked", "waiting", "completed", "cancelled"],
+  open: ["in_progress", "completed", "blocked", "waiting", "cancelled"],
+  in_progress: ["completed", "blocked", "waiting", "cancelled"],
   blocked: ["open", "in_progress", "cancelled"],
   waiting: ["open", "in_progress", "cancelled"],
   completed: ["open"],
@@ -18,6 +18,8 @@ const caseTransitions: Record<CaseStatus, readonly CaseStatus[]> = {
 };
 export const canTransitionTask = (from: TaskStatus, to: TaskStatus) =>
   taskTransitions[from].includes(to);
+export const nextTaskStatuses = (from: string) => taskTransitions[from as TaskStatus] ?? [];
+export const nextCaseStatuses = (from: string) => caseTransitions[from as CaseStatus] ?? [];
 export const canTransitionCase = (from: CaseStatus, to: CaseStatus) =>
   caseTransitions[from].includes(to);
 export function requireTransition(

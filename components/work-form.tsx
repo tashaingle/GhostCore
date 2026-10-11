@@ -1,4 +1,5 @@
 import {caseCategories, workPriorities} from "@/lib/work/types";
+import {caseCategoryLabel, workPriorityLabel} from "@/lib/ui/work-labels";
 import {createCaseAction, createTaskAction} from "@/app/work-actions";
 type Member = {user_id: string; label: string};
 type Props = {
@@ -18,19 +19,21 @@ export function WorkForm({kind, members, cases = [], sourceType = "manual", sour
       </label>
       {kind === "case" && (
         <label className="md:col-span-2">
-          Summary
+          Summary <span className="text-zinc-400">(optional)</span>
           <input className="field mt-1 w-full" name="summary" maxLength={1000} />
         </label>
       )}
       <label className="md:col-span-2">
-        Description
+        Description <span className="text-zinc-400">(optional)</span>
         <textarea className="field mt-1 min-h-32 w-full" name="description" maxLength={10000} />
       </label>
       <label>
         Priority
         <select className="field mt-1 w-full" name="priority" defaultValue="normal">
           {workPriorities.map((x) => (
-            <option key={x}>{x}</option>
+            <option key={x} value={x}>
+              {workPriorityLabel(x)}
+            </option>
           ))}
         </select>
       </label>
@@ -39,13 +42,15 @@ export function WorkForm({kind, members, cases = [], sourceType = "manual", sour
           Category
           <select className="field mt-1 w-full" name="category" defaultValue="operational">
             {caseCategories.map((x) => (
-              <option key={x}>{x}</option>
+              <option key={x} value={x}>
+                {caseCategoryLabel(x)}
+              </option>
             ))}
           </select>
         </label>
       ) : (
         <label>
-          Due date
+          Due <span className="text-zinc-400">(optional)</span>
           <input className="field mt-1 w-full" name="dueAt" type="datetime-local" />
         </label>
       )}
@@ -92,7 +97,7 @@ export function WorkForm({kind, members, cases = [], sourceType = "manual", sour
             </span>
           </label>
           <label>
-            Estimate (minutes)
+            How long will it take? <span className="text-zinc-400">(minutes, optional)</span>
             <input className="field mt-1 w-full" name="estimatedMinutes" type="number" min="0" />
           </label>
         </>

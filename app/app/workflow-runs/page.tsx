@@ -1,5 +1,7 @@
 import {DATE_TIME} from "@/lib/ui/dates";
 import Link from "next/link";
+import {runStatusLabel} from "@/lib/workflows/describe";
+import {triggerLabel} from "@/lib/ui/labels";
 import {getActiveOrganisation} from "@/lib/organisations/active";
 import {Notice} from "@/components/notice";
 export default async function WorkflowRuns({
@@ -24,43 +26,22 @@ export default async function WorkflowRuns({
         .select("id,name")
         .eq("organisation_id", ctx.organisation.id),
     ]),
-    names = new Map((workflows ?? []).map((x) => [x.id, x.name])),
-    durations = (runs ?? []).flatMap((x) =>
-      x.started_at && x.finished_at ? [Date.parse(x.finished_at) - Date.parse(x.started_at)] : [],
-    );
+    names = new Map((workflows ?? []).map((x) => [x.id, x.name]));
   return (
     <section className="space-y-6">
       <div>
-        <h1 className="text-3xl font-semibold tracking-tight text-zinc-950">Workflow runs</h1>
-        <p className="text-zinc-600">Immutable-version execution history, retries and evidence.</p>
+        <h1 className="text-3xl font-semibold tracking-tight text-zinc-950">Automation runs</h1>
+        <p className="text-zinc-600">Each time an automation has run, and how far it got.</p>
       </div>
       <Notice searchParams={p} />
-      <div className="grid gap-3 md:grid-cols-4">
-        {[
-          ["Running", runs?.filter((x) => x.status === "running").length ?? 0],
-          ["Waiting", runs?.filter((x) => x.status === "waiting").length ?? 0],
-          ["Failed", runs?.filter((x) => x.status === "failed").length ?? 0],
-          [
-            "Average duration",
-            durations.length
-              ? `${Math.round(durations.reduce((a, b) => a + b, 0) / durations.length)} ms`
-              : "None",
-          ],
-        ].map(([k, v]) => (
-          <div className="card" key={k}>
-            <p className="text-sm text-zinc-500">{k}</p>
-            <p className="text-xl font-bold">{v}</p>
-          </div>
-        ))}
-      </div>
       <form className="card flex gap-2">
-        <select className="field" name="status" defaultValue={status}>
-          <option value="">All statuses</option>
-          {["queued", "running", "waiting", "paused", "completed", "failed", "cancelled"].map(
-            (x) => (
-              <option key={x}>{x}</option>
-            ),
-          )}
+        <select aria-label="Show" className="field" name="status" defaultValue={status}>
+          <option value="">All runs</option>
+          {["running", "waiting", "paused", "completed", "failed", "cancelled"].map((x) => (
+            <option key={x} value={x}>
+              {runStatusLabel(x)}
+            </option>
+          ))}
         </select>
         <button className="button">Filter</button>
       </form>
@@ -68,12 +49,10 @@ export default async function WorkflowRuns({
         <table className="w-full text-left text-sm">
           <thead>
             <tr>
-              <th className="p-3">Workflow</th>
-              <th>Status</th>
-              <th>Version</th>
-              <th>Trigger</th>
-              <th>Started</th>
-              <th>Retries</th>
+              <th className="p-3">Automation</th>
+              <th>How it went</th>
+              <th>What started it</th>
+              <th className="pr-3">When</th>
             </tr>
           </thead>
           <tbody>
@@ -81,14 +60,14 @@ export default async function WorkflowRuns({
               <tr className="border-t" key={x.id}>
                 <td className="p-3">
                   <Link className="font-semibold" href={`/app/workflow-runs/${x.id}`}>
-                    {names.get(x.workflow_id) ?? x.workflow_id}
+                    {names.get(x.workflow_id) ?? "Automation"}
                   </Link>
                 </td>
-                <td className="capitalize">{x.status}</td>
-                <td>{x.workflow_version}</td>
-                <td>{x.trigger_type}</td>
-                <td>{new Date(x.created_at).toLocaleString("en-GB", DATE_TIME)}</td>
-                <td>{x.retry_count}</td>
+                <td>{runStatusLabel(x.status)}</td>
+                <td>{triggerLabel(x.trigger_type)}</td>
+                <td className="pr-3">
+                  {new Date(x.created_at).toLocaleString("en-GB", DATE_TIME)}
+                </td>
               </tr>
             ))}
           </tbody>

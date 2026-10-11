@@ -219,7 +219,12 @@ export function GoingWellCards({
             {bad.map((h) => (
               <li key={h.text} className="flex gap-2">
                 <span aria-hidden className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-amber-500" />
-                {h.text}
+                <span>
+                  {h.text}
+                  {h.tip ? (
+                    <span className="mt-0.5 block text-amber-900/75">{`What to do: ${h.tip}`}</span>
+                  ) : null}
+                </span>
               </li>
             ))}
           </ul>

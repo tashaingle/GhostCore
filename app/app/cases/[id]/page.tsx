@@ -2,6 +2,13 @@ import {DATE_TIME} from "@/lib/ui/dates";
 import Link from "next/link";
 import {notFound} from "next/navigation";
 import {getActiveOrganisation} from "@/lib/organisations/active";
+import {
+  caseCategoryLabel,
+  commentLabel,
+  slaLabel,
+  workSourceLabel,
+  workStatusLabel,
+} from "@/lib/ui/work-labels";
 import {WorkStatus} from "@/components/work-status";
 import {WorkDetailActions} from "@/components/work-detail-actions";
 import {organisationPeople} from "@/lib/organisations/people";
@@ -98,7 +105,7 @@ export default async function CaseDetail({
         <dl className="mt-4 grid gap-2 text-sm md:grid-cols-4">
           <div>
             <dt className="text-zinc-500">Category</dt>
-            <dd>{item.category}</dd>
+            <dd>{caseCategoryLabel(item.category)}</dd>
           </div>
           <div>
             <dt className="text-zinc-500">Assignee</dt>
@@ -110,9 +117,11 @@ export default async function CaseDetail({
           </div>
           <div>
             <dt className="text-zinc-500">Response target</dt>
-            <dd className="capitalize">
-              {sla.state}{" "}
-              {sla.remainingMinutes !== null ? `(${sla.remainingMinutes} min remaining)` : ""}
+            <dd>
+              {slaLabel(sla.state)}
+              {sla.remainingMinutes !== null && sla.remainingMinutes > 0
+                ? ` (${sla.remainingMinutes >= 120 ? `${Math.round(sla.remainingMinutes / 60)} hours` : `${sla.remainingMinutes} min`} left)`
+                : ""}
             </dd>
           </div>
           <div>
@@ -137,9 +146,7 @@ export default async function CaseDetail({
           </div>
           <div>
             <dt className="text-zinc-500">Source</dt>
-            <dd>
-              {item.source_type}: {item.source_id ?? "manual"}
-            </dd>
+            <dd>{workSourceLabel(item.source_type)}</dd>
           </div>
         </dl>
       </div>
@@ -173,9 +180,7 @@ export default async function CaseDetail({
               <div className="mt-3 border-t pt-3 text-sm" key={x.id}>
                 <strong>{x.label}</strong>
                 <p>{x.description}</p>
-                <p className="text-xs text-zinc-500">
-                  {x.source_type}: {x.source_id}
-                </p>
+                <p className="text-xs text-zinc-500">{workSourceLabel(x.source_type)}</p>
               </div>
             ))}
           </article>
@@ -186,11 +191,11 @@ export default async function CaseDetail({
                 className={`mt-3 border-t pt-3 text-sm ${x.comment_type === "internal_note" ? "border-amber-300 bg-amber-50 p-2" : ""}`}
                 key={x.id}
               >
-                <strong className="capitalize">{x.comment_type.replaceAll("_", " ")}</strong>
+                <strong>{commentLabel(x.comment_type)}</strong>
                 <p className="whitespace-pre-wrap">{x.body}</p>
                 <p className="text-xs text-zinc-500">
                   {people.name(x.author_user_id, "Metric Mage")} ·{" "}
-                  {new Date(x.created_at).toLocaleString("en-GB")}
+                  {new Date(x.created_at).toLocaleString("en-GB", DATE_TIME)}
                 </p>
               </div>
             ))}
@@ -199,9 +204,10 @@ export default async function CaseDetail({
             <h3 className="font-semibold">History</h3>
             {revisions?.map((x) => (
               <p className="mt-2 text-sm" key={x.id}>
-                #{x.revision_number} <strong>{x.change_type}</strong> ·{" "}
-                {x.previous_status ?? "None"} → {x.new_status ?? "None"} ·{" "}
-                {new Date(x.created_at).toLocaleString("en-GB", DATE_TIME)}
+                {x.previous_status && x.new_status && x.previous_status !== x.new_status
+                  ? `${workStatusLabel(x.previous_status)} → ${workStatusLabel(x.new_status)}`
+                  : x.change_type.replaceAll("_", " ")}{" "}
+                · {new Date(x.created_at).toLocaleString("en-GB", DATE_TIME)}
               </p>
             ))}
           </article>

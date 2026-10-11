@@ -54,13 +54,14 @@ export async function mutateNotification(input: {
     target = "open";
     updates.snoozed_until = null;
   } else if (input.action === "resolve") {
-    if (!input.reason?.trim()) throw new Error("Resolution requires a reason.");
+    if (!input.reason?.trim())
+      throw new Error("Add a short note saying what you did, then mark it as fixed.");
     target = "resolved";
     updates.resolved_by = input.userId;
     updates.resolved_at = now;
     updates.resolution_reason = input.reason.trim().slice(0, 500);
   } else if (input.action === "dismiss") {
-    if (!input.reason?.trim()) throw new Error("Dismissal requires a reason.");
+    if (!input.reason?.trim()) throw new Error("Add a short note saying why it's not a problem.");
     target = "dismissed";
     updates.dismissed_by = input.userId;
     updates.dismissed_at = now;

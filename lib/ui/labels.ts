@@ -375,3 +375,25 @@ export const ROLE_DESCRIPTIONS: Record<string, string> = {
   member: "See everything and work on tasks and approvals assigned to them.",
   viewer: "Read-only access.",
 };
+
+const CONNECTION_STATUS: Record<string, string> = {
+  connected: "Connected",
+  syncing: "Updating",
+  error: "Not working",
+  expired: "Needs reconnecting",
+  disconnected: "Disconnected",
+  success: "Worked",
+  finished: "Worked",
+  failed: "Didn't work",
+};
+/** Plain words for a connection's or sync's status. */
+export const connectionStatusLabel = (status: string | null | undefined) =>
+  status ? (CONNECTION_STATUS[status] ?? titleCase(status)) : "Not yet";
+
+const INSIGHT_STATUS: Record<string, string> = {
+  active: "New",
+  acknowledged: "Seen",
+  dismissed: "Dismissed",
+  resolved: "Sorted",
+};
+export const insightStatusLabel = (status: string) => INSIGHT_STATUS[status] ?? titleCase(status);

@@ -17,8 +17,10 @@ import {hasPermission} from "@/lib/auth/permissions";
 describe("deterministic work management", () => {
   it("allows explicit task transitions", () =>
     expect(canTransitionTask("open", "in_progress")).toBe(true));
-  it("rejects implicit task completion", () =>
-    expect(canTransitionTask("open", "completed")).toBe(false));
+  it("lets a to-do task be marked done straight away", () =>
+    expect(canTransitionTask("open", "completed")).toBe(true));
+  it("doesn't complete a task that was never opened", () =>
+    expect(canTransitionTask("backlog", "completed")).toBe(false));
   it("allows explicit case transitions", () =>
     expect(canTransitionCase("resolved", "closed")).toBe(true));
   it("requires a reopen reason", () =>

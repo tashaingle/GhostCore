@@ -94,7 +94,7 @@ export default async function AppLayout({children}: {children: React.ReactNode})
         )}
 
         <div className="mt-6 flex-1">
-          <SidebarNav />
+          <SidebarNav showAdvanced={["owner", "admin"].includes(ctx?.membership.role ?? "")} />
         </div>
 
         {ctx ? (

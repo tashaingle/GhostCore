@@ -1,3 +1,4 @@
+import {humaniseDates} from "@/lib/events/explain";
 import {DATE_TIME} from "@/lib/ui/dates";
 import Link from "next/link";
 import {notFound} from "next/navigation";
@@ -9,7 +10,19 @@ import {SeverityBadge} from "@/components/severity-badge";
 import {notificationAction} from "@/app/notification-actions";
 import {humanCategory, humanizeNotificationDisplay, titleCase} from "@/lib/ui/labels";
 
-const json = (value: unknown) => JSON.stringify(value, null, 2);
+/** Stored figures as readable lines, like "Sessions: 5", rather than raw data. */
+function readable(value: unknown): string {
+  if (value === null || value === undefined) return "";
+  if (typeof value !== "object") return String(value);
+  if (Array.isArray(value)) return value.map(readable).join(", ");
+  return Object.entries(value as Record<string, unknown>)
+    .filter(([, v]) => v !== null && v !== undefined && typeof v !== "object")
+    .map(
+      ([k, v]) =>
+        `${titleCase(k.replace(/([a-z])([A-Z])/g, "$1 $2"))}: ${humaniseDates(String(v))}`,
+    )
+    .join("\n");
+}
 
 export default async function NotificationDetail({
   params,
@@ -162,7 +175,7 @@ export default async function NotificationDetail({
                 </Link>
               ) : item.source_type === "correlation" ? (
                 <Link className="underline" href={`/app/correlations/${item.source_id}`}>
-                  Correlation
+                  Linked events
                 </Link>
               ) : (
                 titleCase(item.source_type)
@@ -185,7 +198,7 @@ export default async function NotificationDetail({
           <article className="card">
             <h3 className="font-semibold">What Metric Mage saw</h3>
             {!evidence?.length ? (
-              <p className="mt-2 text-zinc-500">No evidence was stored.</p>
+              <p className="mt-2 text-sm text-zinc-500">No extra details for this one.</p>
             ) : (
               evidence.map((e) => (
                 <div className="mt-3 border-t pt-3" key={e.id}>
@@ -196,16 +209,22 @@ export default async function NotificationDetail({
                     </time>
                   </div>
                   <p className="text-sm text-zinc-700">{e.description}</p>
-                  <div className="mt-2 grid gap-2 md:grid-cols-2">
-                    <pre className="overflow-auto rounded bg-zinc-50 p-2 text-xs">
-                      Observed: {json(e.observed_value_json)}
-                    </pre>
-                    {e.expected_value_json !== null ? (
-                      <pre className="overflow-auto rounded bg-zinc-50 p-2 text-xs">
-                        Expected: {json(e.expected_value_json)}
-                      </pre>
-                    ) : null}
-                  </div>
+                  {readable(e.observed_value_json) || readable(e.expected_value_json) ? (
+                    <div className="mt-2 grid gap-2 md:grid-cols-2">
+                      {readable(e.observed_value_json) ? (
+                        <div className="whitespace-pre-line rounded-lg bg-zinc-50 p-2.5 text-sm">
+                          <span className="block text-xs text-zinc-500">What it found</span>
+                          {readable(e.observed_value_json)}
+                        </div>
+                      ) : null}
+                      {readable(e.expected_value_json) ? (
+                        <div className="whitespace-pre-line rounded-lg bg-zinc-50 p-2.5 text-sm">
+                          <span className="block text-xs text-zinc-500">What it expected</span>
+                          {readable(e.expected_value_json)}
+                        </div>
+                      ) : null}
+                    </div>
+                  ) : null}
                   {e.correlation_id ? (
                     <Link
                       className="mt-2 inline-block text-sm underline"
@@ -228,9 +247,7 @@ export default async function NotificationDetail({
             <h3 className="font-semibold">History</h3>
             {revisions?.map((r) => (
               <div className="mt-3 border-t pt-3 text-sm" key={r.id}>
-                <strong>
-                  #{r.revision_number} {titleCase(r.change_type)}
-                </strong>
+                <strong>{titleCase(r.change_type)}</strong>
                 <span className="ml-2 text-zinc-500">
                   {new Date(r.created_at).toLocaleString("en-GB", DATE_TIME)}
                 </span>
@@ -252,15 +269,21 @@ export default async function NotificationDetail({
                 <input type="hidden" name="id" value={item.id} />
                 <input type="hidden" name="returnTo" value={returnTo} />
                 <button className="button w-full" name="action" value="acknowledge">
-                  Acknowledge
+                  Mark as seen
                 </button>
-                <input className="field w-full" name="snoozedUntil" type="datetime-local" />
+                <p className="text-xs text-zinc-500">
+                  Lets the team know someone&apos;s looking at it.
+                </p>
+                <label className="block pt-2 text-sm">
+                  Hide it until
+                  <input className="field mt-1 w-full" name="snoozedUntil" type="datetime-local" />
+                </label>
                 <button className="button button-secondary w-full" name="action" value="snooze">
                   Snooze
                 </button>
                 {item.status === "snoozed" ? (
                   <button className="button button-secondary w-full" name="action" value="unsnooze">
-                    Unsnooze
+                    Show it again now
                   </button>
                 ) : null}
               </form>
@@ -269,7 +292,10 @@ export default async function NotificationDetail({
               <form action={notificationAction} className="mt-3 space-y-2">
                 <input type="hidden" name="id" value={item.id} />
                 <input type="hidden" name="returnTo" value={returnTo} />
-                <select className="field w-full" name="assignedUserId" required>
+                <label className="block text-sm" htmlFor="alert-assignee">
+                  Who&apos;s dealing with it?
+                </label>
+                <select id="alert-assignee" className="field w-full" name="assignedUserId" required>
                   {(members ?? []).map((x) => (
                     <option key={x.user_id} value={x.user_id}>
                       {names.get(x.user_id) ?? "Team member"}
@@ -281,7 +307,7 @@ export default async function NotificationDetail({
                 </button>
                 {item.assigned_user_id ? (
                   <button className="button button-secondary w-full" name="action" value="unassign">
-                    Unassign
+                    Remove assignee
                   </button>
                 ) : null}
               </form>
@@ -290,20 +316,22 @@ export default async function NotificationDetail({
               <form action={notificationAction} className="mt-3 space-y-2">
                 <input type="hidden" name="id" value={item.id} />
                 <input type="hidden" name="returnTo" value={returnTo} />
-                <textarea
-                  className="field w-full"
-                  name="reason"
-                  placeholder="Required reason"
-                  required
-                />
+                <label className="block pt-2 text-sm">
+                  What did you do about it?
+                  <textarea
+                    className="field mt-1 w-full"
+                    name="reason"
+                    placeholder="Needed to mark it as fixed or not a problem"
+                  />
+                </label>
                 {canResolve && item.status !== "resolved" ? (
                   <button className="button w-full" name="action" value="resolve">
-                    Resolve
+                    Mark as fixed
                   </button>
                 ) : null}
                 {canDismiss && item.status !== "dismissed" ? (
                   <button className="button button-secondary w-full" name="action" value="dismiss">
-                    Dismiss
+                    Not a problem
                   </button>
                 ) : null}
                 {canResolve && ["resolved", "dismissed"].includes(item.status) ? (
@@ -315,15 +343,15 @@ export default async function NotificationDetail({
             ) : null}
           </div>
           <div className="card">
-            <h3 className="font-semibold">Assignment history</h3>
+            <h3 className="font-semibold">Who&apos;s been assigned</h3>
             {!assignments?.length ? (
-              <p className="text-sm text-zinc-500">Never assigned.</p>
+              <p className="text-sm text-zinc-500">No one yet.</p>
             ) : (
               assignments.map((a) => (
                 <p className="mt-2 text-sm" key={a.id}>
                   {names.get(a.assigned_user_id) ?? "Former team member"} ·{" "}
                   {new Date(a.assigned_at).toLocaleString("en-GB", DATE_TIME)}
-                  {a.unassigned_at ? " · unassigned" : ""}
+                  {a.unassigned_at ? " · removed" : ""}
                 </p>
               ))
             )}

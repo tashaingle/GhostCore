@@ -31,8 +31,9 @@ export function ConnectGitHubButton({configuredSiteUrl}: {configuredSiteUrl: str
           if (settings.external?.github !== true) {
             setFailure({
               kind: "provider_disabled",
-              message:
-                "GitHub is disabled in the active Supabase project. In Authentication → Providers → GitHub, turn GitHub Enabled on and save again.",
+              message: development
+                ? "GitHub is disabled in the active Supabase project. In Authentication → Providers → GitHub, turn GitHub Enabled on and save again."
+                : "GitHub can't be connected right now. Please try again in a few minutes, or email support@metricmage.co.uk if it keeps happening.",
             });
             return;
           }
@@ -60,7 +61,7 @@ export function ConnectGitHubButton({configuredSiteUrl}: {configuredSiteUrl: str
         setFailure({
           kind: "already_linked",
           message:
-            "GitHub is already linked to this Metric Mage user, but no usable integration token exists. Remove the linked GitHub identity in Supabase Auth, then connect again.",
+            "Your GitHub account is already linked, but Metric Mage has lost access to it. Email support@metricmage.co.uk and we'll reset it so you can connect again.",
         });
         return;
       }
@@ -83,7 +84,7 @@ export function ConnectGitHubButton({configuredSiteUrl}: {configuredSiteUrl: str
           kind: "url_missing",
           message: development
             ? "Supabase returned no GitHub OAuth URL and no Auth error."
-            : "Supabase did not return a GitHub authorization URL.",
+            : "GitHub can't be connected right now. Please try again in a few minutes, or email support@metricmage.co.uk if it keeps happening.",
         });
         return;
       }

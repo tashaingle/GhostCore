@@ -26,7 +26,7 @@ export default async function SlackSettings({
     <section className="mx-auto max-w-4xl space-y-6">
       <div>
         <Link className="text-sm text-zinc-500" href="/app/integrations">
-          ← Integrations
+          ← Connections
         </Link>
         <h1 className="mt-2 text-3xl font-semibold tracking-tight text-zinc-950">Slack channels</h1>
         <p className="text-zinc-600">

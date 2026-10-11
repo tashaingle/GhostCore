@@ -1,3 +1,5 @@
+import {SeverityLabel} from "@/components/home-ui";
+import {insightStatusLabel, providerLabel} from "@/lib/ui/labels";
 import {DATE_TIME} from "@/lib/ui/dates";
 import Link from "next/link";
 import {notFound} from "next/navigation";
@@ -40,10 +42,10 @@ export default async function InsightDetail({
           <span className="rounded-full bg-violet-100 px-2 py-1 text-xs text-violet-800">
             Insight
           </span>
-          <span className="rounded-full bg-zinc-100 px-2 py-1 text-xs uppercase">
-            {insight.severity}
+          <SeverityLabel severity={insight.severity} />
+          <span className="rounded-full bg-zinc-100 px-2 py-1 text-xs">
+            {insightStatusLabel(insight.status)}
           </span>
-          <span className="rounded-full bg-zinc-100 px-2 py-1 text-xs">{insight.status}</span>
         </div>
         <h1 className="mt-4 text-3xl font-semibold tracking-tight text-zinc-950">
           {insight.title}
@@ -90,9 +92,7 @@ export default async function InsightDetail({
                 </time>
               </div>
               {event.description && <p className="mt-2 text-sm">{event.description}</p>}
-              <p className="mt-2 text-xs text-zinc-500">
-                {event.source} · {event.event_type}
-              </p>
+              <p className="mt-2 text-xs text-zinc-500">{providerLabel(event.source)}</p>
             </article>
           ))}
         </div>

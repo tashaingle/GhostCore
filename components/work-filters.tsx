@@ -1,4 +1,5 @@
 import {taskStatuses, caseStatuses, workPriorities, workSourceTypes} from "@/lib/work/types";
+import {workPriorityLabel, workSourceLabel, workStatusLabel} from "@/lib/ui/work-labels";
 export function WorkFilters({
   kind,
   values,
@@ -16,12 +17,14 @@ export function WorkFilters({
         className="field"
         name="q"
         defaultValue={values.q}
-        placeholder="Title, ID, case or source"
+        placeholder="Search work"
       />
       <select aria-label="Status" className="field" name="status" defaultValue={values.status}>
         <option value="">All statuses</option>
         {(kind === "case" ? caseStatuses : taskStatuses).map((x) => (
-          <option key={x}>{x}</option>
+          <option key={x} value={x}>
+            {workStatusLabel(x)}
+          </option>
         ))}
       </select>
       <select
@@ -32,13 +35,17 @@ export function WorkFilters({
       >
         <option value="">All priorities</option>
         {workPriorities.map((x) => (
-          <option key={x}>{x}</option>
+          <option key={x} value={x}>
+            {workPriorityLabel(x)}
+          </option>
         ))}
       </select>
       <select aria-label="Source" className="field" name="source" defaultValue={values.source}>
-        <option value="">All sources</option>
+        <option value="">Wherever it came from</option>
         {workSourceTypes.map((x) => (
-          <option key={x}>{x}</option>
+          <option key={x} value={x}>
+            {workSourceLabel(x)}
+          </option>
         ))}
       </select>
       <select
@@ -47,7 +54,7 @@ export function WorkFilters({
         name="assignment"
         defaultValue={values.assignment}
       >
-        <option value="">All assignments</option>
+        <option value="">Anyone</option>
         <option value="me">Assigned to me</option>
         <option value="unassigned">Unassigned</option>
       </select>
@@ -57,7 +64,7 @@ export function WorkFilters({
         <option value="soon">Due soon</option>
         <option value="none">No due date</option>
       </select>
-      <button className="button">Apply filters</button>
+      <button className="button">Filter</button>
     </form>
   );
 }

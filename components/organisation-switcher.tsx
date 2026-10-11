@@ -1,4 +1,5 @@
 "use client";
+import {roleLabel} from "@/lib/ui/labels";
 import {useState} from "react";
 import {switchOrganisation} from "@/app/organisation-actions";
 export function OrganisationSwitcher({
@@ -24,7 +25,7 @@ export function OrganisationSwitcher({
       >
         {organisations.map((org) => (
           <option value={org.id} key={org.id}>
-            {org.name} · {org.role}
+            {`${org.name} · ${roleLabel(org.role)}`}
           </option>
         ))}
       </select>

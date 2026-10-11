@@ -27,41 +27,53 @@ export default async function Approvals({
   if (mine) query = query.eq("approver_user_id", ctx.user.id);
 
   const {data: rows} = await query;
-  const now = new Date();
+  // Name each approval after its step, like "Ask an owner to approve".
+  const {data: runSteps} = rows?.length
+      ? await ctx.supabase
+          .from("workflow_run_steps")
+          .select("id,step_id")
+          .eq("organisation_id", ctx.organisation.id)
+          .in(
+            "id",
+            rows.map((x) => x.run_step_id),
+          )
+      : {data: []},
+    {data: stepNames} = runSteps?.length
+      ? await ctx.supabase
+          .from("workflow_steps")
+          .select("id,name")
+          .eq("organisation_id", ctx.organisation.id)
+          .in(
+            "id",
+            runSteps.map((x) => x.step_id),
+          )
+      : {data: []},
+    nameOf = (runStepId: string) => {
+      const stepId = runSteps?.find((x) => x.id === runStepId)?.step_id;
+      return stepNames?.find((x) => x.id === stepId)?.name ?? "Approval needed";
+    },
+    STATUS: Record<string, string> = {
+      pending: "Waiting",
+      approved: "Approved",
+      rejected: "Turned down",
+      expired: "Expired",
+      cancelled: "Cancelled",
+    };
 
   return (
     <section className="space-y-6">
       <PageHeader
         title="Approvals"
-        description="Automations that are waiting for someone to approve or reject a step."
+        description="When an automation needs a yes or no from someone before it carries on, it waits here."
       />
       <Notice searchParams={p} />
 
-      <div className="grid gap-3 md:grid-cols-5">
-        {[
-          ["Pending", rows?.filter((x) => x.status === "pending").length ?? 0],
-          ["Approved", rows?.filter((x) => x.status === "approved").length ?? 0],
-          ["Rejected", rows?.filter((x) => x.status === "rejected").length ?? 0],
-          [
-            "Overdue",
-            rows?.filter((x) => x.status === "pending" && x.due_at && new Date(x.due_at) < now)
-              .length ?? 0,
-          ],
-          ["Assigned to me", rows?.filter((x) => x.approver_user_id === ctx.user.id).length ?? 0],
-        ].map(([k, v]) => (
-          <div className="card" key={String(k)}>
-            <p className="text-sm text-zinc-500">{k}</p>
-            <p className="text-xl font-bold">{v}</p>
-          </div>
-        ))}
-      </div>
-
       <form className="card flex flex-wrap items-center gap-2">
         <select className="field" name="status" defaultValue={status}>
-          <option value="">All statuses</option>
+          <option value="">All</option>
           {statuses.map((x) => (
             <option key={x} value={x}>
-              {titleCase(x)}
+              {STATUS[x]}
             </option>
           ))}
         </select>
@@ -74,7 +86,9 @@ export default async function Approvals({
 
       <div className="grid gap-3">
         {!rows?.length ? (
-          <div className="card text-zinc-500">No approvals match these filters.</div>
+          <div className="card text-zinc-500">
+            {status === "pending" ? "Nothing is waiting for an answer." : "No approvals here."}
+          </div>
         ) : (
           rows.map((x) => (
             <Link
@@ -83,19 +97,22 @@ export default async function Approvals({
               key={x.id}
             >
               <div className="flex justify-between gap-2">
-                <strong>Workflow approval</strong>
-                <span className="badge badge-muted">{titleCase(x.status)}</span>
+                <strong>{nameOf(x.run_step_id)}</strong>
+                <span className="badge badge-muted">{STATUS[x.status] ?? titleCase(x.status)}</span>
               </div>
               <p className="mt-1 text-sm text-zinc-600">
-                Run {x.run_id.slice(0, 8)} ·{" "}
-                {x.approver_role
-                  ? titleCase(x.approver_role)
-                  : x.approver_user_id
-                    ? "Assigned person"
-                    : "Unassigned"}
+                {x.approver_user_id === ctx.user.id
+                  ? "For you"
+                  : x.approver_role
+                    ? `For any ${x.approver_role}`
+                    : x.approver_user_id
+                      ? "For someone else"
+                      : "For anyone on the team"}
               </p>
               <p className="text-xs text-zinc-500">
-                Due {x.due_at ? new Date(x.due_at).toLocaleString("en-GB", DATE_TIME) : "not set"}
+                {x.due_at
+                  ? `Answer needed by ${new Date(x.due_at).toLocaleString("en-GB", DATE_TIME)}`
+                  : "No deadline"}
               </p>
             </Link>
           ))

@@ -45,7 +45,27 @@ export type Trend = {
   unit: TrendUnit;
 };
 
-export type Highlight = {tone: "good" | "bad"; text: string};
+export type Highlight = {tone: "good" | "bad"; text: string; tip?: string};
+
+/** What to check when a figure moves the wrong way. */
+const DROP_TIPS: Record<string, string> = {
+  revenue:
+    "Compare with orders: if orders fell too, fewer people bought; if not, people spent less each time.",
+  orders:
+    "Check whether fewer people visited your site (Search Console or Analytics), or whether visitors stopped buying.",
+  aov: "Customers spent less per order. Bundles, a free-delivery threshold or add-ons at checkout can help.",
+  refunds:
+    "Look at the refund reasons in Stripe or Shopify for a product or problem that keeps coming up.",
+  roas: "Your ads earned less for each £1 spent. Pause the weakest ads in Meta Ads Manager.",
+  emailSubscribers:
+    "Check your latest email for anything that made people unsubscribe, and that your sign-up form still works.",
+  followers: "Posting more regularly, and replying to comments, usually brings followers back.",
+  reach: "Fewer people saw your posts. Try posting at different times, or boosting your best post.",
+  searchClicks:
+    "Search Console's Performance report shows which pages and searches lost the most clicks.",
+  campaignOpenRate: "Fewer people opened your emails. Shorter, clearer subject lines usually help.",
+  appRating: "Read your newest reviews to see what people are unhappy about.",
+};
 
 /** Counts supplied by the page (cheap head queries) for high-volume activity. */
 export type ActivityCounts = Partial<
@@ -520,15 +540,18 @@ export function highlights(metrics: Metric[], period: Period): Highlight[] {
     out.push({
       tone: "bad",
       text: `Ad spend up ${Math.round(spend!.change!)}% but return on ad spend fell ${Math.abs(Math.round(roas!.change!))}% compared with ${previous}`,
+      tip: "You're paying more for ads but getting less back. Pause the ads with the lowest return in Meta Ads Manager.",
     });
   for (const m of metrics) {
     if (!m.comparable || m.change === null || m.higherIsBetter === null) continue;
     if (spendUpReturnDown && m.key === "roas") continue;
     if (Math.abs(m.change) < HIGHLIGHT_PERCENT) continue;
-    const up = m.change > 0;
+    const up = m.change > 0,
+      tone = up === m.higherIsBetter ? ("good" as const) : ("bad" as const);
     out.push({
-      tone: up === m.higherIsBetter ? "good" : "bad",
+      tone,
       text: `${m.label} ${up ? "up" : "down"} ${Math.abs(Math.round(m.change))}% to ${m.value} compared with ${previous}`,
+      ...(tone === "bad" && DROP_TIPS[m.key] ? {tip: DROP_TIPS[m.key]} : {}),
     });
   }
   return out;

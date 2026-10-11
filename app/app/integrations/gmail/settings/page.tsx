@@ -1,3 +1,4 @@
+import {connectionStatusLabel} from "@/lib/ui/labels";
 import {DATE_TIME} from "@/lib/ui/dates";
 import Link from "next/link";
 import {getActiveOrganisation} from "@/lib/organisations/active";
@@ -21,7 +22,7 @@ export default async function GmailSettings({
     <section className="space-y-6">
       <div>
         <Link className="text-sm text-zinc-500" href="/app/integrations">
-          ← Integrations
+          ← Connections
         </Link>
         <h1 className="mt-2 text-3xl font-semibold tracking-tight text-zinc-950">
           Gmail mailboxes
@@ -44,11 +45,11 @@ export default async function GmailSettings({
               <div>
                 <h3 className="font-semibold">{mailbox.provider_account_name}</h3>
                 <p className="text-sm text-zinc-500">
-                  {mailbox.status} ·{" "}
+                  {connectionStatusLabel(mailbox.status)} ·{" "}
                   {mailbox.last_sync_at
-                    ? `Last successful sync ${new Date(mailbox.last_sync_at).toLocaleString("en-GB", DATE_TIME)}`
-                    : "Never synced"}{" "}
-                  · Last attempt: {mailbox.last_sync_status ?? "none"}
+                    ? `Last updated ${new Date(mailbox.last_sync_at).toLocaleString("en-GB", DATE_TIME)}`
+                    : "Not updated yet"}
+                  {mailbox.last_sync_status === "error" ? " · The last update didn't work" : ""}
                 </p>
                 <p className="text-xs text-zinc-500">
                   Initial window: {String(s.initialWindowDays ?? 7)} days

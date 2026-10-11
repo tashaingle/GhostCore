@@ -89,3 +89,20 @@ export function describeStep(step: Pick<StepInput, "type" | "configuration" | "a
 const providerName = (p: string) =>
   ({github: "GitHub", google_analytics: "Google Analytics", meta_ads: "Meta Ads"})[p] ??
   p[0].toUpperCase() + p.slice(1).replaceAll("_", " ");
+
+const RUN_STATUS: Record<string, string> = {
+  queued: "Starting",
+  running: "Running",
+  waiting: "Waiting for someone",
+  paused: "Paused",
+  completed: "Finished",
+  failed: "Stopped with a problem",
+  cancelled: "Cancelled",
+  skipped: "Skipped",
+  pending: "Waiting",
+  approved: "Approved",
+  rejected: "Turned down",
+  expired: "Expired",
+};
+/** Plain words for where an automation run, step, approval or task has got to. */
+export const runStatusLabel = (status: string) => RUN_STATUS[status] ?? status.replaceAll("_", " ");

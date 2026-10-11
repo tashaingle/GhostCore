@@ -17,6 +17,7 @@ import {
   transitionWork,
 } from "@/lib/work/service";
 import {savedViewSchema} from "@/lib/work/views";
+import {workPermission, workSavedMessage} from "@/lib/work/permissions";
 import type {Json} from "@/types/database";
 const id = z.uuid();
 const back = (path: string, message: string, error = false) => {
@@ -24,6 +25,11 @@ const back = (path: string, message: string, error = false) => {
   redirect(`${path}?${error ? "error" : "success"}=${encodeURIComponent(message)}`);
 };
 const nullable = (v: FormDataEntryValue | null) => String(v ?? "").trim() || null;
+const chosen = (v: FormDataEntryValue | null) => {
+  const person = id.safeParse(String(v ?? ""));
+  if (!person.success) throw new Error("Choose who to assign it to first.");
+  return person.data;
+};
 const date = (v: FormDataEntryValue | null) => {
   const x = nullable(v);
   return x ? new Date(x).toISOString() : null;
@@ -117,16 +123,7 @@ export async function workAction(f: FormData) {
         : "/app/work";
   if (!kind.success || !workId.success) return back(path, "Invalid work record.", true);
   try {
-    const permission =
-        action === "assign"
-          ? "work.assign"
-          : action === "cancel"
-            ? "work.cancel"
-            : action === "complete"
-              ? "work.complete"
-              : kind.data === "case" && ["resolved", "closed"].includes(action)
-                ? "cases.resolve"
-                : "work.manage",
+    const permission = workPermission(kind.data, action),
       c = await context(permission),
       service = c.service;
     if (action === "assign" || action === "unassign")
@@ -136,7 +133,7 @@ export async function workAction(f: FormData) {
         c.user.id,
         kind.data,
         workId.data,
-        action === "unassign" ? null : id.parse(String(f.get("assignedUserId") ?? "")),
+        action === "unassign" ? null : chosen(f.get("assignedUserId")),
         nullable(f.get("assignedRole")),
         nullable(f.get("reason")) ?? undefined,
       );
@@ -158,10 +155,10 @@ export async function workAction(f: FormData) {
         },
         ["owner", "admin"].includes(c.role),
       );
-    back(path, `Work ${action} saved.`);
+    back(path, workSavedMessage(kind.data, action));
   } catch (e) {
     unstable_rethrow(e);
-    back(path, e instanceof Error ? e.message : "Work action failed.", true);
+    back(path, e instanceof Error ? e.message : "That didn't work. Please try again.", true);
   }
 }
 export async function checklistAction(f: FormData) {

@@ -15,7 +15,7 @@ import {githubAppEnv} from "@/lib/integrations/github/app";
 import {disconnectIntegration, syncIntegration} from "@/app/integration-actions";
 import {ConnectProviderButton} from "@/components/connect-provider-button";
 import {Notice} from "@/components/notice";
-import {configureIntegrationLabel} from "@/lib/ui/labels";
+import {configureIntegrationLabel, connectionStatusLabel} from "@/lib/ui/labels";
 import type {Json} from "@/types/database";
 
 const stateStyles: Record<ConnectionState, string> = {
@@ -302,14 +302,11 @@ export default async function Integrations({
               <table className="w-full text-left text-sm">
                 <thead className="border-b bg-zinc-50 text-zinc-500">
                   <tr>
-                    <th className="p-3">Provider</th>
-                    <th className="p-3">Status</th>
-                    <th className="p-3">Started</th>
-                    <th className="p-3">Duration</th>
-                    <th className="p-3">Received</th>
-                    <th className="p-3">Imported</th>
-                    <th className="p-3">Skipped</th>
-                    <th className="p-3">Errors</th>
+                    <th className="p-3">Tool</th>
+                    <th className="p-3">Result</th>
+                    <th className="p-3">When</th>
+                    <th className="p-3">New updates</th>
+                    <th className="p-3">Problem</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -319,22 +316,15 @@ export default async function Integrations({
                         {providers.find((provider) => provider.id === log.provider)?.displayName ??
                           log.provider}
                       </td>
-                      <td className="p-3" title={log.error_message ?? undefined}>
-                        {log.status}
-                        {log.rate_limited ? " · rate limited" : ""}
+                      <td className="p-3">
+                        {connectionStatusLabel(log.status)}
+                        {log.rate_limited ? " · tool asked us to slow down" : ""}
                       </td>
                       <td className="p-3">
                         {new Date(log.started_at).toLocaleString("en-GB", DATE_TIME)}
                       </td>
-                      <td className="p-3">
-                        {log.duration_ms === null ? "n/a" : `${log.duration_ms}ms`}
-                      </td>
-                      <td className="p-3">{log.records_received}</td>
                       <td className="p-3">{log.events_imported}</td>
-                      <td className="p-3">{log.events_skipped}</td>
-                      <td className="p-3" title={log.error_message ?? undefined}>
-                        {log.error_count}
-                      </td>
+                      <td className="max-w-xs p-3 text-zinc-600">{log.error_message ?? ""}</td>
                     </tr>
                   ))}
                 </tbody>

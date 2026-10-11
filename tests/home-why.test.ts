@@ -2,6 +2,12 @@ import {describe, expect, it} from "vitest";
 import type {IntelligenceEvent} from "@/lib/intelligence/types";
 import {highlights, performanceMetrics} from "@/lib/home/performance";
 import {explainHighlights} from "@/lib/home/why";
+import {evaluateRules} from "@/lib/intelligence/runner";
+import {
+  salesDropExplainedRule,
+  trafficDropExplainedRule,
+} from "@/lib/intelligence/rules/cross-provider/drop-explained";
+import {insightActionCategory} from "@/lib/notifications/insight-rules";
 
 const now = new Date("2026-10-11T09:00:00Z"),
   DAY = 86_400_000;
@@ -121,5 +127,37 @@ describe("joining the dots when a figure falls", () => {
       explain([...visitsWeek(1000, 500), event("analytics.tracking_inactive", 2)]),
     ].flat();
     for (const h of all) expect(h.why).not.toMatch(/\bcaused\b|\bbecause\b/i);
+  });
+});
+
+describe("joined-up insights", () => {
+  const run = (events: IntelligenceEvent[]) =>
+    evaluateRules(events, [salesDropExplainedRule, trafficDropExplainedRule], now);
+
+  it("stores a sales drop with a likely reason, and sends it to the Action Centre", () => {
+    const [insight] = run([
+      ...orders(20, 10),
+      ...metaAds((d) => (d <= 4 ? 0 : 25)),
+      ...visitsWeek(1000, 980),
+    ]);
+    expect(insight.ruleId).toBe("commerce.drop_explained");
+    expect(insight.title).toBe("Orders down 50%, most likely the Meta ads stopping");
+    expect(insight.explanation).toContain("not proof of what caused it");
+    expect(insight.recommendation).toMatch(/Meta Ads Manager/);
+    expect(insight.sourceEventIds.length).toBeGreaterThan(0);
+    expect(insightActionCategory({rule_id: insight.ruleId, severity: insight.severity})).toBe(
+      "financial",
+    );
+  });
+
+  it("keeps a drop in visitors as an insight only", () => {
+    const [insight] = run([...visitsWeek(1000, 500), event("analytics.tracking_inactive", 2)]);
+    expect(insight.ruleId).toBe("cross_provider.traffic_drop_explained");
+    expect(insight.title).toBe("Website visits down 50%, most likely tracking stopping");
+    expect(insightActionCategory({rule_id: insight.ruleId, severity: insight.severity})).toBeNull();
+  });
+
+  it("stays quiet when nothing explains the drop", () => {
+    expect(run([...orders(20, 10), ...metaAds(() => 25), ...visitsWeek(1000, 1000)])).toEqual([]);
   });
 });

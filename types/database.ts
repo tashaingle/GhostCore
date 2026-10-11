@@ -795,6 +795,30 @@ export type Database = {
         };
         Relationships: EmptyRelationships;
       };
+      goals: {
+        Row: {
+          id: string;
+          organisation_id: string;
+          metric: "revenue" | "orders";
+          target: number;
+          currency: string | null;
+          created_by: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          organisation_id: string;
+          metric: "revenue" | "orders";
+          target: number;
+          currency?: string | null;
+          created_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {target?: number; currency?: string | null; updated_at?: string};
+        Relationships: EmptyRelationships;
+      };
       weekly_summary_opt_outs: {
         Row: {organisation_id: string; user_id: string; created_at: string};
         Insert: {organisation_id: string; user_id: string; created_at?: string};

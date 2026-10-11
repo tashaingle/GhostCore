@@ -10,6 +10,8 @@ import {
 } from "@/lib/home/connections";
 import {PERIOD_DAYS, PERIOD_LABEL, parsePeriod} from "@/lib/home/performance";
 import {loadPerformance} from "@/lib/home/load-performance";
+import {loadGoals} from "@/lib/goals/load";
+import {GoalsCard} from "@/components/goals-card";
 import {
   arrangeFigures,
   FigureTiles,
@@ -109,6 +111,7 @@ export default async function Home({
     {count: invitationCount},
     {count: myPreferences},
     {data: activity},
+    goals,
   ] = await Promise.all([
     ctx.supabase
       .from("integrations")
@@ -164,6 +167,7 @@ export default async function Home({
       .neq("source", "ghost")
       .order("occurred_at", {ascending: false})
       .limit(6),
+    loadGoals(ctx.supabase, org, now, ctx.organisation.timezone || "Europe/London"),
   ]);
 
   const connections = sortConnections(
@@ -409,6 +413,10 @@ export default async function Home({
           </div>
 
           <div className="space-y-6">
+            <GoalsCard
+              goals={goals}
+              canManage={hasPermission(ctx.membership.role as OrganisationRole, "goals.manage")}
+            />
             <GoingWellCards
               period={period}
               metrics={metrics}

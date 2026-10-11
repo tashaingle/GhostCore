@@ -1,4 +1,5 @@
 import "server-only";
+import * as Sentry from "@sentry/nextjs";
 import type {SupabaseClient} from "@supabase/supabase-js";
 import type {Database, Json} from "@/types/database";
 import {runIntegrationSync} from "@/lib/integrations/sync-runner";
@@ -304,6 +305,10 @@ export async function executeJob(
       status = kind === "timeout" ? "timed_out" : canRetry ? "retrying" : "failed",
       message = (error instanceof Error ? error.message : "Job failed.").slice(0, 500),
       finished = new Date().toISOString();
+    // Final failures that are ours to fix go to Sentry. Expired logins and rate limits are the
+    // customer's to sort out (they see a "reconnect" prompt), so they're left out.
+    if (!canRetry && !["authentication", "permission", "rate_limit"].includes(kind))
+      Sentry.captureException(error, {tags: {job: job.job_key, kind}});
     await client
       .from("background_job_runs")
       .update({

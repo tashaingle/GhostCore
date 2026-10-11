@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-const UPDATED = "4 August 2026";
+const UPDATED = "11 October 2026";
 
 export const metadata = {
   title: "Terms of Service · Metric Mage",
@@ -33,8 +33,8 @@ export default function TermsPage() {
 
         <p>
           These Terms of Service (“Terms”) govern access to and use of <strong>Metric Mage</strong>{" "}
-          (the “Service”) at <strong>ghost-core-two.vercel.app</strong>. By creating an account or
-          using the Service, you agree to these Terms.
+          (the “Service”) at <strong>www.metricmage.co.uk</strong>. By creating an account or using
+          the Service, you agree to these Terms.
         </p>
 
         <h2>1. The Service</h2>
@@ -141,8 +141,8 @@ export default function TermsPage() {
 
         <h2>13. Contact</h2>
         <p>
-          Questions about these Terms: contact the Metric Mage operator via the support channel
-          listed on the Service.
+          Questions about these Terms:{" "}
+          <a href="mailto:support@metricmage.co.uk">support@metricmage.co.uk</a>.
         </p>
 
         <p className="not-prose mt-10">

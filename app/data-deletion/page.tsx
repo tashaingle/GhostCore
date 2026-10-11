@@ -46,9 +46,9 @@ export default function DataDeletionPage() {
             In Metric Mage, open <strong>Connections</strong>, find the tool (for example Facebook,
             Google or Shopify) and click <strong>Disconnect</strong>. Metric Mage deletes its stored
             access to that tool straight away and stops importing from it. You can also remove
-            Metric Mage Core&apos;s access from the tool&apos;s own settings, such as
-            Facebook&apos;s &quot;Business Integrations&quot; or your Google Account&apos;s
-            &quot;Third-party connections&quot;.
+            Metric Mage&apos;s access from the tool&apos;s own settings, such as Facebook&apos;s
+            &quot;Business Integrations&quot; or your Google Account&apos;s &quot;Third-party
+            connections&quot;.
           </p>
         </section>
 
@@ -74,12 +74,12 @@ export default function DataDeletionPage() {
         <section className="space-y-2">
           <h2 className="text-xl font-semibold text-zinc-950">Can&apos;t sign in?</h2>
           <p>
-            If you can&apos;t access your account, contact the owner of your organisation, or the
-            contact listed in our{" "}
-            <Link className="underline" href="/privacy">
-              Privacy Policy
-            </Link>
-            , and ask for your data to be deleted. We&apos;ll confirm once it&apos;s done.
+            If you can&apos;t access your account, email{" "}
+            <a className="underline" href="mailto:support@metricmage.co.uk">
+              support@metricmage.co.uk
+            </a>{" "}
+            from the address you signed up with and ask for your data to be deleted. We&apos;ll
+            confirm by email once it&apos;s done.
           </p>
         </section>
       </article>

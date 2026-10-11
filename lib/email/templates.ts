@@ -213,6 +213,8 @@ export function weeklySummaryEmail(input: {
   needsLook: string[];
   /** Why each "needs a look" item happened, from the other tools, keyed by the item. */
   reasons?: Record<string, string>;
+  /** This month's goals, one line each. */
+  goals?: string[];
   figures: WeeklyFigure[];
   waiting: number;
   unsubscribeUrl: string;
@@ -242,6 +244,7 @@ export function weeklySummaryEmail(input: {
     sections: [
       {title: "Going well", colour: "#047857", items: goingWell.slice(0, 4)},
       {title: "Needs a look", colour: "#b45309", items: explained.slice(0, 4)},
+      {title: "Your goals this month", colour: "#1d66b8", items: input.goals ?? []},
     ],
     figures: input.figures
       .slice(0, 6)

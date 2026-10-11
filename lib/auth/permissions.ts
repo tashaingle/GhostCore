@@ -9,6 +9,7 @@ export const PERMISSIONS = [
   "integration.sync",
   "event.create",
   "insight.manage",
+  "goals.manage",
   "correlation.manage",
   "correlation.run",
   "notifications.view",
@@ -49,6 +50,7 @@ const grants: Record<OrganisationRole, readonly Permission[]> = {
   admin: PERMISSIONS.filter((x) => x !== "organisation.edit" || true),
   manager: [
     "team.view",
+    "goals.manage",
     "integration.sync",
     "event.create",
     "insight.manage",

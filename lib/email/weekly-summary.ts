@@ -3,6 +3,8 @@ import type {SupabaseClient} from "@supabase/supabase-js";
 import type {Database} from "@/types/database";
 import type {JobMetrics} from "@/lib/jobs/types";
 import {loadPerformance} from "@/lib/home/load-performance";
+import {loadGoals} from "@/lib/goals/load";
+import {GOAL_STATUS_LABEL} from "@/lib/goals/progress";
 import {steadyLines, type Metric} from "@/lib/home/performance";
 import {providerLabel} from "@/lib/ui/labels";
 import {organisationBillingActive} from "@/lib/billing/access";
@@ -99,6 +101,7 @@ export async function runWeeklySummary(
     {count: alerts},
     {count: approvals},
     {data: integrations},
+    goalProgress,
   ] = await Promise.all([
     loadPerformance(client, organisationId, "week", now),
     client
@@ -123,6 +126,7 @@ export async function runWeeklySummary(
       .select("provider,status")
       .eq("organisation_id", organisationId)
       .in("status", ["expired", "error"]),
+    loadGoals(client, organisationId, now, timeZone),
   ]);
 
   const {metrics, highlights} = performance,
@@ -135,7 +139,8 @@ export async function runWeeklySummary(
     ),
     waiting = (alerts ?? 0) + (approvals ?? 0);
   // Nothing to say is better than an empty email.
-  if (!metrics.length && !needsLook.length && !waiting) return skip("Nothing to report this week.");
+  if (!metrics.length && !needsLook.length && !waiting && !goalProgress.length)
+    return skip("Nothing to report this week.");
 
   const opted = new Set((optOuts ?? []).map((o) => o.user_id)),
     recipients = (members ?? []).map((m) => m.user_id).filter((id) => !opted.has(id));
@@ -163,6 +168,10 @@ export async function runWeeklySummary(
       goingWell,
       needsLook,
       reasons,
+      goals: goalProgress.map(
+        (g) =>
+          `${g.label}: ${g.valueText} so far. ${["on_track", "close", "behind"].includes(g.status) ? `${GOAL_STATUS_LABEL[g.status]}: ${g.summary.charAt(0).toLowerCase()}${g.summary.slice(1)}` : g.summary}`,
+      ),
       figures,
       waiting,
       unsubscribeUrl: `${config.appUrl}/unsubscribe?token=${unsubscribeToken(organisationId, userId)}`,

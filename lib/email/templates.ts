@@ -246,3 +246,102 @@ export function weeklySummaryEmail(input: {
     unsubscribeUrl: input.unsubscribeUrl,
   });
 }
+
+export type TrialProgress = {
+  organisationName: string;
+  firstName: string | null;
+  tools: string[];
+  updates: number;
+  noticed: string[];
+  teammates: number;
+};
+
+/** The one thing most worth doing next, given how far they've got. */
+export function trialNextStep(progress: TrialProgress, appUrl: string) {
+  if (!progress.tools.length)
+    return {
+      text: "Connect your first tool. It takes about a minute, and Metric Mage starts reading straight away.",
+      label: "Connect a tool",
+      url: `${appUrl}/app/integrations`,
+    };
+  if (progress.tools.length === 1)
+    return {
+      text: "Connect a second tool. Metric Mage spots far more when it can compare tools, like ad spend against sales.",
+      label: "Connect another tool",
+      url: `${appUrl}/app/integrations`,
+    };
+  if (!progress.teammates)
+    return {
+      text: "Invite someone from your team. They're included free, and they'll get the Monday summary too.",
+      label: "Invite your team",
+      url: `${appUrl}/app/team`,
+    };
+  return {
+    text: "Have a look at Home: how your week compares, and anything that needs you.",
+    label: "Open Metric Mage",
+    url: `${appUrl}/app`,
+  };
+}
+
+const plural = (n: number, word: string) =>
+  `${n.toLocaleString("en-GB")} ${word}${n === 1 ? "" : "s"}`;
+
+function progressLines(p: TrialProgress) {
+  return [
+    p.tools.length
+      ? `Connected: ${p.tools.slice(0, 5).join(", ")}${p.tools.length > 5 ? ` and ${p.tools.length - 5} more` : ""}`
+      : "No tools connected yet",
+    `${plural(p.updates, "update")} brought in from your tools`,
+    ...(p.teammates ? [`${plural(p.teammates, "teammate")} on board`] : []),
+  ];
+}
+
+/** Day one of the trial: what Metric Mage has found, and the next step. */
+export function trialDayOneEmail(input: TrialProgress & {appUrl: string}): RenderedEmail {
+  const next = trialNextStep(input, input.appUrl);
+  return render(
+    input.tools.length
+      ? `Day 1 at ${input.organisationName}: here's what Metric Mage found`
+      : "Your Metric Mage trial: connect your first tool",
+    {
+      heading: input.tools.length
+        ? "Here's what Metric Mage found so far"
+        : "Let's get you started",
+      paragraphs: [
+        `${input.firstName ? `Hi ${input.firstName}. ` : ""}Thanks for trying Metric Mage. Here's where ${input.organisationName} is after your first day.`,
+        next.text,
+      ],
+      sections: [
+        {title: "So far", colour: "#1d66b8", items: progressLines(input)},
+        {title: "What Metric Mage noticed", colour: "#047857", items: input.noticed.slice(0, 3)},
+      ],
+      actionLabel: next.label,
+      actionUrl: next.url,
+      footerText: "You're getting this because you started a Metric Mage free trial.",
+    },
+  );
+}
+
+/** Two days before the trial ends: what they'd keep, and plainly when they'll be charged. */
+export function trialEndingEmail(
+  input: TrialProgress & {appUrl: string; endsOn: string; price: string},
+): RenderedEmail {
+  return render(`Your Metric Mage trial ends on ${input.endsOn}`, {
+    heading: `Your free trial ends on ${input.endsOn}`,
+    paragraphs: [
+      `${input.firstName ? `Hi ${input.firstName}. ` : ""}Just a heads-up so nothing's a surprise: your trial ends on ${input.endsOn}, and then your card will be charged ${input.price} a month. You don't need to do anything to keep going.`,
+      "If Metric Mage isn't for you, you can cancel from Billing before then and you won't be charged.",
+    ],
+    sections: [
+      {
+        title: `What Metric Mage has done for ${input.organisationName}`,
+        colour: "#1d66b8",
+        items: progressLines(input),
+      },
+      {title: "What it noticed", colour: "#047857", items: input.noticed.slice(0, 3)},
+    ],
+    actionLabel: "Manage billing",
+    actionUrl: `${input.appUrl}/billing`,
+    footerText: "You're getting this because your Metric Mage free trial is ending.",
+  });
+}

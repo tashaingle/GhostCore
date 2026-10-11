@@ -77,6 +77,14 @@ export const maintenanceJobs: JobRegistration[] = [
     timeout: 120,
   },
   {
+    // Hourly; sends the day-one and trial-ending emails to whoever started a trial.
+    key: "email.trial",
+    type: "email.trial",
+    scheduleType: "recurring",
+    scheduleValue: "1h",
+    timeout: 120,
+  },
+  {
     // Checks hourly; only sends on Monday morning in the organisation's time zone, once a week.
     key: "email.weekly_summary",
     type: "email.weekly_summary",

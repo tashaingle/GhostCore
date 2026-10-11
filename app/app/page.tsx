@@ -16,6 +16,9 @@ import {runIntelligenceAction} from "@/app/intelligence-actions";
 import {Notice} from "@/components/notice";
 import {GettingStarted} from "@/components/getting-started";
 import {AutoRefresh} from "@/components/auto-refresh";
+import {SetupChecklist, type SetupStep} from "@/components/setup-checklist";
+import {FirstSync} from "@/components/first-sync";
+import {hasPermission, type OrganisationRole} from "@/lib/auth/permissions";
 import {InsightCard, ProviderMark, SectionHeading, SeverityLabel} from "@/components/home-ui";
 
 export const metadata = {title: "Home"};
@@ -94,6 +97,9 @@ export default async function Home({
     {data: approvals},
     {data: insights, count: insightCount},
     performance,
+    {count: memberCount},
+    {count: invitationCount},
+    {count: myPreferences},
   ] = await Promise.all([
     ctx.supabase
       .from("integrations")
@@ -126,6 +132,21 @@ export default async function Home({
       .order("updated_at", {ascending: false})
       .limit(30),
     loadPerformance(ctx.supabase, org, period, now),
+    ctx.supabase
+      .from("organisation_members")
+      .select("id", {count: "exact", head: true})
+      .eq("organisation_id", org)
+      .eq("status", "active"),
+    ctx.supabase
+      .from("organisation_invitations")
+      .select("id", {count: "exact", head: true})
+      .eq("organisation_id", org)
+      .eq("status", "pending"),
+    ctx.supabase
+      .from("notification_preferences")
+      .select("id", {count: "exact", head: true})
+      .eq("organisation_id", org)
+      .eq("user_id", ctx.user.id),
   ]);
 
   const connections = sortConnections(
@@ -136,6 +157,45 @@ export default async function Home({
     ) as (ReturnType<typeof connectionStatus> & {provider: string})[],
     broken = connections.filter((c) => c.needsAttention),
     healthyCount = connections.length - broken.length;
+
+  // First import: no tool has finished a sync yet, so show progress rather than empty figures.
+  const syncedIds = new Set((integrations ?? []).filter((r) => r.last_sync_at).map((r) => r.id)),
+    firstSync = connections.length > 0 && syncedIds.size === 0,
+    canInvite = hasPermission(ctx.membership.role as OrganisationRole, "team.invite"),
+    setupSteps: SetupStep[] = [
+      {
+        key: "connect",
+        title: "Connect your first tool",
+        body: "Shopify, Stripe, Google, Meta and more. It takes about a minute.",
+        href: "/app/integrations",
+        done: connections.length >= 1,
+      },
+      {
+        key: "second",
+        title: "Connect a second tool",
+        body: "Metric Mage spots more when it can compare tools, like ad spend against sales.",
+        href: "/app/integrations",
+        done: connections.length >= 2,
+      },
+      ...(canInvite
+        ? [
+            {
+              key: "team",
+              title: "Invite a teammate",
+              body: "They're included free, and they'll get the Monday summary too.",
+              href: "/app/team",
+              done: (memberCount ?? 1) > 1 || (invitationCount ?? 0) > 0,
+            },
+          ]
+        : []),
+      {
+        key: "alerts",
+        title: "Choose your email alerts",
+        body: "Get urgent things, like failed payments, by email as well as here.",
+        href: "/app/action-centre/preferences",
+        done: (myPreferences ?? 0) > 0,
+      },
+    ];
 
   const workflowNames = new Map<string, string>();
   if (approvals?.length) {
@@ -226,10 +286,13 @@ export default async function Home({
       </header>
 
       <Notice searchParams={params} />
-      <AutoRefresh active={connections.some((c) => c.state === "syncing")} />
+      <AutoRefresh active={firstSync || connections.some((c) => c.state === "syncing")} />
+      {connections.length ? <SetupChecklist organisationId={org} steps={setupSteps} /> : null}
 
       {!connections.length ? (
         <GettingStarted />
+      ) : firstSync ? (
+        <FirstSync connections={connections.map((c) => ({...c, synced: syncedIds.has(c.id)}))} />
       ) : broken.length ? (
         <section
           aria-labelledby="fix-heading"
@@ -292,7 +355,7 @@ export default async function Home({
         </section>
       )}
 
-      {connections.length ? (
+      {connections.length && !(firstSync && !metrics.length) ? (
         <HowYoureDoing
           period={period}
           metrics={metrics}

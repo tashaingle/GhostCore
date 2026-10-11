@@ -6,6 +6,7 @@ import {googleAdsReturnDeclineRule} from "./advertising/google-ads-return-declin
 import {shopifyOrderDeclineRule} from "./commerce/shopify-order-decline";
 import {shopifyRefundRateRule} from "./commerce/shopify-refund-rate";
 import {adSpendUpOrdersDownRule} from "./cross-provider/ad-spend-up-orders-down";
+import {salesDropExplainedRule, trafficDropExplainedRule} from "./cross-provider/drop-explained";
 import {deploymentTrafficDeclineRule} from "./cross-provider/deployment-traffic-decline";
 import {failedDeploymentTrafficDeclineRule} from "./cross-provider/failed-deployment-traffic-decline";
 import {trafficDeclineStableConversionsRule} from "./cross-provider/traffic-decline-stable-conversions";
@@ -31,6 +32,8 @@ export const intelligenceRules: IntelligenceRule[] = [
   metaReturnDeclineRule,
   googleAdsReturnDeclineRule,
   adSpendUpOrdersDownRule,
+  salesDropExplainedRule,
+  trafficDropExplainedRule,
   lowRatingReviewsRule,
   ratingDropRule,
 ].sort((a, b) => a.priority - b.priority);
@@ -50,6 +53,8 @@ export {
   metaReturnDeclineRule,
   googleAdsReturnDeclineRule,
   adSpendUpOrdersDownRule,
+  salesDropExplainedRule,
+  trafficDropExplainedRule,
   lowRatingReviewsRule,
   ratingDropRule,
 };

@@ -41,9 +41,12 @@ export type Clue = {
   weight: number;
   advice?: string;
   action?: Action;
+  /** The events it's based on, kept as evidence. */
+  eventIds?: string[];
 };
 export type Why = {likely: Clue[]; possible: Clue[]; normal: Clue[]; text: string};
 
+export type WhyContext = Context;
 type Context = {
   events: IntelligenceEvent[];
   metrics: Map<string, Metric>;
@@ -123,6 +126,7 @@ const ads: Check = (ctx) => {
       spendNow = sum(now.map((d) => d.spend)),
       dailyBefore = spendBefore / before.length;
     if (spendBefore <= 0) return [];
+    const eventIds = days.filter((d) => dayMs(d.date) >= ctx.currentStart).map((d) => d.event.id);
     // Stopped: from some day on, every day spent under a fifth of the usual amount.
     const stoppedAt = now.findIndex((_, i) =>
       now.slice(i).every((d) => d.spend < dailyBefore * 0.2),
@@ -137,6 +141,7 @@ const ads: Check = (ctx) => {
           weight: 90,
           advice,
           action,
+          eventIds,
         },
       ];
     const change = percentChange(spendBefore, spendNow);
@@ -149,6 +154,7 @@ const ads: Check = (ctx) => {
           weight: change <= -50 ? 75 : 55,
           advice,
           action,
+          eventIds,
         },
       ];
     if (steady(change))
@@ -187,6 +193,7 @@ const search: Check = (ctx) => {
       advice:
         "In Search Console, open Performance and compare the two weeks to see which searches and pages lost clicks.",
       action,
+      eventIds: slipped.map((e) => e.id),
     };
   if (comparable(clicks) && steady(clicks.change) && !slipped.length)
     return {verdict: "normal", text: "Google search was normal", name: "Google search", weight: 0};
@@ -198,6 +205,7 @@ const search: Check = (ctx) => {
       weight: 40,
       advice: "Search Console shows which pages moved and why.",
       action,
+      eventIds: slipped.map((e) => e.id),
     };
   return null;
 };
@@ -222,6 +230,7 @@ const rankings: Check = (ctx) => {
     advice:
       "In Search Console, open Performance and compare the two weeks to see which pages lost clicks, then check those pages still load and haven't changed.",
     action: {label: "Open Search Console", href: "https://search.google.com/search-console"},
+    eventIds: slipped.map((e) => e.id),
   };
 };
 
@@ -297,6 +306,7 @@ const website: Check = (ctx) => {
       weight: 55,
       advice: "Open your website on a phone and a computer to check it loads and checkout works.",
       action: {label: "Open Vercel", href: "https://vercel.com/dashboard"},
+      eventIds: failed.map((e) => e.id),
     };
   }
   if (shipped.length)
@@ -312,7 +322,8 @@ const website: Check = (ctx) => {
 /** Payments failing or checkouts abandoned more than usual. */
 const payments: Check = (ctx) => {
   const types = ["stripe.payment_failed", "stripe.checkout_expired"],
-    now = recent(ctx, types).length,
+    failures = recent(ctx, types),
+    now = failures.length,
     before = earlier(ctx, types).length;
   if (now >= 3 && now >= before * 2)
     return {
@@ -326,6 +337,7 @@ const payments: Check = (ctx) => {
         label: "Open Stripe",
         href: "https://dashboard.stripe.com/payments?status[0]=failed",
       },
+      eventIds: failures.map((e) => e.id),
     };
   if (now <= Math.max(1, before) && ctx.events.some((e) => e.source === "stripe"))
     return {verdict: "normal", text: "payments went through as usual", name: "payments", weight: 0};
@@ -335,7 +347,8 @@ const payments: Check = (ctx) => {
 /** Marketing emails that went out last time but not this time. */
 const emails: Check = (ctx) => {
   const now = recent(ctx, ["mailchimp.campaign.sent"]).length,
-    before = earlier(ctx, ["mailchimp.campaign.sent"]).length;
+    sent = earlier(ctx, ["mailchimp.campaign.sent"]),
+    before = sent.length;
   if (before > 0 && now === 0)
     return {
       verdict: "changed",
@@ -344,6 +357,7 @@ const emails: Check = (ctx) => {
       weight: 45,
       advice: "If your emails usually bring people in, sending one again should help.",
       action: {label: "Open Mailchimp", href: "https://admin.mailchimp.com/campaigns/"},
+      eventIds: sent.map((e) => e.id),
     };
   return null;
 };
@@ -362,8 +376,9 @@ const social: Check = (ctx) => {
 };
 
 /** Analytics no longer recording: the drop may not be real. */
-const tracking: Check = (ctx) =>
-  recent(ctx, ["analytics.tracking_inactive"], 2).length
+const tracking: Check = (ctx) => {
+  const silent = recent(ctx, ["analytics.tracking_inactive"], 2);
+  return silent.length
     ? {
         verdict: "changed",
         text: "Google Analytics stopped recording visits altogether",
@@ -372,8 +387,10 @@ const tracking: Check = (ctx) =>
         advice:
           "This is probably a measuring problem rather than a real drop. Check the Google Analytics code is still on every page of your website.",
         action: {label: "Open Google Analytics", href: "https://analytics.google.com/"},
+        eventIds: silent.map((e) => e.id),
       }
     : null;
+};
 
 /** Conversions gone to nothing while people still visit: usually the tracking, not customers. */
 const conversionTracking: Check = (ctx) => {
@@ -434,6 +451,27 @@ export function explainDrop(key: string, ctx: Context): Why | null {
   return {likely, possible, normal, text};
 }
 
+/** The shared view of one period that the checks look at. */
+export function whyContext(input: {
+  metrics: Metric[];
+  events: IntelligenceEvent[];
+  period: Period;
+  now?: Date;
+}): Context {
+  const now = input.now ?? new Date(),
+    end = now.getTime(),
+    currentStart = end - PERIOD_DAYS[input.period] * DAY;
+  return {
+    events: input.events,
+    metrics: new Map(input.metrics.map((m) => [m.key, m])),
+    currentStart,
+    previousStart: currentStart - PERIOD_DAYS[input.period] * DAY,
+    end,
+    now,
+    period: input.period,
+  };
+}
+
 /** Adds "why" (and a better "what to do") to each "needs a look" highlight. */
 export function explainHighlights(input: {
   highlights: Highlight[];
@@ -442,18 +480,7 @@ export function explainHighlights(input: {
   period: Period;
   now?: Date;
 }): Highlight[] {
-  const now = input.now ?? new Date(),
-    end = now.getTime(),
-    currentStart = end - PERIOD_DAYS[input.period] * DAY,
-    ctx: Context = {
-      events: input.events,
-      metrics: new Map(input.metrics.map((m) => [m.key, m])),
-      currentStart,
-      previousStart: currentStart - PERIOD_DAYS[input.period] * DAY,
-      end,
-      now,
-      period: input.period,
-    };
+  const ctx = whyContext(input);
   return input.highlights.map((h) => {
     if (h.tone !== "bad" || !h.key) return h;
     const why = explainDrop(h.key, ctx);

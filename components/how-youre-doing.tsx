@@ -221,8 +221,21 @@ export function GoingWellCards({
                 <span aria-hidden className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-amber-500" />
                 <span>
                   {h.text}
+                  {h.why ? (
+                    <span className="mt-0.5 block text-amber-900/75">{`Why: ${h.why}`}</span>
+                  ) : null}
                   {h.tip ? (
                     <span className="mt-0.5 block text-amber-900/75">{`What to do: ${h.tip}`}</span>
+                  ) : null}
+                  {h.action ? (
+                    <a
+                      className="mt-0.5 inline-block font-medium text-amber-900 underline"
+                      href={h.action.href}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      {h.action.label}
+                    </a>
                   ) : null}
                 </span>
               </li>

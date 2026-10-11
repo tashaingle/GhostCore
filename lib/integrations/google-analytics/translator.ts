@@ -214,5 +214,26 @@ export function translateGA4Snapshot(
         );
     }
   }
+  // Recorded every week, changed or not, so Metric Mage can say when traffic held steady.
+  if (snapshot.current.sessions > 0 || snapshot.previous.sessions > 0) {
+    const channels = (map: typeof currentChannels) =>
+      Object.fromEntries([...map].map(([name, row]) => [name, row.sessions]));
+    add(
+      "analytics.performance_summary",
+      `Website visits: ${snapshot.current.sessions.toLocaleString("en-GB")}`,
+      `${snapshot.current.sessions.toLocaleString("en-GB")} visits in the week to ${snapshot.dates.currentEnd}, after ${snapshot.previous.sessions.toLocaleString("en-GB")} the week before.`,
+      "info",
+      "sessions",
+      snapshot.current.sessions,
+      snapshot.previous.sessions,
+      undefined,
+      {
+        currentKeyEvents: rounded(snapshot.current.keyEvents),
+        previousKeyEvents: rounded(snapshot.previous.keyEvents),
+        currentChannels: channels(currentChannels),
+        previousChannels: channels(previousChannels),
+      },
+    );
+  }
   return events;
 }

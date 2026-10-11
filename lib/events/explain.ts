@@ -221,6 +221,15 @@ const HANDLERS: Record<string, Handler> = {
       "Check the page still loads properly on a phone, and whether something that sent people there changed: an ad that ended, a link that was removed, or a drop in Google rankings.",
     action: {label: "Open Google Analytics", href: "https://analytics.google.com/"},
   }),
+  "analytics.performance_summary": (e, m) => {
+    const now = num(m.currentValue) ?? 0,
+      before = num(m.previousValue) ?? 0;
+    return {
+      title: `Website visits: ${count(now)}`,
+      detail: `${range(m.currentPeriodStart, m.currentPeriodEnd)}, after ${count(before)} the week before.`,
+      status: "info",
+    };
+  },
   "analytics.organic_traffic_changed": (e, m) => {
     const up = (num(m.percentageChange) ?? 0) >= 0;
     return {

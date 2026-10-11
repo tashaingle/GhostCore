@@ -45,7 +45,16 @@ export type Trend = {
   unit: TrendUnit;
 };
 
-export type Highlight = {tone: "good" | "bad"; text: string; tip?: string};
+export type Highlight = {
+  tone: "good" | "bad";
+  text: string;
+  /** The metric it is about, so other tools can be checked for the reason. */
+  key?: string;
+  tip?: string;
+  /** What else changed (or didn't) at the same time, from the other connected tools. */
+  why?: string;
+  action?: {label: string; href: string};
+};
 
 /** What to check when a figure moves the wrong way. */
 const DROP_TIPS: Record<string, string> = {
@@ -65,6 +74,10 @@ const DROP_TIPS: Record<string, string> = {
     "Search Console's Performance report shows which pages and searches lost the most clicks.",
   campaignOpenRate: "Fewer people opened your emails. Shorter, clearer subject lines usually help.",
   appRating: "Read your newest reviews to see what people are unhappy about.",
+  visits:
+    "In Google Analytics, open Reports → Acquisition to see which source of visitors dropped.",
+  conversions:
+    "Try your sign-up form or checkout yourself to make sure it still works, then check which pages lost visits.",
 };
 
 /** Counts supplied by the page (cheap head queries) for high-volume activity. */
@@ -85,6 +98,7 @@ export const PERFORMANCE_EVENT_TYPES = [
   "google_ads.performance.daily_recorded",
   "meta_social.facebook.performance.daily_recorded",
   "google_search_console.performance_summary",
+  "analytics.performance_summary",
   "mailchimp.audience.daily_recorded",
   "mailchimp.campaign.results_recorded",
   "google_play.review.received",
@@ -392,6 +406,40 @@ export function performanceMetrics(input: {
     });
   }
 
+  // Website visits and conversions (Google Analytics). Analytics compares rolling weeks, so these
+  // only show for the week view: the newest summary per property in this period.
+  const visitWeeks = latestBy(ofType("analytics.performance_summary").filter(inCurrent), (e) =>
+    String(meta(e, "propertyId") ?? ""),
+  );
+  if (input.period === "week" && visitWeeks.length) {
+    const total = (key: string) => sum(visitWeeks.map((e) => num(meta(e, key)) ?? 0)),
+      visitsNow = total("currentValue"),
+      visitsBefore = total("previousValue"),
+      conversionsNow = total("currentKeyEvents"),
+      conversionsBefore = total("previousKeyEvents");
+    metrics.push({
+      key: "visits",
+      group: "Marketing",
+      label: "Website visits",
+      value: count(visitsNow),
+      change: change(visitsBefore, visitsNow),
+      source: "Google Analytics",
+      higherIsBetter: true,
+      comparable: visitsBefore >= 20,
+    });
+    if (conversionsNow > 0 || conversionsBefore > 0)
+      metrics.push({
+        key: "conversions",
+        group: "Customers",
+        label: "Conversions",
+        value: count(conversionsNow),
+        change: change(conversionsBefore, conversionsNow),
+        source: "Google Analytics",
+        higherIsBetter: true,
+        comparable: conversionsBefore >= MIN_PREVIOUS_COUNT,
+      });
+  }
+
   // Mailchimp: subscribers across audiences at the end of each period (newest snapshot per
   // audience), and the average open rate of campaigns whose results settled in the period.
   const audienceDays = ofType("mailchimp.audience.daily_recorded");
@@ -539,6 +587,7 @@ export function highlights(metrics: Metric[], period: Period): Highlight[] {
   if (spendUpReturnDown)
     out.push({
       tone: "bad",
+      key: "roas",
       text: `Ad spend up ${Math.round(spend!.change!)}% but return on ad spend fell ${Math.abs(Math.round(roas!.change!))}% compared with ${previous}`,
       tip: "You're paying more for ads but getting less back. Pause the ads with the lowest return in Meta Ads Manager.",
     });
@@ -550,6 +599,7 @@ export function highlights(metrics: Metric[], period: Period): Highlight[] {
       tone = up === m.higherIsBetter ? ("good" as const) : ("bad" as const);
     out.push({
       tone,
+      key: m.key,
       text: `${m.label} ${up ? "up" : "down"} ${Math.abs(Math.round(m.change))}% to ${m.value} compared with ${previous}`,
       ...(tone === "bad" && DROP_TIPS[m.key] ? {tip: DROP_TIPS[m.key]} : {}),
     });

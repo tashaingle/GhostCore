@@ -4,6 +4,8 @@ import {hasPermission, type OrganisationRole} from "@/lib/auth/permissions";
 import {Notice} from "@/components/notice";
 import {saveNotificationPreference} from "@/app/notification-actions";
 import {notificationCategories} from "@/lib/notifications/types";
+import {setWeeklySummary} from "@/app/weekly-summary-actions";
+import {SubmitButton} from "@/components/submit-button";
 export default async function Preferences({
   searchParams,
 }: {
@@ -17,7 +19,14 @@ export default async function Preferences({
       .eq("organisation_id", ctx.organisation.id),
     canOrg = hasPermission(ctx.membership.role as OrganisationRole, "notifications.rules.manage"),
     user = rows?.find((x) => x.user_id === ctx.user.id && !x.category),
-    org = rows?.find((x) => !x.user_id && !x.category);
+    org = rows?.find((x) => !x.user_id && !x.category),
+    {data: optOut} = await ctx.supabase
+      .from("weekly_summary_opt_outs")
+      .select("user_id")
+      .eq("organisation_id", ctx.organisation.id)
+      .eq("user_id", ctx.user.id)
+      .maybeSingle(),
+    weekly = !optOut;
   const form = (scope: "user" | "organisation", current: typeof user) => (
     <form action={saveNotificationPreference} className="card grid gap-3 md:grid-cols-2">
       <input type="hidden" name="scope" value={scope} />
@@ -89,11 +98,31 @@ export default async function Preferences({
           defaults, and a few essential alerts are always shown.
         </p>
         <p className="mt-2 text-sm text-zinc-500">
-          Alerts always appear in the Action Centre. Email alerts will start once email sending is
-          switched on for Metric Mage; webhooks aren&apos;t available yet.
+          Alerts always appear in the Action Centre. Turn on email below to get them by email too;
+          webhooks aren&apos;t available yet.
         </p>
       </div>
       <Notice searchParams={p} />
+      <form
+        action={setWeeklySummary}
+        className="card flex flex-wrap items-center justify-between gap-4"
+      >
+        <input type="hidden" name="on" value={weekly ? "false" : "true"} />
+        <div>
+          <h3 className="font-semibold">Monday summary email</h3>
+          <p className="mt-1 text-sm text-zinc-500">
+            {weekly
+              ? `Every Monday morning: how ${ctx.organisation.name}'s week went, what's going well and what needs a look.`
+              : `Off. Turn it on to get a short summary of ${ctx.organisation.name}'s week every Monday morning.`}
+          </p>
+        </div>
+        <SubmitButton
+          className={weekly ? "button button-secondary" : "button"}
+          pendingLabel="Saving…"
+        >
+          {weekly ? "Turn off" : "Turn on"}
+        </SubmitButton>
+      </form>
       {form("user", user)}
       {canOrg && form("organisation", org)}
     </section>

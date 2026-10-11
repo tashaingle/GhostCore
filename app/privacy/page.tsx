@@ -45,6 +45,10 @@ export default function PrivacyPage() {
           organisation-scoped timeline, insights, and workflows.
         </p>
         <p>
+          Metric Mage is run by Natasha Card, a sole trader based in the United Kingdom, who is
+          responsible for the personal data described in this policy (the data controller).
+        </p>
+        <p>
           Contact for privacy requests:{" "}
           <a href="mailto:support@metricmage.co.uk">support@metricmage.co.uk</a>.
         </p>

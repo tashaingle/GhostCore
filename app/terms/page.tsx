@@ -33,8 +33,9 @@ export default function TermsPage() {
 
         <p>
           These Terms of Service (“Terms”) govern access to and use of <strong>Metric Mage</strong>{" "}
-          (the “Service”) at <strong>www.metricmage.co.uk</strong>. By creating an account or using
-          the Service, you agree to these Terms.
+          (the “Service”) at <strong>www.metricmage.co.uk</strong>, run by Natasha Card, a sole
+          trader based in the United Kingdom (“we”, “us”). By creating an account or using the
+          Service, you agree to these Terms.
         </p>
 
         <h2>1. The Service</h2>

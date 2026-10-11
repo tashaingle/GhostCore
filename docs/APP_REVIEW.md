@@ -150,8 +150,8 @@ recording (scripts in 2.4).
 
 - *Do you share or sell Platform Data?* No. It's shown only to the organisation that connected
   it, and never sold, used for advertising, or used to train AI.
-- *Where is it stored?* In Metric Mage's Supabase database, processed on Vercel. Access tokens
-  are encrypted at rest. (Check the Supabase project's region in its settings and add it here.)
+- *Where is it stored?* In Metric Mage's Supabase database in the EU (Ireland, eu-west-1), processed
+  on Vercel. Access tokens are encrypted at rest.
 - *How long?* Until the person disconnects, deletes the organisation or deletes their account.
   Disconnecting deletes the stored token immediately.
 - *Who are your processors?* Vercel (hosting), Supabase (database), Resend (emails), Sentry (error reports, with personal details removed).

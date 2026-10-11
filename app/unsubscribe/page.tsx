@@ -22,7 +22,7 @@ export default async function Unsubscribe({
         <p className="text-sm text-zinc-600">
           Changed your mind? Turn it back on in Metric Mage under{" "}
           <Link className="underline" href="/app/action-centre/preferences">
-            Action Centre → Preferences
+            Action Centre → Email settings
           </Link>
           .
         </p>
@@ -37,7 +37,7 @@ export default async function Unsubscribe({
         <p className="text-sm text-zinc-600">
           You can turn the Monday email off in Metric Mage under{" "}
           <Link className="underline" href="/app/action-centre/preferences">
-            Action Centre → Preferences
+            Action Centre → Email settings
           </Link>
           .
         </p>

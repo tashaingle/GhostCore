@@ -1,3 +1,4 @@
+import {DATE_TIME} from "@/lib/ui/dates";
 import {getActiveOrganisation} from "@/lib/organisations/active";
 import {hasPermission, type OrganisationRole} from "@/lib/auth/permissions";
 import {Notice} from "@/components/notice";
@@ -141,11 +142,13 @@ export default async function JobsPage({
                     </span>
                   </td>
                   <td>
-                    {job.last_run_at ? new Date(job.last_run_at).toLocaleString() : "Never run"}
+                    {job.last_run_at
+                      ? new Date(job.last_run_at).toLocaleString("en-GB", DATE_TIME)
+                      : "Never run"}
                     <p className="text-xs text-zinc-500">
                       Next:{" "}
                       {job.next_run_at
-                        ? new Date(job.next_run_at).toLocaleString()
+                        ? new Date(job.next_run_at).toLocaleString("en-GB", DATE_TIME)
                         : "Not scheduled"}
                     </p>
                   </td>
@@ -217,7 +220,7 @@ export default async function JobsPage({
                 <tr className="border-t" key={run.id}>
                   <td className="py-2 capitalize">{run.status.replaceAll("_", " ")}</td>
                   <td>{label}</td>
-                  <td>{new Date(run.created_at).toLocaleString()}</td>
+                  <td>{new Date(run.created_at).toLocaleString("en-GB", DATE_TIME)}</td>
                   <td>{run.duration_ms === null ? "n/a" : `${run.duration_ms} ms`}</td>
                   <td>
                     {run.records_processed} processed · +{run.records_created} created ·{" "}

@@ -1,3 +1,4 @@
+import {DATE_TIME} from "@/lib/ui/dates";
 import Link from "next/link";
 import {getActiveOrganisation} from "@/lib/organisations/active";
 import {Notice} from "@/components/notice";
@@ -94,7 +95,7 @@ export default async function Approvals({
                     : "Unassigned"}
               </p>
               <p className="text-xs text-zinc-500">
-                Due {x.due_at ? new Date(x.due_at).toLocaleString() : "not set"}
+                Due {x.due_at ? new Date(x.due_at).toLocaleString("en-GB", DATE_TIME) : "not set"}
               </p>
             </Link>
           ))

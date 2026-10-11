@@ -1,3 +1,4 @@
+import {DATE_TIME} from "@/lib/ui/dates";
 import Link from "next/link";
 import {notFound} from "next/navigation";
 import {getActiveOrganisation} from "@/lib/organisations/active";
@@ -109,7 +110,9 @@ export default async function TaskDetail({
           </div>
           <div>
             <dt className="text-zinc-500">Due</dt>
-            <dd>{item.due_at ? new Date(item.due_at).toLocaleString() : "None"}</dd>
+            <dd>
+              {item.due_at ? new Date(item.due_at).toLocaleString("en-GB", DATE_TIME) : "None"}
+            </dd>
           </div>
           <div>
             <dt className="text-zinc-500">Source</dt>
@@ -119,15 +122,23 @@ export default async function TaskDetail({
           </div>
           <div>
             <dt className="text-zinc-500">Created</dt>
-            <dd>{new Date(item.created_at).toLocaleString()}</dd>
+            <dd>{new Date(item.created_at).toLocaleString("en-GB", DATE_TIME)}</dd>
           </div>
           <div>
             <dt className="text-zinc-500">Started</dt>
-            <dd>{item.started_at ? new Date(item.started_at).toLocaleString() : "None"}</dd>
+            <dd>
+              {item.started_at
+                ? new Date(item.started_at).toLocaleString("en-GB", DATE_TIME)
+                : "None"}
+            </dd>
           </div>
           <div>
             <dt className="text-zinc-500">Completed</dt>
-            <dd>{item.completed_at ? new Date(item.completed_at).toLocaleString() : "None"}</dd>
+            <dd>
+              {item.completed_at
+                ? new Date(item.completed_at).toLocaleString("en-GB", DATE_TIME)
+                : "None"}
+            </dd>
           </div>
           <div>
             <dt className="text-zinc-500">Watchers</dt>
@@ -238,7 +249,7 @@ export default async function TaskDetail({
               <p className="mt-2 text-sm" key={x.id}>
                 #{x.revision_number} <strong>{x.change_type}</strong> ·{" "}
                 {x.previous_status ?? "None"} → {x.new_status ?? "None"} ·{" "}
-                {new Date(x.created_at).toLocaleString()}
+                {new Date(x.created_at).toLocaleString("en-GB", DATE_TIME)}
               </p>
             ))}
           </article>

@@ -1,3 +1,4 @@
+import {DATE_TIME} from "@/lib/ui/dates";
 import Link from "next/link";
 import {notFound} from "next/navigation";
 import {getActiveOrganisation} from "@/lib/organisations/active";
@@ -101,11 +102,19 @@ export default async function RunDetail({
         <dl className="mt-4 grid gap-3 text-sm md:grid-cols-4">
           <div>
             <dt>Started</dt>
-            <dd>{run.started_at ? new Date(run.started_at).toLocaleString() : "Queued"}</dd>
+            <dd>
+              {run.started_at
+                ? new Date(run.started_at).toLocaleString("en-GB", DATE_TIME)
+                : "Queued"}
+            </dd>
           </div>
           <div>
             <dt>Finished</dt>
-            <dd>{run.finished_at ? new Date(run.finished_at).toLocaleString() : "None"}</dd>
+            <dd>
+              {run.finished_at
+                ? new Date(run.finished_at).toLocaleString("en-GB", DATE_TIME)
+                : "None"}
+            </dd>
           </div>
           <div>
             <dt>Current step</dt>
@@ -152,7 +161,8 @@ export default async function RunDetail({
           <h3 className="font-semibold">Approvals</h3>
           {approvals?.map((x) => (
             <Link className="block border-t py-2" href={`/app/approvals/${x.id}`} key={x.id}>
-              {x.status} · due {x.due_at ? new Date(x.due_at).toLocaleString() : "None"}
+              {x.status} · due{" "}
+              {x.due_at ? new Date(x.due_at).toLocaleString("en-GB", DATE_TIME) : "None"}
             </Link>
           ))}
         </div>
@@ -181,8 +191,8 @@ export default async function RunDetail({
         <h3 className="font-semibold">Activity log</h3>
         {logs?.map((x) => (
           <div className="border-t py-2 text-sm" key={x.id}>
-            <time>{new Date(x.created_at).toLocaleString()}</time> · <strong>{x.event_type}</strong>{" "}
-            · {x.message}
+            <time>{new Date(x.created_at).toLocaleString("en-GB", DATE_TIME)}</time> ·{" "}
+            <strong>{x.event_type}</strong> · {x.message}
           </div>
         ))}
       </div>

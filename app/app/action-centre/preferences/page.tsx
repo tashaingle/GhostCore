@@ -3,7 +3,6 @@ import {getActiveOrganisation} from "@/lib/organisations/active";
 import {hasPermission, type OrganisationRole} from "@/lib/auth/permissions";
 import {Notice} from "@/components/notice";
 import {saveNotificationPreference} from "@/app/notification-actions";
-import {notificationCategories} from "@/lib/notifications/types";
 import {setWeeklySummary} from "@/app/weekly-summary-actions";
 import {SubmitButton} from "@/components/submit-button";
 export default async function Preferences({
@@ -27,79 +26,104 @@ export default async function Preferences({
       .eq("user_id", ctx.user.id)
       .maybeSingle(),
     weekly = !optOut;
-  const form = (scope: "user" | "organisation", current: typeof user) => (
-    <form action={saveNotificationPreference} className="card grid gap-3 md:grid-cols-2">
-      <input type="hidden" name="scope" value={scope} />
-      <h3 className="font-semibold md:col-span-2">
-        {scope === "user" ? "My preferences" : "Organisation defaults"}
-      </h3>
-      <label>
-        Category
-        <select className="field ml-2" name="category">
-          <option value="">All categories</option>
-          {notificationCategories.map((x) => (
-            <option key={x}>{x}</option>
-          ))}
-        </select>
-      </label>
-      <label>
-        Minimum severity
-        <select
-          className="field ml-2"
-          name="minimumSeverity"
-          defaultValue={current?.minimum_severity ?? "info"}
-        >
-          {["info", "warning", "critical"].map((x) => (
-            <option key={x}>{x}</option>
-          ))}
-        </select>
-      </label>
-      {[
-        ["inApp", "In-app enabled", current?.in_app_enabled ?? true],
-        [
-          "assignment",
-          "Assignment-related (includes approval request emails)",
-          current?.assignment_enabled ?? true,
-        ],
-        ["email", "Email me alerts (immediate digest mode only)", current?.email_enabled ?? false],
-        ["webhook", "Webhooks (coming soon)", current?.webhook_enabled ?? false],
-      ].map(([name, label, checked]) => (
-        <label className="flex gap-2" key={String(name)}>
-          <input name={String(name)} type="checkbox" defaultChecked={Boolean(checked)} />
-          {label}
+  const LEVELS = [
+    {
+      value: "critical",
+      label: "Only problems",
+      hint: "Things that are broken, like a failed payment or a tool that stopped syncing.",
+    },
+    {
+      value: "warning",
+      label: "Problems and things worth a look",
+      hint: "Also drops worth checking, like refunds climbing or traffic falling.",
+    },
+    {value: "info", label: "Everything", hint: "Also general updates. This can be a lot of email."},
+  ];
+  const form = (scope: "user" | "organisation", current: typeof user) => {
+    const level = current?.minimum_severity ?? "warning",
+      name = (field: string) => `${scope}-${field}`;
+    return (
+      <form action={saveNotificationPreference} className="card space-y-5">
+        <input type="hidden" name="scope" value={scope} />
+        <div>
+          <h2 className="font-semibold">{scope === "user" ? "Alert emails" : "Team default"}</h2>
+          <p className="mt-1 text-sm text-zinc-500">
+            {scope === "user"
+              ? "When Metric Mage spots something, it adds an alert to your Action Centre. You can also get an email as soon as it happens."
+              : "Used for anyone on the team who hasn't chosen their own settings above. Only owners and admins can change this."}
+          </p>
+        </div>
+        <label className="flex items-start gap-3">
+          <input
+            id={name("email")}
+            name="email"
+            type="checkbox"
+            className="mt-1"
+            defaultChecked={
+              (current?.email_enabled ?? false) &&
+              (current?.digest_mode ?? "immediate") === "immediate"
+            }
+          />
+          <span>
+            <span className="font-medium text-zinc-900">
+              Email me when there&apos;s a new alert
+            </span>
+            <span className="block text-sm text-zinc-500">
+              Sent to the address you sign in with.
+            </span>
+          </span>
         </label>
-      ))}
-      <label>
-        Digest
-        <select
-          className="field ml-2"
-          name="digestMode"
-          defaultValue={current?.digest_mode ?? "immediate"}
-        >
-          {["immediate", "daily", "weekly", "off"].map((x) => (
-            <option key={x}>{x}</option>
-          ))}
-        </select>
-      </label>
-      <button className="button md:col-span-2">Save preferences</button>
-    </form>
-  );
+        <fieldset>
+          <legend className="font-medium text-zinc-900">Which alerts?</legend>
+          <div className="mt-2 space-y-2">
+            {LEVELS.map((l) => (
+              <label key={l.value} className="flex items-start gap-3">
+                <input
+                  type="radio"
+                  name="minimumSeverity"
+                  value={l.value}
+                  className="mt-1"
+                  defaultChecked={level === l.value}
+                />
+                <span>
+                  <span className="text-zinc-900">{l.label}</span>
+                  <span className="block text-sm text-zinc-500">{l.hint}</span>
+                </span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
+        <label className="flex items-start gap-3">
+          <input
+            name="assignment"
+            type="checkbox"
+            className="mt-1"
+            defaultChecked={current?.assignment_enabled ?? true}
+          />
+          <span>
+            <span className="font-medium text-zinc-900">
+              Email me when someone asks me to approve something
+            </span>
+            <span className="block text-sm text-zinc-500">
+              For example, an automation waiting for a yes or no before it runs.
+            </span>
+          </span>
+        </label>
+        <SubmitButton className="button" pendingLabel="Saving…">
+          Save
+        </SubmitButton>
+      </form>
+    );
+  };
   return (
     <section className="space-y-6">
       <Link className="text-sm text-zinc-500" href="/app/action-centre">
         ← Action Centre
       </Link>
       <div>
-        <h1 className="text-3xl font-semibold tracking-tight text-zinc-950">
-          Notification preferences
-        </h1>
+        <h1 className="text-3xl font-semibold tracking-tight text-zinc-950">Email settings</h1>
         <p className="mt-2 text-base text-zinc-500">
-          Choose which alerts you hear about. Your own settings override the organisation&apos;s
-          defaults, and a few essential alerts are always shown.
-        </p>
-        <p className="mt-2 text-sm text-zinc-500">
-          Alerts always appear in the Action Centre. Turn on email below to get them by email too;
-          webhooks aren&apos;t available yet.
+          {`Choose which emails you get about ${ctx.organisation.name}. Every alert still shows in the Action Centre, whatever you pick here.`}
         </p>
       </div>
       <Notice searchParams={p} />
@@ -109,7 +133,7 @@ export default async function Preferences({
       >
         <input type="hidden" name="on" value={weekly ? "false" : "true"} />
         <div>
-          <h3 className="font-semibold">Monday summary email</h3>
+          <h2 className="font-semibold">Monday summary email</h2>
           <p className="mt-1 text-sm text-zinc-500">
             {weekly
               ? `Every Monday morning: how ${ctx.organisation.name}'s week went, what's going well and what needs a look.`

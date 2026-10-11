@@ -111,38 +111,31 @@ export async function saveNotificationPreference(form: FormData) {
   const ctx = await getActiveOrganisation();
   const scope = String(form.get("scope") ?? "user");
   const role = ctx.membership.role as OrganisationRole;
+  const page = "/app/action-centre/preferences";
   if (scope === "organisation" && !hasPermission(role, "notifications.rules.manage")) {
-    return back(
-      "/app/action-centre/preferences",
-      "You cannot manage organisation preferences.",
-      true,
-    );
+    return back(page, "Only owners and admins can change the team's default.", true);
   }
-  const category = String(form.get("category") ?? "") || null;
   const severity = z
     .enum(["info", "warning", "critical"])
-    .safeParse(String(form.get("minimumSeverity") ?? "info"));
-  const digest = z
-    .enum(["immediate", "daily", "weekly", "off"])
-    .safeParse(String(form.get("digestMode") ?? "immediate"));
-  if (!severity.success || !digest.success) {
-    return back("/app/action-centre/preferences", "Invalid preference.", true);
-  }
+    .safeParse(String(form.get("minimumSeverity") ?? "warning"));
+  if (!severity.success) return back(page, "Please choose which alerts to email.", true);
   const userId = scope === "user" ? ctx.user.id : null;
-  const {data: existing} = await ctx.supabase
+  // Settings apply to every kind of alert; null columns need .is(), not .eq().
+  let lookup = ctx.supabase
     .from("notification_preferences")
     .select("id")
     .eq("organisation_id", ctx.organisation.id)
-    .eq("user_id", userId ?? "")
-    .eq("category", category ?? "")
-    .maybeSingle();
+    .is("category", null);
+  lookup = userId ? lookup.eq("user_id", userId) : lookup.is("user_id", null);
+  const {data: existing} = await lookup.maybeSingle();
   const preference = {
     minimum_severity: severity.data,
-    in_app_enabled: form.get("inApp") === "on",
+    // Alerts always show in the Action Centre; email is sent as each alert arrives.
+    in_app_enabled: true,
     email_enabled: form.get("email") === "on",
-    webhook_enabled: form.get("webhook") === "on",
+    webhook_enabled: false,
     assignment_enabled: form.get("assignment") === "on",
-    digest_mode: digest.data,
+    digest_mode: "immediate",
   };
   const result = existing
     ? await ctx.supabase
@@ -152,14 +145,16 @@ export async function saveNotificationPreference(form: FormData) {
     : await ctx.supabase.from("notification_preferences").insert({
         organisation_id: ctx.organisation.id,
         user_id: userId,
-        category,
+        category: null,
         ...preference,
       });
   return back(
-    "/app/action-centre/preferences",
+    page,
     result.error
-      ? "Preference could not be saved."
-      : "Preferences saved. Email and webhook delivery are not enabled in this phase.",
+      ? "Your email settings couldn't be saved. Please try again."
+      : scope === "user"
+        ? "Your email settings are saved."
+        : "The team's default email settings are saved.",
     Boolean(result.error),
   );
 }

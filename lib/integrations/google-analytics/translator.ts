@@ -75,7 +75,7 @@ export function translateGA4Snapshot(
     add(
       up ? "analytics.traffic_increased" : "analytics.traffic_decreased",
       `Website traffic ${up ? "increased" : "fell"} ${Math.abs(Math.round(traffic.percentageChange))}% last week`,
-      `Sessions ${up ? "increased" : "decreased"} from ${snapshot.previous.sessions.toLocaleString()} to ${snapshot.current.sessions.toLocaleString()} compared with the previous seven-day period.`,
+      `Sessions ${up ? "increased" : "decreased"} from ${snapshot.previous.sessions.toLocaleString("en-GB")} to ${snapshot.current.sessions.toLocaleString("en-GB")} compared with the previous seven-day period.`,
       up
         ? "good"
         : Math.abs(traffic.percentageChange) >= T.severeDeclinePercentage &&
@@ -96,7 +96,7 @@ export function translateGA4Snapshot(
     add(
       "analytics.tracking_inactive",
       "Analytics tracking appears inactive",
-      `No sessions were recorded for the latest complete seven-day period, after ${snapshot.previous.sessions.toLocaleString()} in the previous period.`,
+      `No sessions were recorded for the latest complete seven-day period, after ${snapshot.previous.sessions.toLocaleString("en-GB")} in the previous period.`,
       "critical",
       "sessions",
       0,

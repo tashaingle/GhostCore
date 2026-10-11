@@ -1,3 +1,4 @@
+import {DATE_TIME} from "@/lib/ui/dates";
 import Link from "next/link";
 import {WorkStatus} from "./work-status";
 import {sortUnifiedWork} from "@/lib/work/status";
@@ -50,7 +51,9 @@ export function WorkList({items}: {items: Item[]}) {
               </td>
               <td>
                 {x.dueAt ? (
-                  <time dateTime={x.dueAt}>{new Date(x.dueAt).toLocaleString()}</time>
+                  <time dateTime={x.dueAt}>
+                    {new Date(x.dueAt).toLocaleString("en-GB", DATE_TIME)}
+                  </time>
                 ) : (
                   "No due date"
                 )}
@@ -66,7 +69,7 @@ export function WorkList({items}: {items: Item[]}) {
                   {x.blockers ?? 0} blockers · {x.watchers ?? 0} watchers
                 </p>
               </td>
-              <td>{new Date(x.updatedAt).toLocaleString()}</td>
+              <td>{new Date(x.updatedAt).toLocaleString("en-GB", DATE_TIME)}</td>
             </tr>
           ))}
         </tbody>

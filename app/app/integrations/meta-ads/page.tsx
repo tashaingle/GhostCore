@@ -52,18 +52,24 @@ export default async function MetaAdsDashboard({
     ];
   const cards = [
     ["Spend", currency ? `${currency} ${(Number(spendMicros) / 1e6).toFixed(2)}` : "Not reported"],
-    ["Impressions", reported("impressions") ? sum("impressions").toLocaleString() : "Not reported"],
-    ["Reach", reported("reach") ? sum("reach").toLocaleString() : "Not reported"],
-    ["Clicks", reported("clicks") ? sum("clicks").toLocaleString() : "Not reported"],
-    ["Link clicks", reported("linkClicks") ? sum("linkClicks").toLocaleString() : "Not reported"],
+    [
+      "Impressions",
+      reported("impressions") ? sum("impressions").toLocaleString("en-GB") : "Not reported",
+    ],
+    ["Reach", reported("reach") ? sum("reach").toLocaleString("en-GB") : "Not reported"],
+    ["Clicks", reported("clicks") ? sum("clicks").toLocaleString("en-GB") : "Not reported"],
+    [
+      "Link clicks",
+      reported("linkClicks") ? sum("linkClicks").toLocaleString("en-GB") : "Not reported",
+    ],
     [
       "Meta-attributed leads",
-      reported("attributedLeads") ? sum("attributedLeads").toLocaleString() : "Not reported",
+      reported("attributedLeads") ? sum("attributedLeads").toLocaleString("en-GB") : "Not reported",
     ],
     [
       "Meta-attributed purchases",
       reported("attributedPurchases")
-        ? sum("attributedPurchases").toLocaleString()
+        ? sum("attributedPurchases").toLocaleString("en-GB")
         : "Not reported",
     ],
   ];

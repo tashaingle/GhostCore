@@ -1,3 +1,4 @@
+import {DATE_TIME} from "@/lib/ui/dates";
 import Link from "next/link";
 import {getActiveOrganisation} from "@/lib/organisations/active";
 import {slackDashboardMetrics} from "@/lib/integrations/slack/dashboard";
@@ -104,7 +105,9 @@ export default async function SlackDashboard({
           <article className="card" key={`${r.event_type}:${r.occurred_at}:${i}`}>
             <p className="font-semibold">{r.title}</p>
             <p className="whitespace-pre-wrap break-words text-sm">{r.description}</p>
-            <p className="mt-2 text-xs text-zinc-500">{new Date(r.occurred_at).toLocaleString()}</p>
+            <p className="mt-2 text-xs text-zinc-500">
+              {new Date(r.occurred_at).toLocaleString("en-GB", DATE_TIME)}
+            </p>
           </article>
         ))}
       </div>

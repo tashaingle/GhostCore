@@ -7,6 +7,9 @@ export type TimelineItem = {
   timestamp: string;
   href?: string;
   label: string;
+  /** What it means and what to do, for things that need a look. */
+  advice?: string;
+  action?: {label: string; href: string};
 };
 export function mergeTimelineItems(...input: (TimelineItem[] | number)[]) {
   const limit = typeof input.at(-1) === "number" ? (input.pop() as number) : 50;

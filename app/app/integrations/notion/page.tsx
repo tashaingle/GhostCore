@@ -1,3 +1,4 @@
+import {DATE_TIME} from "@/lib/ui/dates";
 import Link from "next/link";
 import {getActiveOrganisation} from "@/lib/organisations/active";
 import {notionDashboardMetrics} from "@/lib/integrations/notion/dashboard";
@@ -97,7 +98,7 @@ export default async function NotionDashboard({
                 <td>{String(r.metadata.status ?? "None")}</td>
                 <td>{String(r.metadata.dueDate ?? "None")}</td>
                 <td>{((r.metadata.assignees as string[]) ?? []).join(", ") || " - "}</td>
-                <td>{new Date(r.occurred_at).toLocaleString()}</td>
+                <td>{new Date(r.occurred_at).toLocaleString("en-GB", DATE_TIME)}</td>
               </tr>
             ))}
           </tbody>

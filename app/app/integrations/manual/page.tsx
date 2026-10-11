@@ -1,3 +1,4 @@
+import {DATE} from "@/lib/ui/dates";
 import Link from "next/link";
 import {getActiveOrganisation} from "@/lib/organisations/active";
 import {manualDashboardTotals} from "@/lib/integrations/manual/dashboard";
@@ -112,7 +113,7 @@ export default async function ManualDashboard({
               <tr className="border-b" key={r.id}>
                 <td className="p-3">{r.title}</td>
                 <td>{r.record_type}</td>
-                <td>{new Date(r.occurred_at).toLocaleDateString()}</td>
+                <td>{new Date(r.occurred_at).toLocaleDateString("en-GB", DATE)}</td>
                 <td>{r.amount === null ? " - " : `${r.currency ?? ""} ${r.amount}`}</td>
                 <td>{r.archived_at ? "archived" : r.status}</td>
                 <td>{r.external_reference ?? "None"}</td>

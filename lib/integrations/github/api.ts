@@ -1,4 +1,5 @@
 import "server-only";
+import {DATE_TIME} from "@/lib/ui/dates";
 import type {GitHubActivity, GitHubUser, GitHubWorkflowRun} from "./types";
 
 export type GitHubFailureKind = "unauthorized" | "rate_limit" | "network" | "api";
@@ -45,7 +46,7 @@ export class GitHubApi {
       throw new GitHubApiError(
         "rate_limit",
         resetAt
-          ? `GitHub rate limit reached. Try again after ${new Date(resetAt).toLocaleString()}.`
+          ? `GitHub rate limit reached. Try again after ${new Date(resetAt).toLocaleString("en-GB", DATE_TIME)}.`
           : "GitHub rate limit reached. Try again later.",
         resetAt,
       );

@@ -196,7 +196,7 @@ export default async function ActionCentre({
         <div className="flex shrink-0 gap-2">
           <Link className={quietButton} href="/app/action-centre/preferences">
             <SlidersHorizontal aria-hidden className="h-4 w-4" />
-            Preferences
+            Email settings
           </Link>
           {canEvaluate ? (
             <form action={evaluateNotificationsAction}>

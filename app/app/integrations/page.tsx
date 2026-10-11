@@ -1,3 +1,4 @@
+import {DATE_TIME} from "@/lib/ui/dates";
 import Link from "next/link";
 import {getActiveOrganisation} from "@/lib/organisations/active";
 import {
@@ -322,7 +323,9 @@ export default async function Integrations({
                         {log.status}
                         {log.rate_limited ? " · rate limited" : ""}
                       </td>
-                      <td className="p-3">{new Date(log.started_at).toLocaleString()}</td>
+                      <td className="p-3">
+                        {new Date(log.started_at).toLocaleString("en-GB", DATE_TIME)}
+                      </td>
                       <td className="p-3">
                         {log.duration_ms === null ? "n/a" : `${log.duration_ms}ms`}
                       </td>

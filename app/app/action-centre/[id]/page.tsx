@@ -1,3 +1,4 @@
+import {DATE_TIME} from "@/lib/ui/dates";
 import Link from "next/link";
 import {notFound} from "next/navigation";
 import {getActiveOrganisation} from "@/lib/organisations/active";
@@ -138,11 +139,11 @@ export default async function NotificationDetail({
           </div>
           <div>
             <dt className="text-zinc-500">First seen</dt>
-            <dd>{new Date(item.first_detected_at).toLocaleString()}</dd>
+            <dd>{new Date(item.first_detected_at).toLocaleString("en-GB", DATE_TIME)}</dd>
           </div>
           <div>
             <dt className="text-zinc-500">Last seen</dt>
-            <dd>{new Date(item.last_detected_at).toLocaleString()}</dd>
+            <dd>{new Date(item.last_detected_at).toLocaleString("en-GB", DATE_TIME)}</dd>
           </div>
           <div>
             <dt className="text-zinc-500">Related page</dt>
@@ -191,7 +192,7 @@ export default async function NotificationDetail({
                   <div className="flex justify-between gap-2">
                     <strong>{e.label}</strong>
                     <time className="text-xs text-zinc-500">
-                      {new Date(e.occurred_at).toLocaleString()}
+                      {new Date(e.occurred_at).toLocaleString("en-GB", DATE_TIME)}
                     </time>
                   </div>
                   <p className="text-sm text-zinc-700">{e.description}</p>
@@ -231,7 +232,7 @@ export default async function NotificationDetail({
                   #{r.revision_number} {titleCase(r.change_type)}
                 </strong>
                 <span className="ml-2 text-zinc-500">
-                  {new Date(r.created_at).toLocaleString()}
+                  {new Date(r.created_at).toLocaleString("en-GB", DATE_TIME)}
                 </span>
                 <p>{r.reason}</p>
                 <p className="text-xs text-zinc-500">
@@ -321,7 +322,7 @@ export default async function NotificationDetail({
               assignments.map((a) => (
                 <p className="mt-2 text-sm" key={a.id}>
                   {names.get(a.assigned_user_id) ?? "Former team member"} ·{" "}
-                  {new Date(a.assigned_at).toLocaleString()}
+                  {new Date(a.assigned_at).toLocaleString("en-GB", DATE_TIME)}
                   {a.unassigned_at ? " · unassigned" : ""}
                 </p>
               ))

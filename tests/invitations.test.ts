@@ -22,7 +22,7 @@ describe("invitation email", () => {
     expect(email.html).toContain('href="https://www.metricmage.co.uk/invite/abc"');
     expect(email.text).toContain("Accept invitation: https://www.metricmage.co.uk/invite/abc");
     expect(email.text).toContain("If you weren't expecting it, you can ignore it.");
-    expect(email.html).not.toContain("notification preferences");
+    expect(email.html).not.toContain("email settings");
   });
 
   it("keeps the preferences link on alert emails", () => {
@@ -31,7 +31,7 @@ describe("invitation email", () => {
       organisationName: "Acme",
       notification: {id: "n1", title: "T", summary: "S", recommended_action: "", severity: "info"},
     });
-    expect(alert.html).toContain("notification preferences");
+    expect(alert.html).toContain("email settings");
   });
 });
 

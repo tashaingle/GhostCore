@@ -159,7 +159,7 @@ export default async function Home({
     // What's been happening across the tools; Metric Mage's own audit trail isn't included.
     ctx.supabase
       .from("events")
-      .select("id,source,title,severity,occurred_at")
+      .select("id,source,event_type,title,description,severity,occurred_at,metadata")
       .eq("organisation_id", org)
       .neq("source", "ghost")
       .order("occurred_at", {ascending: false})

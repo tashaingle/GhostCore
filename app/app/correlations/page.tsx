@@ -1,3 +1,4 @@
+import {DATE_TIME} from "@/lib/ui/dates";
 import Link from "next/link";
 import {getActiveOrganisation} from "@/lib/organisations/active";
 import {correlationDashboard} from "@/lib/correlations/dashboard";
@@ -134,7 +135,7 @@ export default async function CorrelationsPage({
                   </p>
                   <p className="mt-1 text-xs text-zinc-500">
                     {row.active ? "Active" : "Inactive"} ·{" "}
-                    {new Date(row.occurred_at).toLocaleString()}
+                    {new Date(row.occurred_at).toLocaleString("en-GB", DATE_TIME)}
                   </p>
                 </Link>
               ))

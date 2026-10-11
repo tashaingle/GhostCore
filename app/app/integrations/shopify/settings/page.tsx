@@ -1,3 +1,4 @@
+import {DATE_TIME} from "@/lib/ui/dates";
 import Link from "next/link";
 import {getActiveOrganisation} from "@/lib/organisations/active";
 import {Notice} from "@/components/notice";
@@ -51,7 +52,9 @@ export default async function ShopifySettings({
             </p>
             <p className="text-sm text-zinc-500">
               Plan: {String(s.planName ?? "Unknown")} · Last sync:{" "}
-              {store.last_sync_at ? new Date(store.last_sync_at).toLocaleString() : "Never"}
+              {store.last_sync_at
+                ? new Date(store.last_sync_at).toLocaleString("en-GB", DATE_TIME)
+                : "Never"}
             </p>
           </article>
         );

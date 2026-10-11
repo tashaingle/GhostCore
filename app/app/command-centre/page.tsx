@@ -1,3 +1,4 @@
+import {DATE_TIME} from "@/lib/ui/dates";
 import type {ReactNode} from "react";
 import Link from "next/link";
 import {getActiveOrganisation} from "@/lib/organisations/active";
@@ -188,7 +189,7 @@ export default async function CommandCentre({
         title: x.title,
         detail: x.summary,
         href: `/app/action-centre/${x.id}`,
-        evidence: `Action Centre · first detected ${new Date(x.first_detected_at).toLocaleString()}`,
+        evidence: `Action Centre · first detected ${new Date(x.first_detected_at).toLocaleString("en-GB", DATE_TIME)}`,
       })),
     alerts = [...notificationAlerts, ...baseAlerts];
   const [{data: backgroundJobs}, {data: backgroundRuns}, {data: backgroundLocks}] =
@@ -482,7 +483,7 @@ export default async function CommandCentre({
           </div>
           <p className="mt-4 text-xs text-zinc-500">
             Exact values derived from {events.length} bounded imported events between{" "}
-            {start.toLocaleString()} and {now.toLocaleString()}.
+            {start.toLocaleString("en-GB", DATE_TIME)} and {now.toLocaleString("en-GB", DATE_TIME)}.
           </p>
         </div>
       </Section>
@@ -508,7 +509,7 @@ export default async function CommandCentre({
                   {item.relationship_type} · {item.rule_key} v{item.rule_version}
                 </p>
                 <p className="mt-2 text-xs text-zinc-500">
-                  {item.strength} · {new Date(item.occurred_at).toLocaleString()}
+                  {item.strength} · {new Date(item.occurred_at).toLocaleString("en-GB", DATE_TIME)}
                 </p>
               </Link>
             ))}
@@ -554,7 +555,7 @@ export default async function CommandCentre({
                 <div className="flex gap-2">
                   <strong>{event.title}</strong>
                   <time className="ml-auto text-xs text-zinc-500">
-                    {new Date(event.occurred_at).toLocaleString()}
+                    {new Date(event.occurred_at).toLocaleString("en-GB", DATE_TIME)}
                   </time>
                 </div>
                 <p className="text-xs text-zinc-500">
@@ -610,7 +611,7 @@ export default async function CommandCentre({
                         <dt className="text-zinc-500">Last sync</dt>
                         <dd>
                           {item.last_sync_at
-                            ? new Date(item.last_sync_at).toLocaleString()
+                            ? new Date(item.last_sync_at).toLocaleString("en-GB", DATE_TIME)
                             : "Never"}
                         </dd>
                       </div>
@@ -712,7 +713,9 @@ export default async function CommandCentre({
             ["Matching rules", `${correlationRules.length} available`],
             [
               "Last checked for related events",
-              lastRun?.completed_at ? new Date(lastRun.completed_at).toLocaleString() : "Never",
+              lastRun?.completed_at
+                ? new Date(lastRun.completed_at).toLocaleString("en-GB", DATE_TIME)
+                : "Never",
             ],
 
             ["Sync history entries", logCountResult.count ?? 0],
@@ -733,7 +736,7 @@ export default async function CommandCentre({
           <p className="text-xs font-semibold uppercase tracking-wide text-violet-700">Home</p>
           <h2 className="page-title mt-1">Command Centre</h2>
           <p className="page-subtitle">
-            {ctx.organisation.name} · updated {now.toLocaleString()}
+            {ctx.organisation.name} · updated {now.toLocaleString("en-GB", DATE_TIME)}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">

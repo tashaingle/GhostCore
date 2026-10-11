@@ -1,3 +1,4 @@
+import {DATE_TIME} from "@/lib/ui/dates";
 import Link from "next/link";
 import {getActiveOrganisation} from "@/lib/organisations/active";
 import {updateGmailSettings} from "@/app/gmail-actions";
@@ -45,7 +46,7 @@ export default async function GmailSettings({
                 <p className="text-sm text-zinc-500">
                   {mailbox.status} ·{" "}
                   {mailbox.last_sync_at
-                    ? `Last successful sync ${new Date(mailbox.last_sync_at).toLocaleString()}`
+                    ? `Last successful sync ${new Date(mailbox.last_sync_at).toLocaleString("en-GB", DATE_TIME)}`
                     : "Never synced"}{" "}
                   · Last attempt: {mailbox.last_sync_status ?? "none"}
                 </p>

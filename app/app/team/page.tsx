@@ -1,3 +1,4 @@
+import {DATE} from "@/lib/ui/dates";
 import {getActiveOrganisation} from "@/lib/organisations/active";
 import {PageHeader} from "@/components/page-header";
 import {ROLE_DESCRIPTIONS} from "@/lib/ui/labels";
@@ -113,7 +114,7 @@ export default async function Team({
                     {member.role}
                   </td>
                   <td className="capitalize">{member.status}</td>
-                  <td>{new Date(member.created_at).toLocaleDateString()}</td>
+                  <td>{new Date(member.created_at).toLocaleDateString("en-GB", DATE)}</td>
                   <td>
                     {canManage && member.id !== ctx.membership.id && (
                       <form

@@ -1,5 +1,5 @@
 "use server";
-import {redirect} from "next/navigation";
+import {redirect, unstable_rethrow} from "next/navigation";
 import {revalidatePath} from "next/cache";
 import {z} from "zod";
 import {getActiveOrganisation} from "@/lib/organisations/active";
@@ -71,6 +71,7 @@ export async function createTaskAction(f: FormData) {
       result.duplicate ? "Existing generated task opened." : "Task created.",
     );
   } catch (e) {
+    unstable_rethrow(e);
     back("/app/tasks/new", e instanceof Error ? e.message : "Task could not be created.", true);
   }
 }
@@ -102,6 +103,7 @@ export async function createCaseAction(f: FormData) {
       result.duplicate ? "Existing generated case opened." : "Case created.",
     );
   } catch (e) {
+    unstable_rethrow(e);
     back("/app/cases/new", e instanceof Error ? e.message : "Case could not be created.", true);
   }
 }
@@ -158,6 +160,7 @@ export async function workAction(f: FormData) {
       );
     back(path, `Work ${action} saved.`);
   } catch (e) {
+    unstable_rethrow(e);
     back(path, e instanceof Error ? e.message : "Work action failed.", true);
   }
 }
@@ -183,6 +186,7 @@ export async function checklistAction(f: FormData) {
       });
     back(`/app/tasks/${taskId.data}`, "Checklist updated.");
   } catch (e) {
+    unstable_rethrow(e);
     back(
       `/app/tasks/${taskId.data}`,
       e instanceof Error ? e.message : "Checklist could not be updated.",
@@ -202,6 +206,7 @@ export async function dependencyAction(f: FormData) {
     });
     back(`/app/tasks/${taskId.data}`, "Dependency added.");
   } catch (e) {
+    unstable_rethrow(e);
     back(
       `/app/tasks/${taskId.data}`,
       e instanceof Error ? e.message : "Dependency could not be added.",
@@ -223,6 +228,7 @@ export async function commentAction(f: FormData) {
     });
     back(path, internal ? "Internal note added." : "Comment added.");
   } catch (e) {
+    unstable_rethrow(e);
     back(path, e instanceof Error ? e.message : "Comment could not be added.", true);
   }
 }
@@ -242,6 +248,7 @@ export async function evidenceAction(f: FormData) {
     });
     back(path, "Evidence linked.");
   } catch (e) {
+    unstable_rethrow(e);
     back(path, e instanceof Error ? e.message : "Evidence could not be linked.", true);
   }
 }
@@ -277,6 +284,7 @@ export async function savedViewAction(f: FormData) {
     if (error) throw new Error("Saved view could not be created.");
     back("/app/work/views", "Saved view created.");
   } catch (e) {
+    unstable_rethrow(e);
     back("/app/work/views", e instanceof Error ? e.message : "Saved view is invalid.", true);
   }
 }

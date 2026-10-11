@@ -71,7 +71,7 @@ export function translateSearchConsole(
     change = b.clicks ? ((a.clicks - b.clicks) / b.clicks) * 100 : null;
   add(
     "google_search_console.performance_summary",
-    `Search performance: ${a.clicks.toLocaleString()} clicks`,
+    `Search performance: ${a.clicks.toLocaleString("en-GB")} clicks`,
     "info",
     "summary",
     {

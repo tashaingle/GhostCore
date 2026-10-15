@@ -8,6 +8,10 @@ import {metaSocialEnv} from "@/lib/integrations/meta-social/config";
 import {encryptToken} from "@/lib/security/token-crypto";
 import type {Json} from "@/types/database";
 import {lostAccessMessage, lostItems, previouslyVisible} from "@/lib/integrations/meta/lost-access";
+import {
+  existingMetaConnection,
+  removeOtherMetaConnections,
+} from "@/lib/integrations/meta/connection";
 
 const back = (url: URL, kind: "error" | "success", message: string, path = "/app/integrations") =>
   NextResponse.redirect(new URL(`${path}?${kind}=${encodeURIComponent(message)}`, url));
@@ -78,13 +82,12 @@ export async function GET(request: Request) {
       ? new Date(Date.now() + token.expires_in * 1000).toISOString()
       : null;
 
-    const {data: existing} = await supabase
-      .from("integrations")
-      .select("id,settings")
-      .eq("organisation_id", state.organisationId)
-      .eq("provider", "meta_social")
-      .eq("provider_account_id", identity.id)
-      .maybeSingle();
+    const existing = await existingMetaConnection(
+      supabase,
+      state.organisationId,
+      "meta_social",
+      identity.id,
+    );
     const old =
       existing?.settings &&
       typeof existing.settings === "object" &&
@@ -135,16 +138,23 @@ export async function GET(request: Request) {
           .update(values)
           .eq("id", existing.id)
           .eq("organisation_id", state.organisationId)
-      : await supabase.from("integrations").insert({
-          organisation_id: state.organisationId,
-          provider: "meta_social",
-          ...values,
-        });
+          .select("id")
+          .single()
+      : await supabase
+          .from("integrations")
+          .insert({
+            organisation_id: state.organisationId,
+            provider: "meta_social",
+            ...values,
+          })
+          .select("id")
+          .single();
     if (result.error) {
       throw new Error(
         "Meta authorized Metric Mage, but the social integration could not be saved.",
       );
     }
+    await removeOtherMetaConnections(supabase, state.organisationId, "meta_social", result.data.id);
     return back(
       url,
       "success",

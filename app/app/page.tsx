@@ -30,6 +30,7 @@ import {SetupChecklist, type SetupStep} from "@/components/setup-checklist";
 import {FirstSync} from "@/components/first-sync";
 import {hasPermission, type OrganisationRole} from "@/lib/auth/permissions";
 import {InsightCard, ProviderMark, SectionHeading, SeverityLabel} from "@/components/home-ui";
+import {StaffHome} from "@/components/staff-home";
 
 export const metadata = {title: "Home"};
 
@@ -307,6 +308,7 @@ export default async function Home({
         </form>
       </header>
 
+      <StaffHome list={params.list === "team" ? "team" : "mine"} />
       <Notice searchParams={params} />
       <AutoRefresh active={firstSync || connections.some((c) => c.state === "syncing")} />
       {connections.length ? <SetupChecklist organisationId={org} steps={setupSteps} /> : null}

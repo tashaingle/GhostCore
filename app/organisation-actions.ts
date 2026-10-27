@@ -5,6 +5,7 @@ import {revalidatePath} from "next/cache";
 import {createHash, randomBytes} from "node:crypto";
 import {z} from "zod";
 import {requireUser} from "@/lib/auth/user";
+import {safeNext} from "@/lib/auth/next";
 import {getActiveOrganisation, ACTIVE_ORGANISATION_COOKIE} from "@/lib/organisations/active";
 import {uniqueSlug} from "@/lib/organisations/slug";
 import {optionalWebAddress} from "@/lib/forms/web-address";
@@ -158,7 +159,8 @@ export async function switchOrganisation(form: FormData) {
   await supabase.from("profiles").update({active_organisation_id: id.data}).eq("id", user.id);
   await setActive(id.data);
   revalidatePath("/app", "layout");
-  redirect("/app");
+  const next = safeNext(form.get("next"), "/app?scope=one");
+  redirect(next.startsWith("/app") ? next : "/app?scope=one");
 }
 export async function updateOrganisation(form: FormData) {
   const ctx = await getActiveOrganisation();

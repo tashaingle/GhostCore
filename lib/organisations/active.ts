@@ -2,6 +2,7 @@ import "server-only";
 import {cookies} from "next/headers";
 import {redirect} from "next/navigation";
 import {requireUser} from "@/lib/auth/user";
+import {isParkedOrganisation} from "./focus";
 import {selectActiveMembership} from "./selection";
 export const ACTIVE_ORGANISATION_COOKIE = "ghost_active_organisation";
 export function getActiveOrganisation(
@@ -34,6 +35,8 @@ async function loadActiveOrganisation(optional = false) {
     if (optional) return null;
     redirect("/app/onboarding");
   }
+  const listed = valid.filter((item) => !isParkedOrganisation(item.organisation.name));
+  const working = listed.length ? listed : valid;
   const cookieStore = await cookies(),
     cookieId = cookieStore.get(ACTIVE_ORGANISATION_COOKIE)?.value;
   const {data: profile} = await supabase
@@ -42,7 +45,7 @@ async function loadActiveOrganisation(optional = false) {
     .eq("id", user.id)
     .maybeSingle();
   const selected = selectActiveMembership(
-    valid.map((item) => ({
+    working.map((item) => ({
       organisation_id: item.organisation.id,
       organisation: item.organisation,
       membership: item.membership,
@@ -71,7 +74,7 @@ async function loadActiveOrganisation(optional = false) {
     user,
     membership: selected.membership,
     organisation: selected.organisation,
-    organisations: valid.map((item) => ({
+    organisations: working.map((item) => ({
       id: item.organisation.id,
       name: item.organisation.name,
       slug: item.organisation.slug,

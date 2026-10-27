@@ -2,10 +2,10 @@ import type {CaseStatus, TaskStatus, UnifiedWork, WorkPriority} from "./types";
 const taskTransitions: Record<TaskStatus, readonly TaskStatus[]> = {
   backlog: ["open"],
   open: ["in_progress", "completed", "blocked", "waiting", "cancelled"],
-  in_progress: ["completed", "blocked", "waiting", "cancelled"],
+  in_progress: ["open", "completed", "blocked", "waiting", "cancelled"],
   blocked: ["open", "in_progress", "cancelled"],
   waiting: ["open", "in_progress", "cancelled"],
-  completed: ["open"],
+  completed: ["open", "in_progress"],
   cancelled: ["open"],
 };
 const caseTransitions: Record<CaseStatus, readonly CaseStatus[]> = {

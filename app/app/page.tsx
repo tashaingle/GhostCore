@@ -26,10 +26,11 @@ import {runIntelligenceAction} from "@/app/intelligence-actions";
 import {Notice} from "@/components/notice";
 import {GettingStarted} from "@/components/getting-started";
 import {AutoRefresh} from "@/components/auto-refresh";
-import {SetupChecklist, type SetupStep} from "@/components/setup-checklist";
 import {FirstSync} from "@/components/first-sync";
 import {hasPermission, type OrganisationRole} from "@/lib/auth/permissions";
 import {InsightCard, ProviderMark, SectionHeading, SeverityLabel} from "@/components/home-ui";
+import {AllHome} from "@/components/all-home";
+import {ProjectRail} from "@/components/project-rail";
 import {StaffHome} from "@/components/staff-home";
 
 export const metadata = {title: "Home"};
@@ -98,19 +99,26 @@ export default async function Home({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const params = await searchParams;
+  const period = parsePeriod(params.period);
+  if (params.scope !== "one") {
+    return (
+      <AllHome
+        period={period}
+        list={params.list === "mine" ? "mine" : "team"}
+        searchParams={params}
+      />
+    );
+  }
   const ctx = await getActiveOrganisation();
   const org = ctx.organisation.id,
     now = new Date(),
-    period = parsePeriod(params.period);
+    todoList = params.list === "team" ? "team" : "mine";
   const [
     {data: integrations},
     {data: notifications, count: notificationCount},
     {data: approvals},
     {data: insights, count: insightCount},
     performance,
-    {count: memberCount},
-    {count: invitationCount},
-    {count: myPreferences},
     {data: activity},
     goals,
   ] = await Promise.all([
@@ -145,21 +153,6 @@ export default async function Home({
       .order("updated_at", {ascending: false})
       .limit(30),
     loadPerformance(ctx.supabase, org, period, now),
-    ctx.supabase
-      .from("organisation_members")
-      .select("id", {count: "exact", head: true})
-      .eq("organisation_id", org)
-      .eq("status", "active"),
-    ctx.supabase
-      .from("organisation_invitations")
-      .select("id", {count: "exact", head: true})
-      .eq("organisation_id", org)
-      .eq("status", "pending"),
-    ctx.supabase
-      .from("notification_preferences")
-      .select("id", {count: "exact", head: true})
-      .eq("organisation_id", org)
-      .eq("user_id", ctx.user.id),
     // What's been happening across the tools; Metric Mage's own audit trail isn't included.
     ctx.supabase
       .from("events")
@@ -182,42 +175,7 @@ export default async function Home({
 
   // First import: no tool has finished a sync yet, so show progress rather than empty figures.
   const syncedIds = new Set((integrations ?? []).filter((r) => r.last_sync_at).map((r) => r.id)),
-    firstSync = connections.length > 0 && syncedIds.size === 0,
-    canInvite = hasPermission(ctx.membership.role as OrganisationRole, "team.invite"),
-    setupSteps: SetupStep[] = [
-      {
-        key: "connect",
-        title: "Connect your first tool",
-        body: "Shopify, Stripe, Google, Meta and more. It takes about a minute.",
-        href: "/app/integrations",
-        done: connections.length >= 1,
-      },
-      {
-        key: "second",
-        title: "Connect a second tool",
-        body: "Metric Mage spots more when it can compare tools, like ad spend against sales.",
-        href: "/app/integrations",
-        done: connections.length >= 2,
-      },
-      ...(canInvite
-        ? [
-            {
-              key: "team",
-              title: "Invite a teammate",
-              body: "They're included free, and they'll get the Monday summary too.",
-              href: "/app/team",
-              done: (memberCount ?? 1) > 1 || (invitationCount ?? 0) > 0,
-            },
-          ]
-        : []),
-      {
-        key: "alerts",
-        title: "Choose your email alerts",
-        body: "Get urgent things, like failed payments, by email as well as here.",
-        href: "/app/action-centre/preferences",
-        done: (myPreferences ?? 0) > 0,
-      },
-    ];
+    firstSync = connections.length > 0 && syncedIds.size === 0;
 
   const workflowNames = new Map<string, string>();
   if (approvals?.length) {
@@ -308,10 +266,17 @@ export default async function Home({
         </form>
       </header>
 
-      <StaffHome list={params.list === "team" ? "team" : "mine"} />
+      <div className="grid items-start gap-4 lg:grid-cols-[220px_minmax(0,1fr)]">
+        <ProjectRail
+          projects={ctx.organisations}
+          activeId={org}
+          scope="one"
+          period={period}
+        />
+        <div className="min-w-0 space-y-6">
+      <StaffHome period={period} />
       <Notice searchParams={params} />
       <AutoRefresh active={firstSync || connections.some((c) => c.state === "syncing")} />
-      {connections.length ? <SetupChecklist organisationId={org} steps={setupSteps} /> : null}
 
       {!connections.length ? (
         <GettingStarted />
@@ -391,12 +356,14 @@ export default async function Home({
                   {`${PERIOD_LABEL[period].current[0].toUpperCase()}${PERIOD_LABEL[period].current.slice(1)} compared with ${PERIOD_LABEL[period].previous}.`}
                 </p>
               </div>
-              {figures.chart ? null : <PeriodPills period={period} />}
+              {figures.chart ? null : <PeriodPills period={period} scope="one" list={todoList} />}
             </div>
             <FigureTiles metrics={figures.top} period={period} />
             <MainChart
               figure={figures.chart}
               period={period}
+              scope="one"
+              list={todoList}
               notes={(insights ?? []).flatMap((insight) => {
                 const t = Date.parse(insight.updated_at);
                 return t >= now.getTime() - PERIOD_DAYS[period] * 86_400_000
@@ -530,6 +497,8 @@ export default async function Home({
           </div>
         </div>
       ) : null}
+        </div>
+      </div>
     </div>
   );
 }

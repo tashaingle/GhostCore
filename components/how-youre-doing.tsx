@@ -57,13 +57,30 @@ export function arrangeFigures(metrics: Metric[]) {
   return {top, chart, rest: metrics.filter((m) => !top.includes(m))};
 }
 
-export function PeriodPills({period}: {period: Period}) {
+export function PeriodPills({
+  period,
+  scope = "one",
+  list,
+}: {
+  period: Period;
+  scope?: "all" | "one";
+  list?: "mine" | "team";
+}) {
+  const href = (key: Period) => {
+    const query = new URLSearchParams();
+    if (scope === "one") query.set("scope", "one");
+    if (key !== "week") query.set("period", key);
+    if (scope === "one" && list === "team") query.set("list", "team");
+    if (scope === "all" && list === "mine") query.set("list", "mine");
+    const text = query.toString();
+    return text ? `/app?${text}` : "/app";
+  };
   return (
     <nav aria-label="Period" className="inline-flex gap-1 rounded-xl bg-zinc-100 p-1">
       {PERIODS.map((p) => (
         <Link
           key={p.key}
-          href={p.key === "week" ? "/app" : `/app?period=${p.key}`}
+          href={href(p.key)}
           scroll={false}
           aria-current={p.key === period ? "page" : undefined}
           className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
@@ -118,10 +135,14 @@ export function MainChart({
   figure,
   period,
   notes,
+  scope = "one",
+  list,
 }: {
   figure: Metric | undefined;
   period: Period;
   notes: ChartNote[];
+  scope?: "all" | "one";
+  list?: "mine" | "team";
 }) {
   if (!figure?.trend) return null;
   const labels = PERIOD_LABEL[period];
@@ -133,7 +154,7 @@ export function MainChart({
       currentLabel={capital(labels.current)}
       previousLabel={capital(labels.previous)}
       notes={notes}
-      actions={<PeriodPills period={period} />}
+      actions={<PeriodPills period={period} scope={scope} list={list} />}
       headline={
         <div>
           <p className="text-xs text-zinc-500">{capital(labels.current)}</p>

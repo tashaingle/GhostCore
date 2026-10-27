@@ -1,5 +1,6 @@
 import {describe, expect, it} from "vitest";
 import {hasPermission, canManageRole, ORGANISATION_ROLES} from "@/lib/auth/permissions";
+import {isParkedOrganisation} from "@/lib/organisations/focus";
 import {selectActiveMembership, invitationDisplayStatus} from "@/lib/organisations/selection";
 describe("multi-organisation workspaces", () => {
   const memberships = [
@@ -33,6 +34,15 @@ describe("multi-organisation workspaces", () => {
     const now = new Date("2026-07-28T12:00:00Z");
     expect(invitationDisplayStatus("pending", "2026-07-27T00:00:00Z", now)).toBe("expired");
     expect(invitationDisplayStatus("accepted", "2026-07-27T00:00:00Z", now)).toBe("accepted");
+  });
+  it("parks Tash, Rabbit Care and Unhinged Clothing without hiding the live projects", () => {
+    expect(isParkedOrganisation("Tash")).toBe(true);
+    expect(isParkedOrganisation("Rabbit Care")).toBe(true);
+    expect(isParkedOrganisation("Unhinged Clothing")).toBe(true);
+    expect(isParkedOrganisation("XUFU")).toBe(false);
+    expect(isParkedOrganisation("Carprise")).toBe(false);
+    expect(isParkedOrganisation("Prestige Cars")).toBe(false);
+    expect(isParkedOrganisation("Tzkia")).toBe(false);
   });
   it("keeps tenant selection isolated to the supplied membership set", () =>
     expect(selectActiveMembership(memberships, "foreign", null)?.organisation.id).not.toBe(

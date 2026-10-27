@@ -461,6 +461,8 @@ export async function transitionWork(
     const update: TaskUpdate = {status: x.status, updated_at: now};
     if (x.status === "in_progress" && "started_at" in item && !item.started_at)
       update.started_at = now;
+    if (x.status === "in_progress" && ["completed", "cancelled"].includes(item.status))
+      Object.assign(update, {completed_at: null, cancelled_at: null} satisfies TaskUpdate);
     if (x.status === "completed")
       Object.assign(update, {
         completed_at: now,

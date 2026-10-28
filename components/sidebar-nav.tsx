@@ -23,7 +23,7 @@ const focus: NavItem[] = [
   {label: "Home", href: "/app", icon: House, exact: true},
   {label: "To do", href: "/app/todo", icon: ListChecks},
   {label: "Calendar", href: "/app/calendar", icon: CalendarDays},
-  {label: "Email list", href: "/app/email-list", icon: Mail},
+  {label: "Testers", href: "/app/email-list", icon: Mail},
   {label: "Goals", href: "/app/goals", icon: Target},
 ];
 

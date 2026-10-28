@@ -4,7 +4,7 @@ import {addEmailContact, updateEmailContactFeedback} from "@/app/email-contact-a
 import {Notice} from "@/components/notice";
 import {getActiveOrganisation} from "@/lib/organisations/active";
 
-export const metadata = {title: "Email list"};
+export const metadata = {title: "Testers"};
 
 const PLATFORM = {ios: "iOS", android: "Android", other: "Other", unknown: "Unknown"} as const;
 const TESTING_STATUS = {

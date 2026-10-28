@@ -5,6 +5,8 @@ import {organisationsPeople} from "@/lib/organisations/people";
 import {sortProjects} from "@/lib/home/projects";
 import {CalendarEventForm} from "@/components/calendar-event-form";
 import {Notice} from "@/components/notice";
+import {ConfirmDeleteButton} from "@/components/confirm-delete-button";
+import {deleteCalendarEvent} from "@/app/calendar-event-actions";
 
 export const metadata = {title: "Calendar"};
 
@@ -23,7 +25,7 @@ export default async function CalendarPage({searchParams}: {searchParams: Promis
   const {data: events} = ids.length
     ? await ctx.supabase
         .from("events")
-        .select("id,title,occurred_at,organisation_id,metadata")
+        .select("id,title,occurred_at,organisation_id,source,metadata")
         .in("organisation_id", ids)
         .in("source", ["google_calendar", "manual_calendar"])
         .neq("event_type", "google_calendar.event_cancelled")
@@ -41,6 +43,7 @@ export default async function CalendarPage({searchParams}: {searchParams: Promis
       id: event.id,
       title: event.title,
       startsAt: event.occurred_at,
+      organisationId: event.organisation_id,
       organisationName: names.get(event.organisation_id),
       location: typeof metadata.location === "string" ? metadata.location : null,
       allDay: metadata.allDay === true,
@@ -48,6 +51,7 @@ export default async function CalendarPage({searchParams}: {searchParams: Promis
       attendeeNames: Array.isArray(metadata.attendeeIds)
         ? metadata.attendeeIds.filter((id): id is string => typeof id === "string").map((id) => peopleNames.get(id) ?? "Team member")
         : [],
+      deletable: event.source === "manual_calendar",
     };
   });
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -132,7 +136,7 @@ export default async function CalendarPage({searchParams}: {searchParams: Promis
                   <div className="flex items-start gap-3">
                     <div className="w-11 shrink-0 rounded-xl bg-blue-50 py-2 text-center"><p className="text-[10px] font-semibold uppercase text-blue-500">{new Date(event.startsAt).toLocaleDateString("en-GB", {month:"short"})}</p><p className="text-lg font-semibold leading-none text-blue-800">{new Date(event.startsAt).getDate()}</p></div>
                     <div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold text-zinc-900">{event.title}</p><p className="mt-1 flex items-center gap-1 text-xs text-zinc-500"><Clock3 aria-hidden className="h-3 w-3" />{event.allDay ? "All day" : new Date(event.startsAt).toLocaleTimeString("en-GB", {hour:"2-digit",minute:"2-digit"})}</p>{event.location ? <p className="mt-1 flex items-center gap-1 truncate text-xs text-zinc-400"><MapPin aria-hidden className="h-3 w-3" />{event.location}</p> : null}{event.attendeeNames.length ? <p className="mt-1 truncate text-xs text-zinc-400">{event.attendeeNames.join(", ")}</p> : null}{event.teamsUrl ? <a href={event.teamsUrl} target="_blank" rel="noreferrer" className="mt-2 inline-flex items-center gap-1 rounded-lg bg-blue-50 px-2 py-1 text-xs font-semibold text-blue-700"><Video aria-hidden className="h-3 w-3" />Join Teams</a> : null}</div>
-                    <ChevronRight aria-hidden className="mt-2 h-4 w-4 text-zinc-300 transition-transform group-hover:translate-x-0.5" />
+                    {event.deletable ? <form action={deleteCalendarEvent}><input type="hidden" name="id" value={event.id} /><input type="hidden" name="organisationId" value={event.organisationId} /><ConfirmDeleteButton label={`Delete ${event.title}`} compact /></form> : <ChevronRight aria-hidden className="mt-2 h-4 w-4 text-zinc-300 transition-transform group-hover:translate-x-0.5" />}
                   </div>
                 </li>
               ))}

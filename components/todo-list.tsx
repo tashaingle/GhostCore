@@ -1,4 +1,5 @@
-import {addTodo, setTodoPeople, setTodoStatus} from "@/app/todo-actions";
+import {addTodo, deleteTodo, setTodoPeople, setTodoStatus} from "@/app/todo-actions";
+import {ConfirmDeleteButton} from "@/components/confirm-delete-button";
 import {TodoWho} from "@/components/todo-who";
 import {TODO_CHOICES, todoChoice} from "@/lib/home/todo";
 import type {Period} from "@/lib/home/performance";
@@ -136,6 +137,13 @@ export function TodoList({
                       {choice.label}
                     </button>
                   ))}
+                </form>
+                <form action={deleteTodo}>
+                  <input type="hidden" name="scope" value={scope} />
+                  <input type="hidden" name="period" value={period} />
+                  <input type="hidden" name="organisationId" value={task.organisationId} />
+                  <input type="hidden" name="id" value={task.id} />
+                  <ConfirmDeleteButton label={`Delete ${task.title}`} compact={compact} />
                 </form>
               </li>
             );

@@ -213,3 +213,31 @@ export async function setTodoPeople(form: FormData) {
   revalidatePath("/app");
   redirect(path);
 }
+
+export async function deleteTodo(form: FormData) {
+  const path = returnPath(form);
+  const taskId = z.uuid().safeParse(form.get("id"));
+  if (!taskId.success) fail(path, "That to do could not be found.");
+  const ctx = await getActiveOrganisation();
+  const organisation = chosenOrganisation(form, ctx);
+  if (!organisation) fail(path, "That to do could not be found.");
+  const service = createServiceClient();
+  const {data: task} = await service
+    .from("work_tasks")
+    .select("id,source_type,created_by")
+    .eq("id", taskId.data)
+    .eq("organisation_id", organisation.id)
+    .maybeSingle();
+  if (!task || task.source_type !== "manual") fail(path, "Only manually added to-dos can be deleted.");
+  const canManage = hasPermission(organisation.role as OrganisationRole, "work.manage");
+  if (!canManage && task.created_by !== ctx.user.id) fail(path, "You can only delete to-dos you created.");
+  const {error} = await service
+    .from("work_tasks")
+    .delete()
+    .eq("id", taskId.data)
+    .eq("organisation_id", organisation.id);
+  if (error) fail(path, "That to do could not be deleted.");
+  revalidatePath("/app");
+  revalidatePath("/app/todo");
+  redirect(`${path}${path.includes("?") ? "&" : "?"}success=${encodeURIComponent("To do deleted.")}`);
+}

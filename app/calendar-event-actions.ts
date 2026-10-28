@@ -7,6 +7,7 @@ import {getActiveOrganisation} from "@/lib/organisations/active";
 import {organisationPeople} from "@/lib/organisations/people";
 import {hasPermission, type OrganisationRole} from "@/lib/auth/permissions";
 import {createEvent} from "@/lib/events/create-event";
+import {createServiceClient} from "@/lib/supabase/service";
 
 const eventSchema = z.object({
   title: z.string().trim().min(1).max(160),
@@ -68,4 +69,30 @@ export async function addCalendarEvent(form: FormData) {
   if (!result.ok) fail(result.message);
   revalidatePath("/app/calendar");
   redirect("/app/calendar?success=Event%20added%20to%20the%20team%20calendar.");
+}
+
+export async function deleteCalendarEvent(form: FormData) {
+  const id = z.uuid().safeParse(form.get("id"));
+  const organisationId = z.uuid().safeParse(form.get("organisationId"));
+  if (!id.success || !organisationId.success) fail("That event could not be found.");
+  const ctx = await getActiveOrganisation();
+  const project = ctx.organisations.find((item) => item.id === organisationId.data);
+  if (!project) fail("That event could not be found.");
+  const service = createServiceClient();
+  const {data: event} = await service
+    .from("events")
+    .select("id,source,metadata")
+    .eq("id", id.data)
+    .eq("organisation_id", project.id)
+    .maybeSingle();
+  if (!event || event.source !== "manual_calendar") fail("Only Metric Mage events can be deleted here.");
+  const metadata = event.metadata && typeof event.metadata === "object" && !Array.isArray(event.metadata)
+    ? event.metadata as Record<string, unknown>
+    : {};
+  const canManage = ["owner", "admin", "manager"].includes(project.role);
+  if (!canManage && metadata.createdBy !== ctx.user.id) fail("You can only delete events you created.");
+  const {error} = await service.from("events").delete().eq("id", id.data).eq("organisation_id", project.id);
+  if (error) fail("That event could not be deleted.");
+  revalidatePath("/app/calendar");
+  redirect("/app/calendar?success=Event%20deleted.");
 }

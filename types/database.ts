@@ -51,6 +51,9 @@ export type Database = {
           primary_color: string;
           secondary_color: string;
           accent_color: string;
+          neutral_color: string;
+          surface_color: string;
+          highlight_color: string;
           heading_font: string;
           body_font: string;
           notes: string;
@@ -66,6 +69,9 @@ export type Database = {
           primary_color?: string;
           secondary_color?: string;
           accent_color?: string;
+          neutral_color?: string;
+          surface_color?: string;
+          highlight_color?: string;
           heading_font?: string;
           body_font?: string;
           notes?: string;
@@ -80,6 +86,9 @@ export type Database = {
           primary_color?: string;
           secondary_color?: string;
           accent_color?: string;
+          neutral_color?: string;
+          surface_color?: string;
+          highlight_color?: string;
           heading_font?: string;
           body_font?: string;
           notes?: string;

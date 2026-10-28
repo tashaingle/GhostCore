@@ -30,8 +30,10 @@ export default async function AppLayout({children}: {children: React.ReactNode})
     email = ctx?.user.email ?? "";
 
   return (
-    <div className="min-h-screen bg-[#f4f5f9] md:grid md:grid-cols-[268px_1fr]">
-      <aside className="hidden flex-col bg-ink px-4 py-5 text-white md:sticky md:top-0 md:flex md:h-screen md:overflow-y-auto">
+    <div className="min-h-screen bg-[#f5f7fb] md:grid md:grid-cols-[252px_1fr]">
+      <aside className="relative hidden flex-col overflow-hidden bg-ink px-4 py-5 text-white md:sticky md:top-0 md:flex md:h-screen md:overflow-y-auto">
+        <div aria-hidden className="pointer-events-none absolute -left-24 -top-24 h-64 w-64 rounded-full bg-blue-500/20 blur-3xl" />
+        <div aria-hidden className="pointer-events-none absolute -bottom-20 -right-24 h-60 w-60 rounded-full bg-teal-400/10 blur-3xl" />
         <Link href="/app" className="flex items-center gap-2.5 px-2">
           <BrandMark />
           <span className="text-[15px] font-semibold tracking-tight">Metric Mage</span>
@@ -39,7 +41,7 @@ export default async function AppLayout({children}: {children: React.ReactNode})
 
         {ctx ? (
           <div className="mt-6 space-y-2">
-            <div className="flex items-center gap-2.5 rounded-2xl bg-white/[0.06] p-2.5 ring-1 ring-white/10">
+            <div className="flex items-center gap-2.5 rounded-2xl bg-white/[0.07] p-2.5 ring-1 ring-white/10 backdrop-blur">
               {ctx.organisation.logo_url ? (
                 <span
                   className="h-9 w-9 shrink-0 rounded-xl bg-white bg-cover bg-center"
@@ -77,12 +79,12 @@ export default async function AppLayout({children}: {children: React.ReactNode})
           <p className="mt-5 px-2 text-xs text-white/55">Create an organisation to continue.</p>
         )}
 
-        <div className="mt-6 flex-1">
+        <div className="relative mt-7 flex-1">
           <SidebarNav showAdvanced={["owner", "admin"].includes(ctx?.membership.role ?? "")} />
         </div>
 
         {ctx ? (
-          <div className="mt-6 hidden rounded-2xl bg-white/[0.06] p-3 ring-1 ring-white/10 md:block">
+          <div className="relative mt-6 hidden rounded-2xl bg-white/[0.07] p-3 ring-1 ring-white/10 backdrop-blur md:block">
             <div className="flex items-center gap-3">
               <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-gradient-to-br from-sky to-mage text-sm font-semibold">
                 {initials(fullName || email)}
@@ -115,13 +117,13 @@ export default async function AppLayout({children}: {children: React.ReactNode})
 
       <div className="min-w-0">
         {ctx ? (
-          <header className="relative z-40 flex items-center gap-2 border-b border-zinc-200/70 bg-white/95 px-4 py-3 shadow-sm backdrop-blur md:hidden">
+          <header className="sticky top-0 z-40 flex items-center gap-2 border-b border-zinc-200/70 bg-white/90 px-4 py-3 shadow-sm backdrop-blur-xl md:hidden">
             <details className="group">
               <summary className="grid h-10 w-10 cursor-pointer list-none place-items-center rounded-xl bg-ink text-white [&::-webkit-details-marker]:hidden">
                 <Menu aria-hidden className="h-5 w-5" />
                 <span className="sr-only">Open navigation</span>
               </summary>
-              <div className="absolute inset-x-0 top-full max-h-[calc(100vh-4rem)] overflow-y-auto bg-ink px-4 pb-5 pt-4 text-white shadow-2xl">
+              <div className="absolute inset-x-0 top-full max-h-[calc(100vh-4rem)] overflow-y-auto border-t border-white/10 bg-ink px-4 pb-6 pt-4 text-white shadow-2xl">
                 <div className="mb-4 flex items-center gap-3 rounded-2xl bg-white/[0.06] p-3 ring-1 ring-white/10">
                   {ctx.organisation.logo_url ? (
                     <span
@@ -179,7 +181,7 @@ export default async function AppLayout({children}: {children: React.ReactNode})
           </header>
         ) : null}
         {ctx ? (
-          <div className="hidden justify-end gap-2 px-10 pt-6 md:flex">
+          <div className="hidden justify-end gap-2 px-8 pt-5 xl:px-12 md:flex">
             <Link
               href="/app/settings"
               aria-label="Settings"
@@ -189,7 +191,7 @@ export default async function AppLayout({children}: {children: React.ReactNode})
             </Link>
           </div>
         ) : null}
-        <main className="min-w-0 px-4 pb-10 pt-2 md:px-10 md:pt-0">{children}</main>
+        <main className="mm-grid-bg min-h-[calc(100vh-68px)] min-w-0 px-4 pb-12 pt-3 md:px-8 md:pt-1 xl:px-12">{children}</main>
       </div>
     </div>
   );

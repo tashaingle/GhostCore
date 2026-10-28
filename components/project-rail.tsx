@@ -61,7 +61,7 @@ export function ProjectRail({
               ) : (
                 <form action={switchOrganisation}>
                   <input type="hidden" name="organisationId" value={project.id} />
-                  <input type="hidden" name="next" value={projectHref("one", period)} />
+                  <input type="hidden" name="next" value={projectHref("all", period)} />
                   <button className={row(false)}>{body}</button>
                 </form>
               )}

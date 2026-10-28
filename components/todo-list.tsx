@@ -39,18 +39,18 @@ export function TodoList({
   });
   return (
     <section
-      className={`overflow-hidden bg-white shadow-sm ring-1 ring-zinc-200/80 ${compact ? "rounded-2xl" : "rounded-lg"}`}
+      className={`mm-panel overflow-hidden ${compact ? "rounded-2xl" : "rounded-2xl"}`}
       aria-label="To do"
     >
       <div
-        className={`border-b border-zinc-100 ${compact ? "px-4 py-4" : "border-b-4 border-b-[#579bfc] px-4 py-3"}`}
+        className={`border-b border-zinc-100 ${compact ? "px-4 py-4" : "px-5 py-4"}`}
       >
         <div className="flex items-center justify-between gap-3">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-blue-600">
-              Focus
+            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-blue-600">
+              Shared list
             </p>
-            <h2 className="mt-0.5 text-sm font-semibold text-zinc-950">To do</h2>
+            <h2 className="mt-0.5 text-base font-semibold text-zinc-950">Tasks</h2>
           </div>
           {compact ? (
             <span className="rounded-full bg-blue-50 px-2 py-1 text-xs font-semibold text-blue-700">
@@ -69,11 +69,11 @@ export function TodoList({
             return (
               <li
                 key={task.id}
-                className={`flex flex-wrap items-center gap-3 border-t border-zinc-100 px-4 ${compact ? "py-3" : "py-2.5"}`}
+                className={`flex flex-wrap items-center gap-3 border-t border-zinc-100 px-5 transition-colors hover:bg-zinc-50/70 ${compact ? "py-3" : "py-3.5"}`}
               >
                 <div className="min-w-0 flex-1">
                   <p
-                    className={`text-sm text-zinc-900 ${current === "completed" ? "line-through decoration-zinc-300" : ""}`}
+                    className={`text-sm font-medium text-zinc-900 ${current === "completed" ? "line-through decoration-zinc-300 text-zinc-400" : ""}`}
                   >
                     {task.title}
                   </p>
@@ -126,7 +126,7 @@ export function TodoList({
                       name="status"
                       value={choice.value}
                       aria-current={choice.value === current ? "true" : undefined}
-                      className={`rounded px-2 py-1 text-xs font-semibold ${compact ? "flex-1" : ""}`}
+                      className={`rounded-lg px-2.5 py-1.5 text-[11px] font-semibold transition-transform active:scale-95 ${compact ? "flex-1" : ""}`}
                       style={
                         choice.value === current
                           ? {background: choice.colour, color: "#fff"}
@@ -144,7 +144,7 @@ export function TodoList({
       ) : (
         <p className="px-4 py-6 text-sm text-zinc-500">Nothing on the list yet.</p>
       )}
-      <form action={addTodo} className="flex flex-col gap-3 border-t border-zinc-100 px-4 py-3">
+      <form action={addTodo} className="flex flex-col gap-3 border-t border-zinc-100 bg-zinc-50/60 px-5 py-4">
         <input type="hidden" name="scope" value={scope} />
         <input type="hidden" name="period" value={period} />
         <div className="flex flex-col gap-2 sm:flex-row">

@@ -180,20 +180,26 @@ export async function AllHome({
   ];
 
   return (
-    <div className="mx-auto max-w-[1600px]">
-      <header className="mb-6 flex flex-wrap items-end justify-between gap-4">
+    <div className="mm-page mx-auto max-w-[1600px]">
+      <header className="relative mb-5 overflow-hidden rounded-[28px] bg-ink px-6 py-7 text-white shadow-xl shadow-slate-950/10 md:px-8">
+        <div aria-hidden className="absolute -right-16 -top-24 h-72 w-72 rounded-full bg-blue-500/30 blur-3xl" />
+        <div aria-hidden className="absolute bottom-0 right-1/3 h-24 w-56 rounded-full bg-teal-400/10 blur-2xl" />
+        <div className="relative flex flex-wrap items-end justify-between gap-5">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-blue-600">
-            Executive overview
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-sky-300">
+            Your workspace
           </p>
-          <h1 className="mt-1.5 text-3xl font-semibold tracking-tight text-zinc-950">
+          <h1 className="mt-2 text-3xl font-semibold tracking-tight text-white md:text-4xl">
             {`${greeting(ctx.organisation.timezone, now)}${firstName ? `, ${firstName}` : ""}`}
           </h1>
-          <p className="mt-1 text-sm text-zinc-500">
-            A clear view of performance, priorities and what needs your attention.
+          <p className="mt-2 max-w-xl text-sm text-white/60">
+            Here&apos;s the calm, clear version of what&apos;s happening across your projects.
           </p>
         </div>
-        <PeriodPills period={period} scope="all" list={list} />
+        <div className="rounded-2xl bg-white/10 p-1 ring-1 ring-white/10 backdrop-blur">
+          <PeriodPills period={period} scope="all" list={list} />
+        </div>
+        </div>
       </header>
       <Notice searchParams={searchParams} />
       <div className="mt-4">
@@ -202,17 +208,17 @@ export async function AllHome({
             {widgets.map((widget) => (
               <article
                 key={widget.label}
-                className="rounded-2xl bg-white p-4 shadow-sm shadow-zinc-950/[0.03] ring-1 ring-zinc-200/80"
+                className="mm-panel group rounded-2xl p-5 transition-transform duration-200 hover:-translate-y-0.5"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <p className="text-xs font-medium text-zinc-500">{widget.label}</p>
-                    <p className="mt-2 text-3xl font-semibold tabular-nums tracking-tight text-zinc-950">
+                    <p className="mt-2 text-[32px] font-semibold tabular-nums tracking-tight text-zinc-950">
                       {widget.value}
                     </p>
                   </div>
                   <span
-                    className={`grid h-10 w-10 place-items-center rounded-xl ${widget.iconClass}`}
+                    className={`grid h-11 w-11 place-items-center rounded-2xl transition-transform duration-200 group-hover:scale-105 ${widget.iconClass}`}
                   >
                     <widget.icon aria-hidden className="h-[18px] w-[18px]" strokeWidth={1.8} />
                   </span>
@@ -223,7 +229,7 @@ export async function AllHome({
           </div>
 
           {compared.length ? (
-            <section className="rounded-2xl bg-white p-5 shadow-sm shadow-zinc-950/[0.03] ring-1 ring-zinc-200/80">
+            <section className="mm-panel rounded-2xl p-6">
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <h2 className="text-base font-semibold text-zinc-950">Portfolio performance</h2>
@@ -259,7 +265,7 @@ export async function AllHome({
             </section>
           ) : null}
 
-          <section className="overflow-hidden rounded-2xl bg-white shadow-sm shadow-zinc-950/[0.03] ring-1 ring-zinc-200/80">
+          <section className="mm-panel overflow-hidden rounded-2xl">
             <div className="flex items-start justify-between gap-4 border-b border-zinc-100 px-5 py-4">
               <div>
                 <h2 className="text-base font-semibold text-zinc-950">Project health</h2>
@@ -291,7 +297,7 @@ export async function AllHome({
                       <td className="px-4 py-3.5">
                         <form action={switchOrganisation}>
                           <input type="hidden" name="organisationId" value={card.project.id} />
-                          <input type="hidden" name="next" value={projectHref("one", period)} />
+                          <input type="hidden" name="next" value={projectHref("all", period)} />
                           <button className="font-medium text-zinc-950 hover:underline">
                             {card.project.name}
                           </button>

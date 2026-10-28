@@ -29,7 +29,7 @@
 }
 
 :root {
-  --background: #f4f4f5;
+  --background: #f5f7fb;
   --foreground: #18181b;
   --card: #ffffff;
   --muted: #71717a;
@@ -50,6 +50,39 @@ body {
   font-feature-settings:
     "ss01" on,
     "cv11" on;
+}
+
+::selection {
+  background: #cce7fb;
+  color: #0b1830;
+}
+
+@keyframes mm-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.mm-page {
+  animation: mm-rise 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.mm-panel {
+  border: 1px solid rgba(226, 232, 240, 0.85);
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.055);
+}
+
+.mm-grid-bg {
+  background-image:
+    linear-gradient(rgba(29, 102, 184, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(29, 102, 184, 0.035) 1px, transparent 1px);
+  background-size: 26px 26px;
 }
 
 button,
@@ -344,6 +377,9 @@ html {
   .mm-twinkle,
   .mm-marquee-track,
   .mm-scroll-cue {
+    animation: none;
+  }
+  .mm-page {
     animation: none;
   }
 }

@@ -100,7 +100,9 @@ export default async function Home({
 }) {
   const params = await searchParams;
   const period = parsePeriod(params.period);
-  if (params.scope !== "one") {
+  // The workspace has one canonical Home. Keeping a second dashboard behind
+  // `?scope=one` made switching businesses feel like the UI had changed apps.
+  if (params.scope !== "__legacy") {
     return (
       <AllHome
         period={period}

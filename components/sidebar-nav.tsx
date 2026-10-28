@@ -20,12 +20,15 @@ import {
 
 type NavItem = {label: string; href: string; icon: LucideIcon; exact?: boolean};
 
-const main: NavItem[] = [
+const focus: NavItem[] = [
   {label: "Home", href: "/app", icon: House, exact: true},
   {label: "To do", href: "/app/todo", icon: ListChecks},
   {label: "Calendar", href: "/app/calendar", icon: CalendarDays},
   {label: "Email list", href: "/app/email-list", icon: Mail},
   {label: "Goals", href: "/app/goals", icon: Target},
+];
+
+const manage: NavItem[] = [
   {label: "Connections", href: "/app/integrations", icon: Plug},
   {label: "Automations", href: "/app/workflows", icon: Workflow},
   {label: "Team", href: "/app/team", icon: Users},
@@ -58,15 +61,15 @@ function NavLink({item, active}: {item: NavItem; active: boolean}) {
     <Link
       href={item.href}
       aria-current={active ? "page" : undefined}
-      className={`group relative flex shrink-0 items-center gap-3 rounded-xl px-3 py-2 text-sm transition-colors ${
+      className={`group relative flex shrink-0 items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-all ${
         active
-          ? "bg-white/[0.12] font-medium text-white"
+          ? "bg-white font-semibold text-ink shadow-lg shadow-slate-950/10"
           : "text-white/65 hover:bg-white/[0.06] hover:text-white"
       }`}
     >
       <Icon
         aria-hidden
-        className={`h-[18px] w-[18px] shrink-0 ${active ? "text-spark" : "text-white/45 group-hover:text-white/80"}`}
+        className={`h-[18px] w-[18px] shrink-0 ${active ? "text-mage" : "text-white/45 group-hover:text-white/80"}`}
         strokeWidth={1.75}
       />
       <span className="whitespace-nowrap">{item.label}</span>
@@ -83,19 +86,30 @@ export function SidebarNav({
 }) {
   const pathname = usePathname() ?? "";
   const moreActive = showAdvanced && advanced.some((item) => isActive(pathname, item));
+  const groups = [
+    {label: "Workspace", items: focus},
+    {label: "Manage", items: manage},
+  ];
   return (
-    <nav aria-label="Main" className="space-y-4">
-      <div
-        className={`-mx-1 flex gap-1 px-1 pb-1 ${
-          forceVertical
-            ? "flex-col overflow-visible"
-            : "overflow-x-auto md:flex-col md:overflow-visible md:pb-0"
-        }`}
-      >
-        {main.map((item) => (
-          <NavLink key={item.href} item={item} active={isActive(pathname, item)} />
-        ))}
-      </div>
+    <nav aria-label="Main" className="space-y-5">
+      {groups.map((group) => (
+        <div key={group.label}>
+          <p className="mb-1.5 px-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/35">
+            {group.label}
+          </p>
+          <div
+            className={`-mx-1 flex gap-1 px-1 pb-1 ${
+              forceVertical
+                ? "flex-col overflow-visible"
+                : "overflow-x-auto md:flex-col md:overflow-visible md:pb-0"
+            }`}
+          >
+            {group.items.map((item) => (
+              <NavLink key={item.href} item={item} active={isActive(pathname, item)} />
+            ))}
+          </div>
+        </div>
+      ))}
       {showAdvanced ? (
         <details className="group/more" open={moreActive || undefined}>
           <summary className="flex cursor-pointer list-none items-center justify-between rounded-lg px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-white/40 transition-colors hover:text-white/70 [&::-webkit-details-marker]:hidden">

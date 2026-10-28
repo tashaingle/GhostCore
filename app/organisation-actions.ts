@@ -159,8 +159,10 @@ export async function switchOrganisation(form: FormData) {
   await supabase.from("profiles").update({active_organisation_id: id.data}).eq("id", user.id);
   await setActive(id.data);
   revalidatePath("/app", "layout");
-  const next = safeNext(form.get("next"), "/app?scope=one");
-  redirect(next.startsWith("/app") ? next : "/app?scope=one");
+  // The global organisation switcher should always return to the same Home dashboard.
+  // Project-specific cards explicitly provide their own `next` destination when needed.
+  const next = safeNext(form.get("next"), "/app");
+  redirect(next.startsWith("/app") ? next : "/app");
 }
 export async function updateOrganisation(form: FormData) {
   const ctx = await getActiveOrganisation();

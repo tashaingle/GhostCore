@@ -15,30 +15,49 @@ export async function organisationPeople(
   organisationId: string,
   currentUserId?: string,
 ) {
+  const byOrganisation = await organisationsPeople(supabase, [organisationId], currentUserId);
+  return byOrganisation.get(organisationId) ?? peopleIndex([]);
+}
+
+/** Load people for several organisations in two database queries instead of repeating the same
+ * membership, profile and Auth requests for every project. */
+export async function organisationsPeople(
+  supabase: SupabaseClient<Database>,
+  organisationIds: string[],
+  currentUserId?: string,
+) {
+  if (!organisationIds.length) return new Map<string, ReturnType<typeof peopleIndex>>();
   const {data: members} = await supabase
     .from("organisation_members")
-    .select("user_id")
-    .eq("organisation_id", organisationId)
+    .select("organisation_id,user_id")
+    .in("organisation_id", organisationIds)
     .eq("status", "active");
-  const ids = (members ?? []).map((m) => m.user_id);
-  if (!ids.length) return peopleIndex([]);
+  const ids = [...new Set((members ?? []).map((member) => member.user_id))];
+  if (!ids.length) return new Map(organisationIds.map((id) => [id, peopleIndex([])] as const));
 
-  const [{data: profiles}, emails] = await Promise.all([
-    supabase.from("profiles").select("id,full_name").in("id", ids),
-    memberEmails(ids),
-  ]);
+  const {data: profiles} = await supabase.from("profiles").select("id,full_name").in("id", ids);
   const names = new Map((profiles ?? []).map((p) => [p.id, p.full_name?.trim() || ""]));
-  return peopleIndex(
-    ids.map((userId) => {
-      const email = emails.get(userId) ?? null,
-        name = names.get(userId) || email || "Team member";
-      return {
-        userId,
-        name,
-        email,
-        label: userId === currentUserId ? `${name} (you)` : name,
-      };
-    }),
+  const missingNames = ids.filter((id) => !names.get(id));
+  const emails = missingNames.length ? await memberEmails(missingNames) : new Map<string, string>();
+  const person = (userId: string) => {
+    const email = emails.get(userId) ?? null,
+      name = names.get(userId) || email || "Team member";
+    return {
+      userId,
+      name,
+      email,
+      label: userId === currentUserId ? `${name} (you)` : name,
+    };
+  };
+  return new Map(
+    organisationIds.map((organisationId) => [
+      organisationId,
+      peopleIndex(
+        (members ?? [])
+          .filter((member) => member.organisation_id === organisationId)
+          .map((member) => person(member.user_id)),
+      ),
+    ]),
   );
 }
 

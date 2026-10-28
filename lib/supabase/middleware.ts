@@ -16,13 +16,12 @@ export async function updateSession(request: NextRequest) {
       },
     },
   });
-  const {
-    data: {user},
-  } = await supabase.auth.getUser();
+  const {data} = await supabase.auth.getClaims();
+  const signedIn = Boolean(data?.claims.sub);
   const pathname = request.nextUrl.pathname;
-  if (!user && pathname.startsWith("/app"))
+  if (!signedIn && pathname.startsWith("/app"))
     return NextResponse.redirect(new URL("/login", request.url));
-  if (user && (pathname === "/login" || pathname === "/register"))
+  if (signedIn && (pathname === "/login" || pathname === "/register"))
     return NextResponse.redirect(new URL("/app", request.url));
   return response;
 }

@@ -93,3 +93,97 @@ export async function loadPerformance(
   });
   return {metrics, highlights, updates: updates ?? 0};
 }
+
+/** Portfolio dashboards need one summary per organisation. Loading them separately multiplies the
+ * same event and count queries by the number of projects, so this path fetches the bounded event
+ * window once and calculates every summary locally. */
+export async function loadPerformanceMany(
+  client: SupabaseClient<Database>,
+  organisationIds: string[],
+  period: Period,
+  now = new Date(),
+) {
+  if (!organisationIds.length)
+    return new Map<string, Awaited<ReturnType<typeof loadPerformance>>>();
+  const days = PERIOD_DAYS[period],
+    currentStart = new Date(now.getTime() - days * DAY_MS).toISOString(),
+    previousStart = new Date(now.getTime() - 2 * days * DAY_MS).toISOString(),
+    activityTypes = [
+      "gmail.message_received",
+      "outlook.message_received",
+      "google_calendar.event_created",
+      "workflow.success",
+      "release.published",
+      "workflow.failed",
+    ];
+  const {data: rows} = await client
+    .from("events")
+    .select("id,organisation_id,source,event_type,title,occurred_at,created_at,metadata")
+    .in("organisation_id", organisationIds)
+    .in("event_type", [
+      ...new Set([...PERFORMANCE_EVENT_TYPES, ...WHY_EVENT_TYPES, ...activityTypes]),
+    ])
+    .gte("occurred_at", previousStart)
+    .limit(20000);
+  const grouped = new Map<string, NonNullable<typeof rows>>();
+  for (const row of rows ?? []) {
+    const list = grouped.get(row.organisation_id) ?? [];
+    list.push(row);
+    grouped.set(row.organisation_id, list);
+  }
+  return new Map(
+    organisationIds.map((organisationId) => {
+      const source = grouped.get(organisationId) ?? [];
+      const events: IntelligenceEvent[] = source.map((event) => ({
+        id: event.id,
+        source: event.source,
+        eventType: event.event_type,
+        title: event.title,
+        description: null,
+        severity: "info",
+        occurredAt: event.occurred_at,
+        recordedAt: event.created_at,
+        metadata:
+          event.metadata && typeof event.metadata === "object" && !Array.isArray(event.metadata)
+            ? (event.metadata as Record<string, unknown>)
+            : {},
+      }));
+      const pair = (types: string[]) => ({
+        current: source.filter(
+          (event) => types.includes(event.event_type) && event.occurred_at >= currentStart,
+        ).length,
+        previous: source.filter(
+          (event) =>
+            types.includes(event.event_type) &&
+            event.occurred_at >= previousStart &&
+            event.occurred_at < currentStart,
+        ).length,
+      });
+      const metrics = performanceMetrics({
+        events,
+        counts: {
+          emails: pair(["gmail.message_received", "outlook.message_received"]),
+          meetings: pair(["google_calendar.event_created"]),
+          deployments: pair(["workflow.success", "release.published"]),
+          failedBuilds: pair(["workflow.failed"]),
+        },
+        period,
+        now,
+      });
+      return [
+        organisationId,
+        {
+          metrics,
+          highlights: explainHighlights({
+            highlights: buildHighlights(metrics, period),
+            metrics,
+            events,
+            period,
+            now,
+          }),
+          updates: 0,
+        },
+      ] as const;
+    }),
+  );
+}

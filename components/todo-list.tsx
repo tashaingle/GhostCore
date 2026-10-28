@@ -22,59 +22,100 @@ export function TodoList({
   period,
   teams,
   currentUserId,
+  compact = false,
 }: {
   items: TodoItem[];
   scope: "all" | "one";
   period: Period;
   teams: Team[];
   currentUserId: string;
+  compact?: boolean;
 }) {
   const sorted = [...items].sort((a, b) => {
     const rank = {in_progress: 0, open: 1, completed: 2};
-    return rank[todoChoice(a.status)] - rank[todoChoice(b.status)] || a.title.localeCompare(b.title);
+    return (
+      rank[todoChoice(a.status)] - rank[todoChoice(b.status)] || a.title.localeCompare(b.title)
+    );
   });
   return (
-    <section className="overflow-hidden rounded-lg bg-white shadow-sm ring-1 ring-zinc-200/80" aria-label="To do">
-      <div className="border-b-4 border-[#579bfc] px-4 py-3">
-        <h2 className="text-sm font-semibold text-zinc-950">To do</h2>
-        <p className="text-xs text-zinc-500">Everyone on the team can see this list.</p>
+    <section
+      className={`overflow-hidden bg-white shadow-sm ring-1 ring-zinc-200/80 ${compact ? "rounded-2xl" : "rounded-lg"}`}
+      aria-label="To do"
+    >
+      <div
+        className={`border-b border-zinc-100 ${compact ? "px-4 py-4" : "border-b-4 border-b-[#579bfc] px-4 py-3"}`}
+      >
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-blue-600">
+              Focus
+            </p>
+            <h2 className="mt-0.5 text-sm font-semibold text-zinc-950">To do</h2>
+          </div>
+          {compact ? (
+            <span className="rounded-full bg-blue-50 px-2 py-1 text-xs font-semibold text-blue-700">
+              {sorted.filter((task) => todoChoice(task.status) !== "completed").length}
+            </span>
+          ) : null}
+        </div>
+        {!compact ? (
+          <p className="text-xs text-zinc-500">Everyone on the team can see this list.</p>
+        ) : null}
       </div>
       {sorted.length ? (
         <ul>
-          {sorted.map((task) => {
+          {sorted.slice(0, compact ? 6 : undefined).map((task) => {
             const current = todoChoice(task.status);
             return (
-              <li key={task.id} className="flex flex-wrap items-center gap-3 border-t border-zinc-100 px-4 py-2.5">
+              <li
+                key={task.id}
+                className={`flex flex-wrap items-center gap-3 border-t border-zinc-100 px-4 ${compact ? "py-3" : "py-2.5"}`}
+              >
                 <div className="min-w-0 flex-1">
-                  <p className={`text-sm text-zinc-900 ${current === "completed" ? "line-through decoration-zinc-300" : ""}`}>
+                  <p
+                    className={`text-sm text-zinc-900 ${current === "completed" ? "line-through decoration-zinc-300" : ""}`}
+                  >
                     {task.title}
                   </p>
                   <p className="text-xs text-zinc-500">
                     {[task.assigneeLabel, task.organisationName].filter(Boolean).join(" · ")}
                   </p>
-                  <details className="mt-1">
-                    <summary className="cursor-pointer text-xs font-medium text-zinc-500">Who</summary>
-                    <form action={setTodoPeople} className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1">
+                  <details className={compact ? "hidden" : "mt-1"}>
+                    <summary className="cursor-pointer text-xs font-medium text-zinc-500">
+                      Who
+                    </summary>
+                    <form
+                      action={setTodoPeople}
+                      className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1"
+                    >
                       <input type="hidden" name="scope" value={scope} />
                       <input type="hidden" name="period" value={period} />
                       <input type="hidden" name="organisationId" value={task.organisationId} />
                       <input type="hidden" name="id" value={task.id} />
-                      {(teams.find((team) => team.id === task.organisationId)?.people ?? []).map((person) => (
-                        <label key={person.userId} className="inline-flex items-center gap-1.5 text-xs text-zinc-700">
-                          <input
-                            type="checkbox"
-                            name="assignee"
-                            value={person.userId}
-                            defaultChecked={task.assigneeIds.includes(person.userId)}
-                          />
-                          {person.label}
-                        </label>
-                      ))}
+                      {(teams.find((team) => team.id === task.organisationId)?.people ?? []).map(
+                        (person) => (
+                          <label
+                            key={person.userId}
+                            className="inline-flex items-center gap-1.5 text-xs text-zinc-700"
+                          >
+                            <input
+                              type="checkbox"
+                              name="assignee"
+                              value={person.userId}
+                              defaultChecked={task.assigneeIds.includes(person.userId)}
+                            />
+                            {person.label}
+                          </label>
+                        ),
+                      )}
                       <button className="button-ghost px-2 py-1 text-xs">Save</button>
                     </form>
                   </details>
                 </div>
-                <form action={setTodoStatus} className="flex flex-wrap gap-1">
+                <form
+                  action={setTodoStatus}
+                  className={`flex flex-wrap gap-1 ${compact ? "w-full" : ""}`}
+                >
                   <input type="hidden" name="scope" value={scope} />
                   <input type="hidden" name="period" value={period} />
                   <input type="hidden" name="organisationId" value={task.organisationId} />
@@ -85,7 +126,7 @@ export function TodoList({
                       name="status"
                       value={choice.value}
                       aria-current={choice.value === current ? "true" : undefined}
-                      className="rounded px-2 py-1 text-xs font-semibold"
+                      className={`rounded px-2 py-1 text-xs font-semibold ${compact ? "flex-1" : ""}`}
                       style={
                         choice.value === current
                           ? {background: choice.colour, color: "#fff"}
@@ -120,7 +161,12 @@ export function TodoList({
           />
           <button className="button shrink-0">Add</button>
         </div>
-        <TodoWho groups={teams} currentUserId={currentUserId} showProject={teams.length > 1} />
+        <TodoWho
+          groups={teams}
+          currentUserId={currentUserId}
+          showProject={teams.length > 1}
+          compact={compact}
+        />
       </form>
     </section>
   );

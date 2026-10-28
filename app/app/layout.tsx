@@ -1,5 +1,5 @@
 import Link from "next/link";
-import {Bell, CreditCard, LogOut, Plus, Settings} from "lucide-react";
+import {CreditCard, LogOut, Menu, Plus, Settings} from "lucide-react";
 import {getActiveOrganisation} from "@/lib/organisations/active";
 import {signOut} from "@/app/actions";
 import {OrganisationSwitcher} from "@/components/organisation-switcher";
@@ -26,28 +26,12 @@ export default async function AppLayout({children}: {children: React.ReactNode})
     });
     if (!allowed) redirect("/billing");
   }
-  // Things waiting for a person: open alerts plus approvals. Shown on the bell.
-  const [{count: alerts}, {count: approvals}] = ctx
-    ? await Promise.all([
-        ctx.supabase
-          .from("notifications")
-          .select("id", {count: "exact", head: true})
-          .eq("organisation_id", ctx.organisation.id)
-          .eq("status", "open"),
-        ctx.supabase
-          .from("workflow_approvals")
-          .select("id", {count: "exact", head: true})
-          .eq("organisation_id", ctx.organisation.id)
-          .eq("status", "pending"),
-      ])
-    : [{count: 0}, {count: 0}];
-  const waiting = (alerts ?? 0) + (approvals ?? 0),
-    fullName = (ctx?.user.user_metadata?.full_name as string | undefined)?.trim(),
+  const fullName = (ctx?.user.user_metadata?.full_name as string | undefined)?.trim(),
     email = ctx?.user.email ?? "";
 
   return (
     <div className="min-h-screen bg-[#f4f5f9] md:grid md:grid-cols-[268px_1fr]">
-      <aside className="flex flex-col bg-ink px-4 py-5 text-white md:sticky md:top-0 md:h-screen md:overflow-y-auto">
+      <aside className="hidden flex-col bg-ink px-4 py-5 text-white md:sticky md:top-0 md:flex md:h-screen md:overflow-y-auto">
         <Link href="/app" className="flex items-center gap-2.5 px-2">
           <BrandMark />
           <span className="text-[15px] font-semibold tracking-tight">Metric Mage</span>
@@ -131,28 +115,71 @@ export default async function AppLayout({children}: {children: React.ReactNode})
 
       <div className="min-w-0">
         {ctx ? (
-          <div className="flex justify-end gap-2 px-4 pt-4 md:px-10 md:pt-6">
-            {/* On phones the account card is hidden, so sign out lives up here. */}
-            <form action={signOut} className="md:hidden">
-              <button
-                aria-label="Sign out"
-                className="grid h-11 w-11 place-items-center rounded-2xl bg-white text-zinc-600 shadow-sm ring-1 ring-zinc-200/70"
-              >
-                <LogOut aria-hidden className="h-5 w-5" strokeWidth={1.75} />
-              </button>
-            </form>
-            <Link
-              href="/app/action-centre"
-              aria-label={waiting ? `Action Centre: ${waiting} waiting` : "Action Centre"}
-              className="relative grid h-11 w-11 place-items-center rounded-2xl bg-white text-zinc-600 shadow-sm ring-1 ring-zinc-200/70 transition-colors hover:text-zinc-950"
-            >
-              <Bell aria-hidden className="h-5 w-5" strokeWidth={1.75} />
-              {waiting ? (
-                <span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-mage px-1 text-[11px] font-semibold text-white ring-2 ring-[#f4f5f9]">
-                  {waiting > 99 ? "99+" : waiting}
-                </span>
-              ) : null}
+          <header className="relative z-40 flex items-center gap-2 border-b border-zinc-200/70 bg-white/95 px-4 py-3 shadow-sm backdrop-blur md:hidden">
+            <details className="group">
+              <summary className="grid h-10 w-10 cursor-pointer list-none place-items-center rounded-xl bg-ink text-white [&::-webkit-details-marker]:hidden">
+                <Menu aria-hidden className="h-5 w-5" />
+                <span className="sr-only">Open navigation</span>
+              </summary>
+              <div className="absolute inset-x-0 top-full max-h-[calc(100vh-4rem)] overflow-y-auto bg-ink px-4 pb-5 pt-4 text-white shadow-2xl">
+                <div className="mb-4 flex items-center gap-3 rounded-2xl bg-white/[0.06] p-3 ring-1 ring-white/10">
+                  {ctx.organisation.logo_url ? (
+                    <span
+                      className="h-9 w-9 shrink-0 rounded-xl bg-white bg-cover bg-center"
+                      role="img"
+                      aria-label={`${ctx.organisation.name} logo`}
+                      style={{
+                        backgroundImage: `url("${ctx.organisation.logo_url.replaceAll('"', "%22")}")`,
+                      }}
+                    />
+                  ) : (
+                    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-mage text-xs font-bold">
+                      {ctx.organisation.name.slice(0, 2).toUpperCase()}
+                    </span>
+                  )}
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold">{ctx.organisation.name}</p>
+                    <p className="text-xs text-white/55">{roleLabel(ctx.membership.role)}</p>
+                  </div>
+                </div>
+                <SidebarNav
+                  forceVertical
+                  showAdvanced={["owner", "admin"].includes(ctx.membership.role)}
+                />
+                <div className="mt-4 flex items-center gap-2 border-t border-white/10 pt-4">
+                  <Link
+                    href="/app/organisations/new"
+                    className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-white/[0.07] px-3 py-2.5 text-sm text-white/75"
+                  >
+                    <Plus aria-hidden className="h-4 w-4" />
+                    New project
+                  </Link>
+                  <form action={signOut}>
+                    <button
+                      aria-label="Sign out"
+                      className="grid h-10 w-10 place-items-center rounded-xl bg-white/[0.07] text-white/75"
+                    >
+                      <LogOut aria-hidden className="h-4 w-4" />
+                    </button>
+                  </form>
+                </div>
+              </div>
+            </details>
+            <Link href="/app" className="mr-auto flex items-center gap-2.5">
+              <BrandMark />
+              <span className="text-sm font-semibold tracking-tight text-ink">Metric Mage</span>
             </Link>
+            <Link
+              href="/app/settings"
+              aria-label="Settings"
+              className="grid h-10 w-10 place-items-center rounded-xl bg-zinc-50 text-zinc-600 ring-1 ring-zinc-200/70 transition-colors hover:text-zinc-950"
+            >
+              <Settings aria-hidden className="h-5 w-5" strokeWidth={1.75} />
+            </Link>
+          </header>
+        ) : null}
+        {ctx ? (
+          <div className="hidden justify-end gap-2 px-10 pt-6 md:flex">
             <Link
               href="/app/settings"
               aria-label="Settings"

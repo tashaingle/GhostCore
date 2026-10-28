@@ -1,15 +1,14 @@
 import {switchOrganisation} from "@/app/organisation-actions";
 import {Notice} from "@/components/notice";
-import {TodoList} from "@/components/todo-list";
 import {Sparkline} from "@/components/charts/sparkline";
 import {TrendChip} from "@/components/home-ui";
 import {PeriodPills, arrangeFigures} from "@/components/how-youre-doing";
-import {ProjectRail, type ProjectTone} from "@/components/project-rail";
+import type {ProjectTone} from "@/components/project-rail";
+import {BriefcaseBusiness, CircleCheckBig, ListChecks, TriangleAlert} from "lucide-react";
 import {getActiveOrganisation} from "@/lib/organisations/active";
-import {loadPerformance} from "@/lib/home/load-performance";
-import {organisationPeople} from "@/lib/organisations/people";
+import {loadPerformanceMany} from "@/lib/home/load-performance";
 import {projectHref, sortProjects} from "@/lib/home/projects";
-import {assigneeIds, todoChoice} from "@/lib/home/todo";
+import {todoChoice} from "@/lib/home/todo";
 import {PERIOD_LABEL, type Metric, type Period} from "@/lib/home/performance";
 
 const SHOWN = ["backlog", "open", "in_progress", "blocked", "waiting", "completed"] as const;
@@ -98,15 +97,7 @@ export async function AllHome({
           .in("organisation_id", ids)
           .neq("status", "disconnected")
       : emptyConnections,
-    Promise.all(
-      projects.map(async (project) => {
-        try {
-          return await loadPerformance(ctx.supabase, project.id, period, now);
-        } catch {
-          return {metrics: [] as Metric[], highlights: [], updates: 0};
-        }
-      }),
-    ),
+    loadPerformanceMany(ctx.supabase, ids, period, now),
     ids.length
       ? ctx.supabase
           .from("work_tasks")
@@ -119,9 +110,8 @@ export async function AllHome({
       : emptyTasks,
   ]);
   const connected = new Set((connections ?? []).map((row) => row.organisation_id));
-  const names = new Map(projects.map((project) => [project.id, project.name]));
   const cards = projects.map((project, index) => {
-    const performance = performances[index];
+    const performance = performances.get(project.id);
     const lead = leadOf(performance?.metrics ?? []);
     const line = performance?.highlights[0]?.text ?? null;
     const isConnected = connected.has(project.id);
@@ -148,20 +138,7 @@ export async function AllHome({
       : [],
   );
   const scale = Math.max(20, ...compared.map((row) => Math.abs(row.change)), 0);
-  const people = await Promise.all(
-    projects.map((project) => organisationPeople(ctx.supabase, project.id, ctx.user.id)),
-  );
-  const peopleByOrg = new Map(projects.map((project, index) => [project.id, people[index]]));
   const shared = tasks ?? [];
-  const taskIds = shared.map((task) => task.id);
-  const {data: assignments} = taskIds.length
-    ? await ctx.supabase
-        .from("work_assignments")
-        .select("task_id, assigned_user_id")
-        .in("organisation_id", ids)
-        .in("task_id", taskIds)
-        .is("unassigned_at", null)
-    : {data: []};
   const firstName =
     (ctx.user.user_metadata?.full_name as string | undefined)?.trim().split(/\s+/)[0] ?? null;
   const labels = PERIOD_LABEL[period];
@@ -172,55 +149,93 @@ export async function AllHome({
     todos: shared.filter((task) => todoChoice(task.status) !== "completed").length,
   };
   const widgets = [
-    {label: "Projects", value: counts.projects, note: "On this board"},
-    {label: "On track", value: counts.onTrack, note: labels.current},
-    {label: "Needs a look", value: counts.attention, note: labels.current},
-    {label: "Open to-dos", value: counts.todos, note: "Everyone"},
+    {
+      label: "Projects",
+      value: counts.projects,
+      note: "Active portfolio",
+      icon: BriefcaseBusiness,
+      iconClass: "bg-blue-50 text-blue-600",
+    },
+    {
+      label: "On track",
+      value: counts.onTrack,
+      note: labels.current,
+      icon: CircleCheckBig,
+      iconClass: "bg-emerald-50 text-emerald-600",
+    },
+    {
+      label: "Needs attention",
+      value: counts.attention,
+      note: labels.current,
+      icon: TriangleAlert,
+      iconClass: "bg-amber-50 text-amber-600",
+    },
+    {
+      label: "Open to-dos",
+      value: counts.todos,
+      note: "Across the team",
+      icon: ListChecks,
+      iconClass: "bg-violet-50 text-violet-600",
+    },
   ];
 
   return (
-    <div className="mx-auto max-w-[1400px]">
-      <header className="mb-5 flex flex-wrap items-end justify-between gap-3">
+    <div className="mx-auto max-w-[1600px]">
+      <header className="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-zinc-400">Dashboard</p>
-          <h1 className="mt-1 text-2xl font-semibold tracking-tight text-zinc-950">
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-blue-600">
+            Executive overview
+          </p>
+          <h1 className="mt-1.5 text-3xl font-semibold tracking-tight text-zinc-950">
             {`${greeting(ctx.organisation.timezone, now)}${firstName ? `, ${firstName}` : ""}`}
           </h1>
+          <p className="mt-1 text-sm text-zinc-500">
+            A clear view of performance, priorities and what needs your attention.
+          </p>
         </div>
         <PeriodPills period={period} scope="all" list={list} />
       </header>
       <Notice searchParams={searchParams} />
-      <div className="mt-4 grid items-start gap-4 lg:grid-cols-[220px_minmax(0,1fr)]">
-        <ProjectRail
-          projects={cards.map((card) => ({
-            id: card.project.id,
-            name: card.project.name,
-            tone: card.tone,
-          }))}
-          activeId={ctx.organisation.id}
-          scope="all"
-          period={period}
-        />
-        <div className="min-w-0 space-y-4">
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="mt-4">
+        <div className="min-w-0 space-y-5">
+          <div className="grid gap-3 sm:grid-cols-2 2xl:grid-cols-4">
             {widgets.map((widget) => (
               <article
                 key={widget.label}
-                className="rounded-lg bg-white px-4 py-3 shadow-sm ring-1 ring-zinc-200/80"
+                className="rounded-2xl bg-white p-4 shadow-sm shadow-zinc-950/[0.03] ring-1 ring-zinc-200/80"
               >
-                <p className="text-xs font-medium text-zinc-500">{widget.label}</p>
-                <p className="mt-1 text-3xl font-semibold tabular-nums tracking-tight text-zinc-950">
-                  {widget.value}
-                </p>
-                <p className="mt-1 text-xs capitalize text-zinc-400">{widget.note}</p>
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-medium text-zinc-500">{widget.label}</p>
+                    <p className="mt-2 text-3xl font-semibold tabular-nums tracking-tight text-zinc-950">
+                      {widget.value}
+                    </p>
+                  </div>
+                  <span
+                    className={`grid h-10 w-10 place-items-center rounded-xl ${widget.iconClass}`}
+                  >
+                    <widget.icon aria-hidden className="h-[18px] w-[18px]" strokeWidth={1.8} />
+                  </span>
+                </div>
+                <p className="mt-2 text-xs capitalize text-zinc-400">{widget.note}</p>
               </article>
             ))}
           </div>
 
           {compared.length ? (
-            <section className="rounded-lg bg-white p-4 shadow-sm ring-1 ring-zinc-200/80">
-              <h2 className="text-sm font-semibold text-zinc-950">Change since {labels.previous}</h2>
-              <ul className="mt-4 space-y-3">
+            <section className="rounded-2xl bg-white p-5 shadow-sm shadow-zinc-950/[0.03] ring-1 ring-zinc-200/80">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <h2 className="text-base font-semibold text-zinc-950">Portfolio performance</h2>
+                  <p className="mt-0.5 text-xs text-zinc-500">
+                    Movement across your projects compared with {labels.previous}.
+                  </p>
+                </div>
+                <span className="rounded-full bg-zinc-50 px-3 py-1.5 text-xs font-medium text-zinc-600 ring-1 ring-zinc-200">
+                  {labels.current}
+                </span>
+              </div>
+              <ul className="mt-6 grid gap-x-8 gap-y-5 md:grid-cols-2">
                 {compared.map((row) => (
                   <li key={row.id}>
                     <div className="flex items-baseline justify-between gap-3 text-sm">
@@ -229,7 +244,7 @@ export async function AllHome({
                         {row.label} {row.value}
                       </span>
                     </div>
-                    <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-zinc-100">
+                    <div className="mt-2 h-2.5 overflow-hidden rounded-full bg-zinc-100">
                       <div
                         className="h-full rounded-full"
                         style={{
@@ -244,16 +259,21 @@ export async function AllHome({
             </section>
           ) : null}
 
-          <section className="overflow-hidden rounded-lg bg-white shadow-sm ring-1 ring-zinc-200/80">
-            <div className="border-b border-zinc-100 px-4 py-3">
-              <h2 className="text-sm font-semibold text-zinc-950">Projects</h2>
-              <p className="text-xs text-zinc-500">
-                {`${labels.current[0].toUpperCase()}${labels.current.slice(1)} against ${labels.previous}. Open a project for the full report.`}
-              </p>
+          <section className="overflow-hidden rounded-2xl bg-white shadow-sm shadow-zinc-950/[0.03] ring-1 ring-zinc-200/80">
+            <div className="flex items-start justify-between gap-4 border-b border-zinc-100 px-5 py-4">
+              <div>
+                <h2 className="text-base font-semibold text-zinc-950">Project health</h2>
+                <p className="mt-0.5 text-xs text-zinc-500">
+                  {`${labels.current[0].toUpperCase()}${labels.current.slice(1)} against ${labels.previous}. Open a project for the full report.`}
+                </p>
+              </div>
+              <span className="rounded-full bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700">
+                {cards.length} total
+              </span>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full min-w-[640px] text-sm">
-                <thead className="bg-zinc-50 text-left text-[11px] font-semibold uppercase tracking-wide text-zinc-500">
+                <thead className="bg-zinc-50/80 text-left text-[11px] font-semibold uppercase tracking-[0.08em] text-zinc-500">
                   <tr>
                     <th className="px-4 py-2 font-semibold">Project</th>
                     <th className="px-3 py-2 font-semibold">Status</th>
@@ -264,8 +284,11 @@ export async function AllHome({
                 </thead>
                 <tbody>
                   {cards.map((card) => (
-                    <tr key={card.project.id} className="border-t border-zinc-100">
-                      <td className="px-4 py-3">
+                    <tr
+                      key={card.project.id}
+                      className="border-t border-zinc-100 transition-colors hover:bg-zinc-50/70"
+                    >
+                      <td className="px-4 py-3.5">
                         <form action={switchOrganisation}>
                           <input type="hidden" name="organisationId" value={card.project.id} />
                           <input type="hidden" name="next" value={projectHref("one", period)} />
@@ -274,7 +297,9 @@ export async function AllHome({
                           </button>
                         </form>
                         {card.line ? (
-                          <p className="mt-0.5 max-w-xs truncate text-xs text-zinc-500">{card.line}</p>
+                          <p className="mt-0.5 max-w-xs truncate text-xs text-zinc-500">
+                            {card.line}
+                          </p>
                         ) : null}
                       </td>
                       <td className="px-3 py-3">
@@ -292,7 +317,10 @@ export async function AllHome({
                       </td>
                       <td className="px-3 py-3">
                         {card.lead ? (
-                          <TrendChip change={card.lead.change} higherIsBetter={card.lead.higherIsBetter} />
+                          <TrendChip
+                            change={card.lead.change}
+                            higherIsBetter={card.lead.higherIsBetter}
+                          />
                         ) : (
                           <span className="text-zinc-400">—</span>
                         )}
@@ -312,33 +340,6 @@ export async function AllHome({
               </table>
             </div>
           </section>
-
-          <TodoList
-            scope="all"
-            period={period}
-            currentUserId={ctx.user.id}
-            teams={projects.map((project) => ({
-              id: project.id,
-              name: project.name,
-              people: (peopleByOrg.get(project.id)?.list ?? []).map((person) => ({
-                userId: person.userId,
-                label: person.label,
-              })),
-            }))}
-            items={shared.map((task) => {
-              const chosen = assigneeIds(task.id, task.assigned_user_id, assignments ?? []);
-              const lookup = peopleByOrg.get(task.organisation_id);
-              return {
-                id: task.id,
-                title: task.title,
-                status: task.status,
-                organisationId: task.organisation_id,
-                organisationName: names.get(task.organisation_id),
-                assigneeIds: chosen,
-                assigneeLabel: chosen.map((id) => lookup?.name(id) ?? "Team member").join(", ") || "No one yet",
-              };
-            })}
-          />
         </div>
       </div>
     </div>

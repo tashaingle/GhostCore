@@ -2,19 +2,16 @@
 import Link from "next/link";
 import {usePathname} from "next/navigation";
 import {
-  Activity,
+  CalendarDays,
   ChevronDown,
   Code,
   Cpu,
-  GitBranch,
   House,
-  Inbox,
   LayoutGrid,
+  ListChecks,
+  Mail,
   Plug,
   Settings,
-  Sparkles,
-  SquareCheckBig,
-  Stamp,
   Target,
   Users,
   Workflow,
@@ -25,20 +22,14 @@ type NavItem = {label: string; href: string; icon: LucideIcon; exact?: boolean};
 
 const main: NavItem[] = [
   {label: "Home", href: "/app", icon: House, exact: true},
-  {label: "Action Centre", href: "/app/action-centre", icon: Inbox},
-  {label: "Insights", href: "/app/insights", icon: Sparkles},
+  {label: "To do", href: "/app/todo", icon: ListChecks},
+  {label: "Calendar", href: "/app/calendar", icon: CalendarDays},
+  {label: "Email list", href: "/app/email-list", icon: Mail},
   {label: "Goals", href: "/app/goals", icon: Target},
   {label: "Connections", href: "/app/integrations", icon: Plug},
-  {label: "Work", href: "/app/work", icon: SquareCheckBig},
   {label: "Automations", href: "/app/workflows", icon: Workflow},
   {label: "Team", href: "/app/team", icon: Users},
   {label: "Settings", href: "/app/settings", icon: Settings},
-];
-
-const more: NavItem[] = [
-  {label: "Timeline", href: "/app/timeline", icon: Activity},
-  {label: "Approvals", href: "/app/approvals", icon: Stamp},
-  {label: "Linked events", href: "/app/correlations", icon: GitBranch},
 ];
 
 /** Technical pages, for owners and admins only. */
@@ -83,40 +74,45 @@ function NavLink({item, active}: {item: NavItem; active: boolean}) {
   );
 }
 
-export function SidebarNav({showAdvanced = false}: {showAdvanced?: boolean}) {
+export function SidebarNav({
+  showAdvanced = false,
+  forceVertical = false,
+}: {
+  showAdvanced?: boolean;
+  forceVertical?: boolean;
+}) {
   const pathname = usePathname() ?? "";
-  const moreActive = [...more, ...(showAdvanced ? advanced : [])].some((item) =>
-    isActive(pathname, item),
-  );
+  const moreActive = showAdvanced && advanced.some((item) => isActive(pathname, item));
   return (
     <nav aria-label="Main" className="space-y-4">
-      <div className="-mx-1 flex gap-1 overflow-x-auto px-1 pb-1 md:flex-col md:overflow-visible md:pb-0">
+      <div
+        className={`-mx-1 flex gap-1 px-1 pb-1 ${
+          forceVertical
+            ? "flex-col overflow-visible"
+            : "overflow-x-auto md:flex-col md:overflow-visible md:pb-0"
+        }`}
+      >
         {main.map((item) => (
           <NavLink key={item.href} item={item} active={isActive(pathname, item)} />
         ))}
       </div>
-      <details className="group/more" open={moreActive || undefined}>
-        <summary className="flex cursor-pointer list-none items-center justify-between rounded-lg px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-white/40 transition-colors hover:text-white/70 [&::-webkit-details-marker]:hidden">
-          More
-          <ChevronDown
-            aria-hidden
-            className="h-3.5 w-3.5 transition-transform group-open/more:rotate-180"
-          />
-        </summary>
-        <div className="mt-1 flex flex-col gap-0.5">
-          {more.map((item) => (
-            <NavLink key={item.href} item={item} active={isActive(pathname, item)} />
-          ))}
-          {showAdvanced ? (
-            <>
-              <p className="mt-3 px-3 pb-1 text-[11px] text-white/35">For admins</p>
-              {advanced.map((item) => (
-                <NavLink key={item.href} item={item} active={isActive(pathname, item)} />
-              ))}
-            </>
-          ) : null}
-        </div>
-      </details>
+      {showAdvanced ? (
+        <details className="group/more" open={moreActive || undefined}>
+          <summary className="flex cursor-pointer list-none items-center justify-between rounded-lg px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-white/40 transition-colors hover:text-white/70 [&::-webkit-details-marker]:hidden">
+            More
+            <ChevronDown
+              aria-hidden
+              className="h-3.5 w-3.5 transition-transform group-open/more:rotate-180"
+            />
+          </summary>
+          <div className="mt-1 flex flex-col gap-0.5">
+            <p className="px-3 pb-1 text-[11px] text-white/35">For admins</p>
+            {advanced.map((item) => (
+              <NavLink key={item.href} item={item} active={isActive(pathname, item)} />
+            ))}
+          </div>
+        </details>
+      ) : null}
     </nav>
   );
 }

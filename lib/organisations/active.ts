@@ -1,4 +1,5 @@
 import "server-only";
+import {cache} from "react";
 import {cookies} from "next/headers";
 import {redirect} from "next/navigation";
 import {requireUser} from "@/lib/auth/user";
@@ -12,8 +13,10 @@ export function getActiveOrganisation(
   optional: true,
 ): Promise<Awaited<ReturnType<typeof loadActiveOrganisation>>>;
 export async function getActiveOrganisation(optional = false) {
-  return loadActiveOrganisation(optional);
+  return optional ? loadOptionalActiveOrganisation() : loadRequiredActiveOrganisation();
 }
+const loadRequiredActiveOrganisation = cache(() => loadActiveOrganisation(false));
+const loadOptionalActiveOrganisation = cache(() => loadActiveOrganisation(true));
 async function loadActiveOrganisation(optional = false) {
   const {supabase, user} = await requireUser();
   const {data: memberships, error} = await supabase

@@ -193,6 +193,11 @@ describe("Google Play connection", () => {
       const body = JSON.parse(String(init?.body));
       expect(body.userCohort).toBe("OS_PUBLIC");
       expect(body.metrics).toEqual(["crashRate", "distinctUsers"]);
+      expect(body.timelineSpec).toMatchObject({
+        aggregationPeriod: "DAILY",
+        startTime: {timeZone: {id: "America/Los_Angeles"}},
+        endTime: {timeZone: {id: "America/Los_Angeles"}},
+      });
       return new Response(
         JSON.stringify({
           rows: [

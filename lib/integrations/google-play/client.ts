@@ -224,7 +224,8 @@ export class GooglePlayClient {
       year: date.getUTCFullYear(),
       month: date.getUTCMonth() + 1,
       day: date.getUTCDate(),
-      timeZone: {id: "UTC"},
+      // Daily crash rates only accept America/Los_Angeles, as a TimeZone object.
+      timeZone: {id: "America/Los_Angeles"},
     });
     const body = await this.call<{
       rows?: {

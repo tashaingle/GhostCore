@@ -219,7 +219,38 @@ export class GooglePlayClient {
       nextPageToken: body.tokenPagination?.nextPageToken,
     };
   }
+  /** Exclusive end of the daily crash data Google has published for this app. */
+  private async dailyCrashFreshness(packageName: string) {
+    const body = await this.call<{
+      freshnessInfo?: {
+        freshnesses?: {
+          aggregationPeriod?: string;
+          latestEndTime?: {year?: number; month?: number; day?: number};
+        }[];
+      };
+    }>(
+      `https://playdeveloperreporting.googleapis.com/v1beta1/apps/${encodeURIComponent(playPackage(packageName))}/crashRateMetricSet`,
+    );
+    const end = body.freshnessInfo?.freshnesses?.find(
+      (item) => item.aggregationPeriod === "DAILY",
+    )?.latestEndTime;
+    if (!end?.year || !end.month || !end.day) return null;
+    return new Date(Date.UTC(end.year, end.month - 1, end.day));
+  }
   async crashRates(packageName: string, start: Date, end: Date): Promise<CrashDay[]> {
+    // latestEndTime is the last exclusive end Google will accept. A window that
+    // starts after it is rejected, even when the app simply has no newer rows.
+    const fresh = await this.dailyCrashFreshness(packageName);
+    let windowEnd = end;
+    let windowStart = start;
+    if (fresh) {
+      if (windowEnd.getTime() > fresh.getTime()) windowEnd = fresh;
+      if (windowStart.getTime() >= windowEnd.getTime()) {
+        windowStart = new Date(windowEnd);
+        windowStart.setUTCDate(windowStart.getUTCDate() - PLAY_LIMITS.crashDays);
+      }
+    }
+    if (windowStart.getTime() >= windowEnd.getTime()) return [];
     const stamp = (date: Date) => ({
       year: date.getUTCFullYear(),
       month: date.getUTCMonth() + 1,
@@ -238,7 +269,11 @@ export class GooglePlayClient {
         method: "POST",
         headers: {"content-type": "application/json"},
         body: JSON.stringify({
-          timelineSpec: {aggregationPeriod: "DAILY", startTime: stamp(start), endTime: stamp(end)},
+          timelineSpec: {
+            aggregationPeriod: "DAILY",
+            startTime: stamp(windowStart),
+            endTime: stamp(windowEnd),
+          },
           metrics: ["crashRate", "distinctUsers"],
           userCohort: "OS_PUBLIC",
           pageSize: 20,

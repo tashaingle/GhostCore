@@ -188,6 +188,22 @@ describe("Google Play connection", () => {
           {status: 200},
         );
       }
+      if (href.includes("crashRateMetricSet") && !href.includes(":query")) {
+        expect((init?.method ?? "GET").toUpperCase()).toBe("GET");
+        return new Response(
+          JSON.stringify({
+            freshnessInfo: {
+              freshnesses: [
+                {
+                  aggregationPeriod: "DAILY",
+                  latestEndTime: {year: 2026, month: 10, day: 4},
+                },
+              ],
+            },
+          }),
+          {status: 200},
+        );
+      }
       expect(init?.method).toBe("POST");
       expect(href).toContain("/apps/com.example.app/crashRateMetricSet:query");
       const body = JSON.parse(String(init?.body));
@@ -236,6 +252,45 @@ describe("Google Play connection", () => {
     expect(result.events[1]?.severity).toBe("warning");
     expect(result.settings?.lastReviewSeconds).toEqual({"com.example.app": now - 3600});
     expect(crashPercent(0)).toBe("0%");
+  });
+
+  it("asks for crash days that end at Google's latest published day", async () => {
+    const request = vi.fn(async (url: RequestInfo | URL, init?: RequestInit) => {
+      const href = String(url);
+      if (!href.includes(":query")) {
+        expect((init?.method ?? "GET").toUpperCase()).toBe("GET");
+        expect(href).toContain("/apps/com.example.app/crashRateMetricSet");
+        return new Response(
+          JSON.stringify({
+            freshnessInfo: {
+              freshnesses: [
+                {
+                  aggregationPeriod: "DAILY",
+                  latestEndTime: {year: 2026, month: 10, day: 19},
+                },
+              ],
+            },
+          }),
+          {status: 200},
+        );
+      }
+      const body = JSON.parse(String(init?.body));
+      expect(body.timelineSpec).toMatchObject({
+        aggregationPeriod: "DAILY",
+        startTime: {year: 2026, month: 10, day: 12, timeZone: {id: "America/Los_Angeles"}},
+        endTime: {year: 2026, month: 10, day: 19, timeZone: {id: "America/Los_Angeles"}},
+      });
+      return new Response(JSON.stringify({rows: []}), {status: 200});
+    });
+    const days = await new GooglePlayClient(
+      {accessToken: "act.secret"},
+      request as typeof fetch,
+    ).crashRates(
+      "com.example.app",
+      new Date(Date.UTC(2026, 9, 21)),
+      new Date(Date.UTC(2026, 9, 28)),
+    );
+    expect(days).toEqual([]);
   });
 
   it("requires a chosen app and surfaces a missing Play permission", async () => {

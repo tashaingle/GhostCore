@@ -827,6 +827,9 @@ export type Database = {
           name: string;
           source: string;
           platform: "ios" | "android" | "other" | "unknown";
+          testing_status: "testing" | "invited" | "paused" | "completed" | "not_testing";
+          review_rating: number | null;
+          testing_review: string | null;
           created_by: string | null;
           created_at: string;
           updated_at: string;
@@ -838,6 +841,9 @@ export type Database = {
           name: string;
           source: string;
           platform?: "ios" | "android" | "other" | "unknown";
+          testing_status?: "testing" | "invited" | "paused" | "completed" | "not_testing";
+          review_rating?: number | null;
+          testing_review?: string | null;
           created_by?: string | null;
           created_at?: string;
           updated_at?: string;
@@ -847,6 +853,9 @@ export type Database = {
           name?: string;
           source?: string;
           platform?: "ios" | "android" | "other" | "unknown";
+          testing_status?: "testing" | "invited" | "paused" | "completed" | "not_testing";
+          review_rating?: number | null;
+          testing_review?: string | null;
           updated_at?: string;
         };
         Relationships: EmptyRelationships;

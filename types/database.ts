@@ -42,6 +42,52 @@ export type Database = {
         };
         Relationships: EmptyRelationships;
       };
+      organisation_branding: {
+        Row: {
+          organisation_id: string;
+          primary_logo_url: string | null;
+          secondary_logo_url: string | null;
+          icon_url: string | null;
+          primary_color: string;
+          secondary_color: string;
+          accent_color: string;
+          heading_font: string;
+          body_font: string;
+          notes: string;
+          updated_by: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          organisation_id: string;
+          primary_logo_url?: string | null;
+          secondary_logo_url?: string | null;
+          icon_url?: string | null;
+          primary_color?: string;
+          secondary_color?: string;
+          accent_color?: string;
+          heading_font?: string;
+          body_font?: string;
+          notes?: string;
+          updated_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          primary_logo_url?: string | null;
+          secondary_logo_url?: string | null;
+          icon_url?: string | null;
+          primary_color?: string;
+          secondary_color?: string;
+          accent_color?: string;
+          heading_font?: string;
+          body_font?: string;
+          notes?: string;
+          updated_by?: string | null;
+          updated_at?: string;
+        };
+        Relationships: EmptyRelationships;
+      };
       profiles: {
         Row: {
           id: string;

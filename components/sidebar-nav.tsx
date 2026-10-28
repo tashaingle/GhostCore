@@ -10,6 +10,7 @@ import {
   LayoutGrid,
   ListChecks,
   Mail,
+  Palette,
   Plug,
   Settings,
   Target,
@@ -26,6 +27,7 @@ const focus: NavItem[] = [
   {label: "Calendar", href: "/app/calendar", icon: CalendarDays},
   {label: "Testers", href: "/app/email-list", icon: Mail},
   {label: "Improvements", href: "/app/improvements", icon: Wrench},
+  {label: "Branding", href: "/app/branding", icon: Palette},
   {label: "Goals", href: "/app/goals", icon: Target},
 ];
 

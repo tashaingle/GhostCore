@@ -14,7 +14,6 @@ import {
   Settings,
   Target,
   Users,
-  Workflow,
   type LucideIcon,
 } from "lucide-react";
 
@@ -30,7 +29,6 @@ const focus: NavItem[] = [
 
 const manage: NavItem[] = [
   {label: "Connections", href: "/app/integrations", icon: Plug},
-  {label: "Automations", href: "/app/workflows", icon: Workflow},
   {label: "Team", href: "/app/team", icon: Users},
   {label: "Settings", href: "/app/settings", icon: Settings},
 ];
@@ -46,7 +44,6 @@ const advanced: NavItem[] = [
 const aliases: Record<string, string> = {
   "/app/tasks": "/app/work",
   "/app/cases": "/app/work",
-  "/app/workflow-runs": "/app/workflows",
 };
 
 function isActive(pathname: string, item: NavItem) {

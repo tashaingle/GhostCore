@@ -1,24 +1,31 @@
 import Link from "next/link";
-import {CalendarDays, ChevronRight, Clock3, MapPin} from "lucide-react";
+import {CalendarDays, ChevronRight, Clock3, MapPin, Video} from "lucide-react";
 import {getActiveOrganisation} from "@/lib/organisations/active";
+import {organisationsPeople} from "@/lib/organisations/people";
 import {sortProjects} from "@/lib/home/projects";
+import {CalendarEventForm} from "@/components/calendar-event-form";
+import {Notice} from "@/components/notice";
 
 export const metadata = {title: "Calendar"};
 
 const dayKey = (date: Date) => date.toLocaleDateString("en-CA");
 
-export default async function CalendarPage() {
+export default async function CalendarPage({searchParams}: {searchParams: Promise<Record<string, string | string[] | undefined>>}) {
   const ctx = await getActiveOrganisation();
+  const params = await searchParams;
   const projects = sortProjects(ctx.organisations);
   const ids = projects.map((project) => project.id);
   const names = new Map(projects.map((project) => [project.id, project.name]));
+  const peopleByOrg = await organisationsPeople(ctx.supabase, ids, ctx.user.id);
+  const peopleNames = new Map<string, string>();
+  for (const lookup of peopleByOrg.values()) for (const person of lookup.list) peopleNames.set(person.userId, person.label);
   const now = new Date();
   const {data: events} = ids.length
     ? await ctx.supabase
         .from("events")
         .select("id,title,occurred_at,organisation_id,metadata")
         .in("organisation_id", ids)
-        .eq("source", "google_calendar")
+        .in("source", ["google_calendar", "manual_calendar"])
         .neq("event_type", "google_calendar.event_cancelled")
         .gte("occurred_at", now.toISOString())
         .lte("occurred_at", new Date(now.getTime() + 30 * 86_400_000).toISOString())
@@ -37,6 +44,10 @@ export default async function CalendarPage() {
       organisationName: names.get(event.organisation_id),
       location: typeof metadata.location === "string" ? metadata.location : null,
       allDay: metadata.allDay === true,
+      teamsUrl: typeof metadata.teamsUrl === "string" ? metadata.teamsUrl : null,
+      attendeeNames: Array.isArray(metadata.attendeeIds)
+        ? metadata.attendeeIds.filter((id): id is string => typeof id === "string").map((id) => peopleNames.get(id) ?? "Team member")
+        : [],
     };
   });
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -72,6 +83,15 @@ export default async function CalendarPage() {
           Calendar settings
         </Link>
       </header>
+      <Notice searchParams={params} />
+      <CalendarEventForm
+        activeId={ctx.organisation.id}
+        projects={projects.map((project) => ({
+          id: project.id,
+          name: project.name,
+          people: (peopleByOrg.get(project.id)?.list ?? []).map((person) => ({userId: person.userId, label: person.label})),
+        }))}
+      />
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_340px]">
         <section className="mm-panel hidden overflow-hidden rounded-2xl md:block">
           <div className="flex items-center justify-between border-b border-zinc-100 px-5 py-4">
@@ -111,7 +131,7 @@ export default async function CalendarPage() {
                 <li key={event.id} className="group px-5 py-4 transition-colors hover:bg-zinc-50/70">
                   <div className="flex items-start gap-3">
                     <div className="w-11 shrink-0 rounded-xl bg-blue-50 py-2 text-center"><p className="text-[10px] font-semibold uppercase text-blue-500">{new Date(event.startsAt).toLocaleDateString("en-GB", {month:"short"})}</p><p className="text-lg font-semibold leading-none text-blue-800">{new Date(event.startsAt).getDate()}</p></div>
-                    <div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold text-zinc-900">{event.title}</p><p className="mt-1 flex items-center gap-1 text-xs text-zinc-500"><Clock3 aria-hidden className="h-3 w-3" />{event.allDay ? "All day" : new Date(event.startsAt).toLocaleTimeString("en-GB", {hour:"2-digit",minute:"2-digit"})}</p>{event.location ? <p className="mt-1 flex items-center gap-1 truncate text-xs text-zinc-400"><MapPin aria-hidden className="h-3 w-3" />{event.location}</p> : null}</div>
+                    <div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold text-zinc-900">{event.title}</p><p className="mt-1 flex items-center gap-1 text-xs text-zinc-500"><Clock3 aria-hidden className="h-3 w-3" />{event.allDay ? "All day" : new Date(event.startsAt).toLocaleTimeString("en-GB", {hour:"2-digit",minute:"2-digit"})}</p>{event.location ? <p className="mt-1 flex items-center gap-1 truncate text-xs text-zinc-400"><MapPin aria-hidden className="h-3 w-3" />{event.location}</p> : null}{event.attendeeNames.length ? <p className="mt-1 truncate text-xs text-zinc-400">{event.attendeeNames.join(", ")}</p> : null}{event.teamsUrl ? <a href={event.teamsUrl} target="_blank" rel="noreferrer" className="mt-2 inline-flex items-center gap-1 rounded-lg bg-blue-50 px-2 py-1 text-xs font-semibold text-blue-700"><Video aria-hidden className="h-3 w-3" />Join Teams</a> : null}</div>
                     <ChevronRight aria-hidden className="mt-2 h-4 w-4 text-zinc-300 transition-transform group-hover:translate-x-0.5" />
                   </div>
                 </li>

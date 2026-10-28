@@ -97,6 +97,39 @@ export type Database = {
         };
         Relationships: EmptyRelationships;
       };
+      organisation_documents: {
+        Row: {
+          id: string;
+          organisation_id: string;
+          title: string;
+          file_name: string;
+          storage_path: string;
+          content_type: string;
+          size_bytes: number;
+          uploaded_by: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          organisation_id: string;
+          title: string;
+          file_name: string;
+          storage_path: string;
+          content_type: string;
+          size_bytes: number;
+          uploaded_by?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          title?: string;
+          file_name?: string;
+          storage_path?: string;
+          content_type?: string;
+          size_bytes?: number;
+          uploaded_by?: string | null;
+        };
+        Relationships: EmptyRelationships;
+      };
       profiles: {
         Row: {
           id: string;

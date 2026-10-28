@@ -6,6 +6,7 @@ import {
   ChevronDown,
   Code,
   Cpu,
+  Files,
   House,
   LayoutGrid,
   ListChecks,
@@ -28,6 +29,7 @@ const focus: NavItem[] = [
   {label: "Testers", href: "/app/email-list", icon: Mail},
   {label: "Improvements", href: "/app/improvements", icon: Wrench},
   {label: "Branding", href: "/app/branding", icon: Palette},
+  {label: "Documents", href: "/app/documents", icon: Files},
   {label: "Goals", href: "/app/goals", icon: Target},
 ];
 

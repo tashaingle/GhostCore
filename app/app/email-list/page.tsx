@@ -13,6 +13,7 @@ const TESTING_STATUS = {
   paused: "Paused",
   completed: "Completed",
   not_testing: "Not testing",
+  not_confirmed: "Not confirmed",
 } as const;
 
 export default async function EmailListPage({
@@ -117,7 +118,8 @@ export default async function EmailListPage({
           </label>
           <label className="label">
             Testing status
-            <select className="field" name="testing_status" defaultValue="testing">
+            <select className="field" name="testing_status" defaultValue="not_confirmed">
+              <option value="not_confirmed">Not confirmed</option>
               <option value="testing">Currently testing</option>
               <option value="invited">Invited</option>
               <option value="paused">Paused</option>

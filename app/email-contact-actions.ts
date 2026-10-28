@@ -10,14 +10,14 @@ const contact = z.object({
   email: z.string().trim().email().max(320),
   source: z.string().trim().min(1).max(160),
   platform: z.enum(["ios", "android", "other", "unknown"]),
-  testing_status: z.enum(["testing", "invited", "paused", "completed", "not_testing"]),
+  testing_status: z.enum(["testing", "invited", "paused", "completed", "not_testing", "not_confirmed"]),
   review_rating: z.coerce.number().int().min(1).max(5).optional().or(z.literal("")),
   testing_review: z.string().trim().max(2000).optional(),
 });
 
 const feedback = z.object({
   id: z.string().uuid(),
-  testing_status: z.enum(["testing", "invited", "paused", "completed", "not_testing"]),
+  testing_status: z.enum(["testing", "invited", "paused", "completed", "not_testing", "not_confirmed"]),
   review_rating: z.coerce.number().int().min(1).max(5).optional().or(z.literal("")),
   testing_review: z.string().trim().max(2000).optional(),
 });

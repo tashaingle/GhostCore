@@ -827,7 +827,7 @@ export type Database = {
           name: string;
           source: string;
           platform: "ios" | "android" | "other" | "unknown";
-          testing_status: "testing" | "invited" | "paused" | "completed" | "not_testing";
+          testing_status: "testing" | "invited" | "paused" | "completed" | "not_testing" | "not_confirmed";
           review_rating: number | null;
           testing_review: string | null;
           created_by: string | null;
@@ -841,7 +841,7 @@ export type Database = {
           name: string;
           source: string;
           platform?: "ios" | "android" | "other" | "unknown";
-          testing_status?: "testing" | "invited" | "paused" | "completed" | "not_testing";
+          testing_status?: "testing" | "invited" | "paused" | "completed" | "not_testing" | "not_confirmed";
           review_rating?: number | null;
           testing_review?: string | null;
           created_by?: string | null;
@@ -853,7 +853,7 @@ export type Database = {
           name?: string;
           source?: string;
           platform?: "ios" | "android" | "other" | "unknown";
-          testing_status?: "testing" | "invited" | "paused" | "completed" | "not_testing";
+          testing_status?: "testing" | "invited" | "paused" | "completed" | "not_testing" | "not_confirmed";
           review_rating?: number | null;
           testing_review?: string | null;
           updated_at?: string;

@@ -14,6 +14,7 @@ import {
   Settings,
   Target,
   Users,
+  Wrench,
   type LucideIcon,
 } from "lucide-react";
 
@@ -24,6 +25,7 @@ const focus: NavItem[] = [
   {label: "To do", href: "/app/todo", icon: ListChecks},
   {label: "Calendar", href: "/app/calendar", icon: CalendarDays},
   {label: "Testers", href: "/app/email-list", icon: Mail},
+  {label: "Improvements", href: "/app/improvements", icon: Wrench},
   {label: "Goals", href: "/app/goals", icon: Target},
 ];
 

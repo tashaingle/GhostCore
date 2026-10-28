@@ -21,6 +21,7 @@ export const workPriorities = ["low", "normal", "high", "critical"] as const;
 export type WorkPriority = (typeof workPriorities)[number];
 export const workSourceTypes = [
   "manual",
+  "improvement",
   "notification",
   "workflow",
   "approval",

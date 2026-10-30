@@ -1,3 +1,5 @@
+import {BusinessPicker} from "@/components/business-picker";
+import {Notice} from "@/components/notice";
 import {TodoList} from "@/components/todo-list";
 import {getActiveOrganisation} from "@/lib/organisations/active";
 import {organisationsPeople} from "@/lib/organisations/people";
@@ -9,9 +11,18 @@ export const metadata = {title: "To do"};
 
 const SHOWN = ["backlog", "open", "in_progress", "blocked", "waiting", "completed"] as const;
 
-export default async function TodoPage() {
+export default async function TodoPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const params = await searchParams;
   const ctx = await getActiveOrganisation();
-  const projects = sortProjects(ctx.organisations);
+  const allProjects = sortProjects(ctx.organisations);
+  // One business when picked at the top, otherwise every business in the workspace.
+  const selected = allProjects.find((project) => project.id === params.project) ?? null;
+  const projects = selected ? [selected] : allProjects;
+  const returnTo = selected ? `/app/todo?project=${selected.id}` : "/app/todo";
   const ids = projects.map((project) => project.id);
   const {data: tasks} = ids.length
     ? await ctx.supabase
@@ -50,6 +61,15 @@ export default async function TodoPage() {
           Keep every project moving from one shared, straightforward list.
         </p>
       </header>
+      <div className="mb-5 space-y-3">
+        <BusinessPicker
+          businesses={allProjects}
+          selectedId={selected?.id ?? null}
+          href={(id) => (id ? `/app/todo?project=${id}` : "/app/todo")}
+          allLabel="All businesses"
+        />
+        <Notice searchParams={params} />
+      </div>
       <div className="mb-5 grid gap-3 sm:grid-cols-3">
         {[
           {label:"To do",value:summary.open,icon:ListTodo,tone:"bg-blue-50 text-blue-600"},
@@ -60,6 +80,7 @@ export default async function TodoPage() {
       <TodoList
         scope="all"
         period="week"
+        returnTo={returnTo}
         currentUserId={ctx.user.id}
         teams={projects.map((project) => ({
           id: project.id,

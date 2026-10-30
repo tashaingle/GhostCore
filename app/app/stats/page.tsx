@@ -1,5 +1,6 @@
 import Link from "next/link";
 import {ChartNoAxesCombined} from "lucide-react";
+import {BusinessPicker} from "@/components/business-picker";
 import {TrendChart} from "@/components/charts/trend-chart";
 import {formatValue} from "@/components/charts/format";
 import {TrendChip} from "@/components/home-ui";
@@ -97,25 +98,11 @@ export default async function StatsPage({
         </nav>
       </header>
 
-      {projects.length > 1 ? (
-        <nav aria-label="Business" className="flex flex-wrap gap-2">
-          {projects.map((item) => (
-            <Link
-              key={item.id}
-              href={href({project: item.id})}
-              scroll={false}
-              aria-current={item.id === project.id ? "page" : undefined}
-              className={`rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
-                item.id === project.id
-                  ? "bg-zinc-950 text-white"
-                  : "bg-white text-zinc-600 ring-1 ring-zinc-200 hover:text-zinc-950"
-              }`}
-            >
-              {item.name}
-            </Link>
-          ))}
-        </nav>
-      ) : null}
+      <BusinessPicker
+        businesses={projects}
+        selectedId={project.id}
+        href={(id) => href({project: id ?? undefined})}
+      />
 
       {sections.length ? (
         sections.map((section) => (

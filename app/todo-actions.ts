@@ -21,6 +21,9 @@ import {transitionWork} from "@/lib/work/service";
 import type {TaskStatus} from "@/lib/work/types";
 
 function returnPath(form: FormData) {
+  // The To do page passes its own address so a change keeps the business that was picked.
+  const back = form.get("returnTo");
+  if (typeof back === "string" && /^\/app\/todo(\?project=[0-9a-f-]{36})?$/.test(back)) return back;
   const scope = form.get("scope") === "one" ? "one" : "all";
   const periodValue = form.get("period");
   const period: Period = periodValue === "month" || periodValue === "year" ? periodValue : "week";

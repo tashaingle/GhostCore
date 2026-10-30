@@ -1,7 +1,14 @@
 import {addTodo, deleteTodo, setTodoDue, setTodoPeople, setTodoStatus} from "@/app/todo-actions";
 import {ConfirmDeleteButton} from "@/components/confirm-delete-button";
 import {TodoWho} from "@/components/todo-who";
-import {TODO_CHOICES, dayFromDueAt, dueLabel, todayKey, todoChoice, type DueTone} from "@/lib/home/todo";
+import {
+  TODO_CHOICES,
+  dayFromDueAt,
+  dueLabel,
+  todayKey,
+  todoChoice,
+  type DueTone,
+} from "@/lib/home/todo";
 import type {Period} from "@/lib/home/performance";
 
 type Person = {userId: string; label: string};
@@ -32,6 +39,7 @@ export function TodoList({
   teams,
   currentUserId,
   compact = false,
+  returnTo,
 }: {
   items: TodoItem[];
   scope: "all" | "one";
@@ -39,6 +47,8 @@ export function TodoList({
   teams: Team[];
   currentUserId: string;
   compact?: boolean;
+  /** Where to come back to after a change, e.g. the To do page with its business picked. */
+  returnTo?: string;
 }) {
   const today = todayKey();
   const sorted = [...items].sort((a, b) => {
@@ -54,9 +64,7 @@ export function TodoList({
       className={`mm-panel overflow-hidden ${compact ? "rounded-2xl" : "rounded-2xl"}`}
       aria-label="To do"
     >
-      <div
-        className={`border-b border-zinc-100 ${compact ? "px-4 py-4" : "px-5 py-4"}`}
-      >
+      <div className={`border-b border-zinc-100 ${compact ? "px-4 py-4" : "px-5 py-4"}`}>
         <div className="flex items-center justify-between gap-3">
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-blue-600">
@@ -109,6 +117,7 @@ export function TodoList({
                     <form action={setTodoDue} className="mt-2 flex flex-wrap items-center gap-2">
                       <input type="hidden" name="scope" value={scope} />
                       <input type="hidden" name="period" value={period} />
+                      {returnTo ? <input type="hidden" name="returnTo" value={returnTo} /> : null}
                       <input type="hidden" name="organisationId" value={task.organisationId} />
                       <input type="hidden" name="id" value={task.id} />
                       <input
@@ -142,6 +151,7 @@ export function TodoList({
                     >
                       <input type="hidden" name="scope" value={scope} />
                       <input type="hidden" name="period" value={period} />
+                      {returnTo ? <input type="hidden" name="returnTo" value={returnTo} /> : null}
                       <input type="hidden" name="organisationId" value={task.organisationId} />
                       <input type="hidden" name="id" value={task.id} />
                       {(teams.find((team) => team.id === task.organisationId)?.people ?? []).map(
@@ -170,6 +180,7 @@ export function TodoList({
                 >
                   <input type="hidden" name="scope" value={scope} />
                   <input type="hidden" name="period" value={period} />
+                  {returnTo ? <input type="hidden" name="returnTo" value={returnTo} /> : null}
                   <input type="hidden" name="organisationId" value={task.organisationId} />
                   <input type="hidden" name="id" value={task.id} />
                   {TODO_CHOICES.map((choice) => (
@@ -192,6 +203,7 @@ export function TodoList({
                 <form action={deleteTodo}>
                   <input type="hidden" name="scope" value={scope} />
                   <input type="hidden" name="period" value={period} />
+                  {returnTo ? <input type="hidden" name="returnTo" value={returnTo} /> : null}
                   <input type="hidden" name="organisationId" value={task.organisationId} />
                   <input type="hidden" name="id" value={task.id} />
                   <ConfirmDeleteButton label={`Delete ${task.title}`} compact={compact} />
@@ -203,9 +215,13 @@ export function TodoList({
       ) : (
         <p className="px-4 py-6 text-sm text-zinc-500">Nothing on the list yet.</p>
       )}
-      <form action={addTodo} className="flex flex-col gap-3 border-t border-zinc-100 bg-zinc-50/60 px-5 py-4">
+      <form
+        action={addTodo}
+        className="flex flex-col gap-3 border-t border-zinc-100 bg-zinc-50/60 px-5 py-4"
+      >
         <input type="hidden" name="scope" value={scope} />
         <input type="hidden" name="period" value={period} />
+        {returnTo ? <input type="hidden" name="returnTo" value={returnTo} /> : null}
         <div className="flex flex-col gap-2 sm:flex-row">
           <label className="sr-only" htmlFor={`todo-title-${scope}`}>
             Add a to do

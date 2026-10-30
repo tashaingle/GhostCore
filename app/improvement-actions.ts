@@ -18,8 +18,20 @@ const improvementSchema = z.object({
   priority: z.enum(["low", "normal", "high", "critical"]),
 });
 
-function fail(message: string): never {
-  redirect(`/app/improvements?error=${encodeURIComponent(message)}`);
+/** Back to the Improvements page, keeping the business that was picked at the top. */
+function backTo(form: FormData) {
+  const back = form.get("returnTo");
+  return typeof back === "string" && /^\/app\/improvements(\?project=[0-9a-f-]{36})?$/.test(back)
+    ? back
+    : "/app/improvements";
+}
+
+function withMessage(path: string, kind: "error" | "success", message: string) {
+  return `${path}${path.includes("?") ? "&" : "?"}${kind}=${encodeURIComponent(message)}`;
+}
+
+function fail(path: string, message: string): never {
+  redirect(withMessage(path, "error", message));
 }
 
 function projectFor(id: string, organisations: {id: string; role: string}[]) {
@@ -27,6 +39,7 @@ function projectFor(id: string, organisations: {id: string; role: string}[]) {
 }
 
 export async function addImprovement(form: FormData) {
+  const path = backTo(form);
   const parsed = improvementSchema.safeParse({
     organisationId: form.get("organisationId"),
     title: form.get("title"),
@@ -34,11 +47,11 @@ export async function addImprovement(form: FormData) {
     area: form.get("area"),
     priority: form.get("priority"),
   });
-  if (!parsed.success) fail("Check the improvement details and try again.");
+  if (!parsed.success) fail(path, "Check the improvement details and try again.");
   const ctx = await getActiveOrganisation();
   const project = projectFor(parsed.data.organisationId, ctx.organisations);
   if (!project || !hasPermission(project.role as OrganisationRole, "work.create"))
-    fail("You cannot add improvements to that project.");
+    fail(path, "You cannot add improvements to that project.");
   try {
     await createTask(createServiceClient(), project.id, ctx.user.id, {
       title: parsed.data.title,
@@ -51,10 +64,10 @@ export async function addImprovement(form: FormData) {
       metadata: {area: parsed.data.area},
     });
   } catch (error) {
-    fail(error instanceof Error ? error.message : "That improvement could not be added.");
+    fail(path, error instanceof Error ? error.message : "That improvement could not be added.");
   }
   revalidatePath("/app/improvements");
-  redirect("/app/improvements?success=Improvement%20added.");
+  redirect(withMessage(path, "success", "Improvement added."));
 }
 
 function pathTo(from: TaskStatus, to: TaskStatus) {
@@ -75,24 +88,25 @@ function pathTo(from: TaskStatus, to: TaskStatus) {
 }
 
 async function improvementContext(form: FormData) {
+  const path = backTo(form);
   const id = z.uuid().safeParse(form.get("id"));
   const organisationId = z.uuid().safeParse(form.get("organisationId"));
-  if (!id.success || !organisationId.success) fail("That improvement could not be found.");
+  if (!id.success || !organisationId.success) fail(path, "That improvement could not be found.");
   const ctx = await getActiveOrganisation();
   const project = projectFor(organisationId.data, ctx.organisations);
-  if (!project) fail("That improvement could not be found.");
-  return {ctx, project, id: id.data, service: createServiceClient()};
+  if (!project) fail(path, "That improvement could not be found.");
+  return {ctx, project, id: id.data, service: createServiceClient(), path};
 }
 
 export async function setImprovementStatus(form: FormData) {
   const target = z.enum(["open", "in_progress", "completed"]).safeParse(form.get("status"));
-  if (!target.success) fail("Choose a valid status.");
-  const {ctx, project, id, service} = await improvementContext(form);
-  if (!hasPermission(project.role as OrganisationRole, "work.complete")) fail("You cannot change this item.");
+  if (!target.success) fail(backTo(form), "Choose a valid status.");
+  const {ctx, project, id, service, path} = await improvementContext(form);
+  if (!hasPermission(project.role as OrganisationRole, "work.complete")) fail(path, "You cannot change this item.");
   const {data: item} = await service.from("work_tasks").select("status,source_type").eq("id", id).eq("organisation_id", project.id).maybeSingle();
-  if (!item || item.source_type !== "improvement") fail("That improvement could not be found.");
+  if (!item || item.source_type !== "improvement") fail(path, "That improvement could not be found.");
   const steps = pathTo(item.status as TaskStatus, target.data as TaskStatus);
-  if (!steps) fail("That status cannot be set.");
+  if (!steps) fail(path, "That status cannot be set.");
   try {
     let current = item.status;
     for (const status of steps) {
@@ -100,20 +114,20 @@ export async function setImprovementStatus(form: FormData) {
       current = status;
     }
   } catch (error) {
-    fail(error instanceof Error ? error.message : "That status could not be updated.");
+    fail(path, error instanceof Error ? error.message : "That status could not be updated.");
   }
   revalidatePath("/app/improvements");
-  redirect("/app/improvements");
+  redirect(path);
 }
 
 export async function deleteImprovement(form: FormData) {
-  const {ctx, project, id, service} = await improvementContext(form);
+  const {ctx, project, id, service, path} = await improvementContext(form);
   const {data: item} = await service.from("work_tasks").select("source_type,created_by").eq("id", id).eq("organisation_id", project.id).maybeSingle();
-  if (!item || item.source_type !== "improvement") fail("That improvement could not be found.");
+  if (!item || item.source_type !== "improvement") fail(path, "That improvement could not be found.");
   const canManage = hasPermission(project.role as OrganisationRole, "work.manage");
-  if (!canManage && item.created_by !== ctx.user.id) fail("You can only delete improvements you created.");
+  if (!canManage && item.created_by !== ctx.user.id) fail(path, "You can only delete improvements you created.");
   const {error} = await service.from("work_tasks").delete().eq("id", id).eq("organisation_id", project.id);
-  if (error) fail("That improvement could not be deleted.");
+  if (error) fail(path, "That improvement could not be deleted.");
   revalidatePath("/app/improvements");
-  redirect("/app/improvements?success=Improvement%20deleted.");
+  redirect(withMessage(path, "success", "Improvement deleted."));
 }

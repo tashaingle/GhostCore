@@ -76,7 +76,7 @@ export default async function StatsPage({
             {project.name}
           </h1>
           <p className="mt-1 text-sm text-zinc-500">
-            Website, social media and sales, {labels.current} against {labels.previous}.
+            Website, social media, sales and Shopping, {labels.current} against {labels.previous}.
           </p>
         </div>
         <nav aria-label="Period" className="inline-flex gap-1 rounded-xl bg-zinc-100 p-1">
@@ -128,8 +128,8 @@ export default async function StatsPage({
           <ChartNoAxesCombined aria-hidden className="h-8 w-8 text-zinc-300" />
           <p className="font-medium text-zinc-900">No stats for {project.name} yet</p>
           <p className="max-w-md text-sm text-zinc-500">
-            Connect Google Analytics, Search Console, Facebook, Stripe or Mailchimp and the graphs
-            will fill in as the data arrives.
+            Connect Google Analytics, Search Console, Facebook, Stripe, Merchant Center or Mailchimp
+            and the graphs will fill in as the data arrives.
           </p>
           <Link href="/app/integrations" className="button mt-1">
             Connect a tool
@@ -140,7 +140,15 @@ export default async function StatsPage({
   );
 }
 
-function StatCard({chart, current, previous}: {chart: StatChart; current: string; previous: string}) {
+function StatCard({
+  chart,
+  current,
+  previous,
+}: {
+  chart: StatChart;
+  current: string;
+  previous: string;
+}) {
   return (
     <TrendChart
       trend={chart.trend}
@@ -156,7 +164,7 @@ function StatCard({chart, current, previous}: {chart: StatChart; current: string
             <span className="text-3xl font-semibold tracking-tight text-zinc-950">
               {formatValue(chart.value, chart.trend.unit)}
             </span>
-            <TrendChip change={chart.change} higherIsBetter />
+            <TrendChip change={chart.change} higherIsBetter={!chart.lowerIsBetter} />
           </p>
           {chart.note ? <p className="mt-1 text-xs text-zinc-400">{chart.note}</p> : null}
         </div>

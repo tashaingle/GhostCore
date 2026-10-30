@@ -16,6 +16,8 @@ export const STATS_EVENT_TYPES = [
     "analytics.performance_summary",
     "google_search_console.performance_summary",
     "meta_social.facebook.performance.daily_recorded",
+    "google_merchant_center.products.daily_summary",
+    "google_merchant_center.performance.daily_recorded",
   ]),
 ];
 
@@ -30,10 +32,12 @@ export type StatChart = {
   value: number;
   /** % change against the period before; null when there's nothing to compare. */
   change: number | null;
+  /** True when a fall is good news, such as fewer disapproved products. */
+  lowerIsBetter?: boolean;
 };
 
 export type StatSection = {
-  key: "website" | "social" | "sales" | "email";
+  key: "website" | "social" | "sales" | "merchant" | "email";
   title: string;
   charts: StatChart[];
   /** Where website visits came from, most first. */
@@ -47,6 +51,18 @@ const at = (e: IntelligenceEvent) => Date.parse(e.occurredAt);
 const dayKey = (t: number) => new Date(t).toISOString().slice(0, 10);
 const percent = (before: number, now: number) =>
   before > 0 ? Math.round(((now - before) / before) * 1000) / 10 : null;
+
+/** Daily reports Google revises keep only their newest revision per account and day. */
+function newestRevision(events: IntelligenceEvent[]) {
+  const newest = new Map<string, IntelligenceEvent>();
+  const recorded = (e: IntelligenceEvent) => Date.parse(e.recordedAt ?? e.occurredAt);
+  for (const e of events) {
+    const id = `${String(meta(e, "sourceAccountId") ?? "")}|${String(meta(e, "reportingDate") ?? e.occurredAt)}`,
+      found = newest.get(id);
+    if (!found || recorded(e) > recorded(found)) newest.set(id, e);
+  }
+  return [...newest.values()];
+}
 
 /**
  * Rolling summaries (Analytics, Search Console) and page snapshots arrive per property each day.
@@ -118,7 +134,12 @@ export function statsSections(input: {
       build,
     ),
     chart(
-      {key: "searchClicks", label: "Google search clicks", source: "Search Console", note: lastWeek},
+      {
+        key: "searchClicks",
+        label: "Google search clicks",
+        source: "Search Console",
+        note: lastWeek,
+      },
       dailyTotals(searches, property, (e) => num(meta(e, "clicks"))),
       "last",
       build,
@@ -172,10 +193,16 @@ export function statsSections(input: {
   ];
   const socialCharts = social
     .map(([key, label, field, mode]) =>
-      chart({key, label, source: "Facebook"}, dailyTotals(pages, page, pageMetric(field)), mode, build),
+      chart(
+        {key, label, source: "Facebook"},
+        dailyTotals(pages, page, pageMetric(field)),
+        mode,
+        build,
+      ),
     )
     .filter((c): c is StatChart => c !== null);
-  if (socialCharts.length) sections.push({key: "social", title: "Social media", charts: socialCharts});
+  if (socialCharts.length)
+    sections.push({key: "social", title: "Social media", charts: socialCharts});
 
   // Sales, ads and email come from the same figures as Home, so the two always agree.
   const metrics = performanceMetrics({events: input.events, counts: {}, period: input.period, now});
@@ -201,6 +228,55 @@ export function statsSections(input: {
     });
   const sales = fromHome(["revenue", "orders", "adSpend"]);
   if (sales.length) sections.push({key: "sales", title: "Sales and ads", charts: sales});
+
+  // Merchant Center: one product summary per account per day, and Shopping clicks per day.
+  const shop = (e: IntelligenceEvent) => String(meta(e, "sourceAccountId") ?? "");
+  const summaries = ofType("google_merchant_center.products.daily_summary");
+  const shopping = newestRevision(ofType("google_merchant_center.performance.daily_recorded"));
+  const shoppingMetric = (key: string) => (e: IntelligenceEvent) =>
+    num((meta(e, "metrics") as Record<string, unknown> | undefined)?.[key]);
+  const merchant = [
+    chart(
+      {key: "productsApproved", label: "Products approved", source: "Merchant Center"},
+      dailyTotals(summaries, shop, (e) => num(meta(e, "approved"))),
+      "last",
+      build,
+    ),
+    chart(
+      {
+        key: "productsDisapproved",
+        label: "Products disapproved",
+        source: "Merchant Center",
+        lowerIsBetter: true,
+      },
+      dailyTotals(summaries, shop, (e) => num(meta(e, "disapproved"))),
+      "last",
+      build,
+    ),
+    chart(
+      {key: "freeListingClicks", label: "Free listing clicks", source: "Merchant Center"},
+      dailyTotals(shopping, shop, shoppingMetric("freeListingClicks")),
+      "sum",
+      build,
+    ),
+    chart(
+      {key: "shoppingAdClicks", label: "Shopping ad clicks", source: "Merchant Center"},
+      dailyTotals(shopping, shop, shoppingMetric("adClicks")),
+      "sum",
+      build,
+    ),
+    chart(
+      {
+        key: "shoppingImpressions",
+        label: "Times shown on Google Shopping",
+        source: "Merchant Center",
+      },
+      dailyTotals(shopping, shop, shoppingMetric("impressions")),
+      "sum",
+      build,
+    ),
+  ].filter((c): c is StatChart => c !== null);
+  if (merchant.length) sections.push({key: "merchant", title: "Merchant Center", charts: merchant});
   const email = fromHome(["emailSubscribers"]);
   if (email.length) sections.push({key: "email", title: "Email", charts: email});
   return sections;

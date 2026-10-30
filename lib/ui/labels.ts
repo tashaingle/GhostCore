@@ -23,6 +23,7 @@ const providerNames: Record<string, string> = {
   app_store: "App Store",
   google_business_profile: "Google Business Profile",
   google_ads: "Google Ads",
+  google_merchant_center: "Merchant Center",
 };
 
 export function providerLabel(id: string | null | undefined) {
@@ -86,7 +87,7 @@ export function configureIntegrationLabel(providerId: string, configurationRequi
   if (providerId === "vercel") {
     return configurationRequired ? "Choose projects" : "Projects";
   }
-  if (providerId === "google_ads") {
+  if (providerId === "google_ads" || providerId === "google_merchant_center") {
     return configurationRequired ? "Choose accounts" : "Accounts";
   }
   if (providerId === "google_business_profile") {

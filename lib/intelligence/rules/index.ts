@@ -5,6 +5,10 @@ import {metaReturnDeclineRule} from "./advertising/meta-return-decline";
 import {googleAdsReturnDeclineRule} from "./advertising/google-ads-return-decline";
 import {shopifyOrderDeclineRule} from "./commerce/shopify-order-decline";
 import {shopifyRefundRateRule} from "./commerce/shopify-refund-rate";
+import {
+  merchantAccountWarningRule,
+  merchantDisapprovalsRisingRule,
+} from "./commerce/merchant-center";
 import {adSpendUpOrdersDownRule} from "./cross-provider/ad-spend-up-orders-down";
 import {salesDropExplainedRule, trafficDropExplainedRule} from "./cross-provider/drop-explained";
 import {deploymentTrafficDeclineRule} from "./cross-provider/deployment-traffic-decline";
@@ -25,6 +29,8 @@ export const intelligenceRules: IntelligenceRule[] = [
   analyticsRecoveredRule,
   shopifyOrderDeclineRule,
   shopifyRefundRateRule,
+  merchantDisapprovalsRisingRule,
+  merchantAccountWarningRule,
   stripeFailureRateRule,
   stripeRevenueDeclineRule,
   stripeDisputeRule,
@@ -46,6 +52,8 @@ export {
   repeatedWorkflowFailuresRule,
   shopifyOrderDeclineRule,
   shopifyRefundRateRule,
+  merchantDisapprovalsRisingRule,
+  merchantAccountWarningRule,
   stripeFailureRateRule,
   stripeRevenueDeclineRule,
   stripeDisputeRule,

@@ -19,7 +19,8 @@ export type ProviderId =
   | "google_play"
   | "app_store"
   | "google_business_profile"
-  | "google_ads";
+  | "google_ads"
+  | "google_merchant_center";
 export type ProviderDefinition = {
   id: ProviderId;
   displayName: string;
@@ -52,6 +53,7 @@ export type ProviderDefinition = {
     | "app_store"
     | "google_business_profile"
     | "google_ads"
+    | "google_merchant_center"
     | null;
   description?: string;
   healthSupport?: boolean;
@@ -424,6 +426,26 @@ export const providerRegistry = {
     propertySelection: true,
     connectPath: "/api/integrations/google-ads/connect",
     configurationPath: "/app/integrations/google-ads/settings",
+  },
+  google_merchant_center: {
+    id: "google_merchant_center",
+    displayName: "Google Merchant Center",
+    description:
+      "Which products Google approves for Shopping, why any are turned down, account warnings, and clicks from free listings and Shopping ads. Metric Mage only reads them.",
+    icon: "MC",
+    colour: "#4285f4",
+    category: "Commerce",
+    oauth: true,
+    sync: true,
+    // Google's only Merchant API permission can also edit products, so this isn't marked read_only; the code only reads.
+    capabilities: ["oauth", "polling"],
+    schedule: "daily",
+    recommendedFrequency: "Daily",
+    connector: "google_merchant_center",
+    healthSupport: true,
+    propertySelection: true,
+    connectPath: "/api/integrations/google-merchant-center/connect",
+    configurationPath: "/app/integrations/google-merchant-center/settings",
   },
 } as const satisfies Record<ProviderId, ProviderDefinition>;
 export const providers = Object.values(providerRegistry);

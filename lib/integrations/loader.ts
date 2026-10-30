@@ -60,6 +60,9 @@ import type {BusinessProfileSettings} from "./google-business-profile/types";
 import {GoogleAdsConnector} from "./google-ads/connector";
 import {GoogleAdsClient} from "./google-ads/client";
 import type {GoogleAdsSettings} from "./google-ads/types";
+import {MerchantCenterConnector} from "./google-merchant-center/connector";
+import {MerchantCenterClient} from "./google-merchant-center/client";
+import type {MerchantCenterSettings} from "./google-merchant-center/types";
 export type ConnectorCredentials = {
   accessToken?: string;
   refreshToken?: string;
@@ -250,6 +253,17 @@ export function loadConnector(
         expiresAt: credentials.expiresAt,
       }),
       (credentials.settings ?? {}) as GoogleAdsSettings,
+    );
+  }
+  if (provider.connector === "google_merchant_center") {
+    if (!credentials.accessToken) throw new Error("Merchant Center credentials are missing.");
+    return new MerchantCenterConnector(
+      new MerchantCenterClient({
+        accessToken: credentials.accessToken,
+        refreshToken: credentials.refreshToken,
+        expiresAt: credentials.expiresAt,
+      }),
+      (credentials.settings ?? {}) as MerchantCenterSettings,
     );
   }
   return new PlaceholderConnector(provider.id);

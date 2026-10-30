@@ -4,14 +4,20 @@ import {revalidatePath} from "next/cache";
 import {redirect} from "next/navigation";
 import {z} from "zod";
 import {getActiveOrganisation} from "@/lib/organisations/active";
-import {organisationPeople} from "@/lib/organisations/people";
 import {hasPermission, type OrganisationRole} from "@/lib/auth/permissions";
 import {projectHref} from "@/lib/home/projects";
-import {dueAtFromDay} from "@/lib/home/todo";
+import {
+  addAssignees,
+  canAddTodo,
+  createManualTodo,
+  todoAssignees,
+  todoDueAt,
+  todoTitle,
+} from "@/lib/home/add-todo";
 import type {Period} from "@/lib/home/performance";
 import {createServiceClient} from "@/lib/supabase/service";
 import {nextTaskStatuses} from "@/lib/work/status";
-import {createTask, transitionWork} from "@/lib/work/service";
+import {transitionWork} from "@/lib/work/service";
 import type {TaskStatus} from "@/lib/work/types";
 
 function returnPath(form: FormData) {
@@ -35,51 +41,13 @@ async function chosenPeople(
   organisationId: string,
   path: string,
 ) {
-  const raw = [
-    ...new Set(
-      form
-        .getAll("assignee")
-        .filter((value): value is string => typeof value === "string" && value.length > 0),
-    ),
-  ];
-  if (!raw.length) fail(path, "Choose who needs to do this.");
-  const parsed = raw.map((value) => z.uuid().safeParse(value));
-  if (parsed.some((item) => !item.success)) fail(path, "Choose people from this project.");
-  const people = await organisationPeople(supabase, organisationId);
-  const allowed = new Set(people.list.map((person) => person.userId));
-  const ids = parsed.map((item) => (item.success ? item.data : ""));
-  if (ids.some((id) => !allowed.has(id))) fail(path, "Choose people from this project.");
-  return ids;
-}
-
-async function addAssignees(
-  service: ReturnType<typeof createServiceClient>,
-  organisationId: string,
-  actorId: string,
-  taskId: string,
-  userIds: string[],
-) {
-  if (!userIds.length) return;
-  const {error} = await service.from("work_assignments").insert(
-    userIds.map((userId) => ({
-      organisation_id: organisationId,
-      work_type: "task" as const,
-      task_id: taskId,
-      assigned_user_id: userId,
-      assigned_by: actorId,
-      reason: "Added to this to do.",
-    })),
-  );
-  if (error) throw new Error("Those people couldn't be added.");
+  const chosen = await todoAssignees(supabase, organisationId, form.getAll("assignee"));
+  if ("error" in chosen) fail(path, chosen.error);
+  return chosen.ids;
 }
 
 /** The optional deadline field: undefined when it's invalid, null when it's blank. */
-function chosenDue(form: FormData) {
-  const raw = form.get("due");
-  if (typeof raw !== "string" || !raw.trim()) return null;
-  const day = z.iso.date().safeParse(raw.trim());
-  return day.success ? dueAtFromDay(day.data) : undefined;
-}
+const chosenDue = (form: FormData) => todoDueAt(form.get("due"));
 
 function chosenOrganisation(form: FormData, ctx: Active) {
   const raw = form.get("organisationId");
@@ -91,28 +59,23 @@ function chosenOrganisation(form: FormData, ctx: Active) {
 
 export async function addTodo(form: FormData) {
   const path = returnPath(form);
-  const title = z.string().trim().min(1).max(200).safeParse(form.get("title"));
+  const title = todoTitle.safeParse(form.get("title"));
   if (!title.success) fail(path, "Write a short to do first.");
   const dueAt = chosenDue(form);
   if (dueAt === undefined) fail(path, "Pick a valid deadline.");
   const ctx = await getActiveOrganisation();
   const organisation = chosenOrganisation(form, ctx);
   if (!organisation) fail(path, "Pick one of your projects.");
-  if (!hasPermission(organisation.role as OrganisationRole, "work.create"))
-    fail(path, "You can't add to this list.");
+  if (!canAddTodo(organisation.role)) fail(path, "You can't add to this list.");
   const assignees = await chosenPeople(form, ctx.supabase, organisation.id, path);
-  const service = createServiceClient();
   try {
-    const created = await createTask(service, organisation.id, ctx.user.id, {
+    await createManualTodo({
+      organisationId: organisation.id,
+      userId: ctx.user.id,
       title: title.data,
-      status: "open",
-      priority: "normal",
-      sourceType: "manual",
-      ownerUserId: ctx.user.id,
-      assignedUserId: assignees[0],
       dueAt,
+      assigneeIds: assignees,
     });
-    await addAssignees(service, organisation.id, ctx.user.id, created.item.id, assignees.slice(1));
   } catch (error) {
     fail(path, error instanceof Error ? error.message : "That couldn't be added.");
   }

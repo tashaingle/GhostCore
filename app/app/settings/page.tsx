@@ -3,6 +3,7 @@ import {updateOrganisation} from "@/app/organisation-actions";
 import {hasPermission, type OrganisationRole} from "@/lib/auth/permissions";
 import {Notice} from "@/components/notice";
 import {SubmitButton} from "@/components/submit-button";
+import {ConnectClaude} from "@/components/connect-claude";
 import {deleteAccount, deleteOrganisation} from "@/app/account-actions";
 import {ACCOUNT_DELETE_PHRASE, planAccountDeletion} from "@/lib/account/deletion";
 export default async function Settings({
@@ -118,6 +119,8 @@ export default async function Settings({
           </p>
         )}
       </form>
+
+      <ConnectClaude supabase={ctx.supabase} />
 
       <section aria-labelledby="danger-heading" className="space-y-4 pt-4">
         <div>

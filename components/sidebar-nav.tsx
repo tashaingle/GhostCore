@@ -3,6 +3,7 @@ import Link from "next/link";
 import {usePathname} from "next/navigation";
 import {
   CalendarDays,
+  ChartNoAxesCombined,
   ChevronDown,
   Code,
   Cpu,
@@ -24,6 +25,7 @@ type NavItem = {label: string; href: string; icon: LucideIcon; exact?: boolean};
 
 const focus: NavItem[] = [
   {label: "Home", href: "/app", icon: House, exact: true},
+  {label: "Stats", href: "/app/stats", icon: ChartNoAxesCombined},
   {label: "To do", href: "/app/todo", icon: ListChecks},
   {label: "Calendar", href: "/app/calendar", icon: CalendarDays},
   {label: "Testers", href: "/app/email-list", icon: Mail},

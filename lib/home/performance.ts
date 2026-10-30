@@ -147,6 +147,37 @@ const toMajor = (amount: number, currency: string) =>
       currency: currency.toUpperCase(),
     }).resolvedOptions().maximumFractionDigits ?? 2);
 
+/**
+ * Turns dated points into this period's and the last period's chart buckets: by day, or by week
+ * across a year so the line stays readable. "sum" adds up within a bucket; "last" keeps the latest
+ * reading and carries it forward between readings (followers, subscribers).
+ */
+export function trendBuilder(period: Period, now: Date) {
+  const days = PERIOD_DAYS[period],
+    currentStart = now.getTime() - days * DAY,
+    previousStart = currentStart - days * DAY,
+    bucketDays = period === "year" ? 7 : 1,
+    bucketCount = Math.ceil(days / bucketDays),
+    bucketMs = bucketDays * DAY,
+    build = (points: {t: number; v: number}[], start: number, mode: "sum" | "last") => {
+      const out: (number | null)[] = Array(bucketCount).fill(mode === "sum" ? 0 : null);
+      for (const point of [...points].sort((a, b) => a.t - b.t)) {
+        const i = Math.floor((point.t - start) / bucketMs);
+        if (i < 0 || i >= bucketCount) continue;
+        out[i] = mode === "sum" ? (out[i] ?? 0) + point.v : point.v;
+      }
+      if (mode === "last") for (let i = 1; i < out.length; i++) out[i] ??= out[i - 1];
+      return out;
+    };
+  return (points: {t: number; v: number}[], mode: "sum" | "last", unit: TrendUnit): Trend => ({
+    current: build(points, currentStart, mode),
+    previous: build(points, previousStart, mode),
+    starts: Array.from({length: bucketCount}, (_, i) => currentStart + i * bucketMs),
+    bucketDays,
+    unit,
+  });
+}
+
 export function performanceMetrics(input: {
   events: IntelligenceEvent[];
   counts: ActivityCounts;
@@ -169,28 +200,10 @@ export function performanceMetrics(input: {
     ofType = (type: string) => input.events.filter((e) => e.eventType === type),
     metrics: Metric[] = [];
 
-  // Charts group by day, or by week across a year so the line stays readable.
-  const bucketDays = input.period === "year" ? 7 : 1,
+  const trend = trendBuilder(input.period, now),
+    bucketDays = input.period === "year" ? 7 : 1,
     bucketCount = Math.ceil(days / bucketDays),
     bucketMs = bucketDays * DAY,
-    build = (points: {t: number; v: number}[], start: number, mode: "sum" | "last") => {
-      const out: (number | null)[] = Array(bucketCount).fill(mode === "sum" ? 0 : null);
-      for (const point of [...points].sort((a, b) => a.t - b.t)) {
-        const i = Math.floor((point.t - start) / bucketMs);
-        if (i < 0 || i >= bucketCount) continue;
-        out[i] = mode === "sum" ? (out[i] ?? 0) + point.v : point.v;
-      }
-      // Snapshots (followers, subscribers) carry forward between readings.
-      if (mode === "last") for (let i = 1; i < out.length; i++) out[i] ??= out[i - 1];
-      return out;
-    },
-    trend = (points: {t: number; v: number}[], mode: "sum" | "last", unit: TrendUnit): Trend => ({
-      current: build(points, currentStart, mode),
-      previous: build(points, previousStart, mode),
-      starts: Array.from({length: bucketCount}, (_, i) => currentStart + i * bucketMs),
-      bucketDays,
-      unit,
-    }),
     at = (e: IntelligenceEvent) => Date.parse(e.occurredAt);
 
   // Revenue: live Stripe payments, or test mode (labelled) when there are no live ones.

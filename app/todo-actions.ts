@@ -7,6 +7,7 @@ import {getActiveOrganisation} from "@/lib/organisations/active";
 import {organisationPeople} from "@/lib/organisations/people";
 import {hasPermission, type OrganisationRole} from "@/lib/auth/permissions";
 import {projectHref} from "@/lib/home/projects";
+import {dueAtFromDay} from "@/lib/home/todo";
 import type {Period} from "@/lib/home/performance";
 import {createServiceClient} from "@/lib/supabase/service";
 import {nextTaskStatuses} from "@/lib/work/status";
@@ -72,6 +73,14 @@ async function addAssignees(
   if (error) throw new Error("Those people couldn't be added.");
 }
 
+/** The optional deadline field: undefined when it's invalid, null when it's blank. */
+function chosenDue(form: FormData) {
+  const raw = form.get("due");
+  if (typeof raw !== "string" || !raw.trim()) return null;
+  const day = z.iso.date().safeParse(raw.trim());
+  return day.success ? dueAtFromDay(day.data) : undefined;
+}
+
 function chosenOrganisation(form: FormData, ctx: Active) {
   const raw = form.get("organisationId");
   if (typeof raw !== "string" || !raw) return {id: ctx.organisation.id, role: ctx.membership.role};
@@ -84,6 +93,8 @@ export async function addTodo(form: FormData) {
   const path = returnPath(form);
   const title = z.string().trim().min(1).max(200).safeParse(form.get("title"));
   if (!title.success) fail(path, "Write a short to do first.");
+  const dueAt = chosenDue(form);
+  if (dueAt === undefined) fail(path, "Pick a valid deadline.");
   const ctx = await getActiveOrganisation();
   const organisation = chosenOrganisation(form, ctx);
   if (!organisation) fail(path, "Pick one of your projects.");
@@ -99,6 +110,7 @@ export async function addTodo(form: FormData) {
       sourceType: "manual",
       ownerUserId: ctx.user.id,
       assignedUserId: assignees[0],
+      dueAt,
     });
     await addAssignees(service, organisation.id, ctx.user.id, created.item.id, assignees.slice(1));
   } catch (error) {
@@ -211,6 +223,36 @@ export async function setTodoPeople(form: FormData) {
     fail(path, error instanceof Error ? error.message : "Those people couldn't be saved.");
   }
   revalidatePath("/app");
+  redirect(path);
+}
+
+export async function setTodoDue(form: FormData) {
+  const path = returnPath(form);
+  const taskId = z.uuid().safeParse(form.get("id"));
+  if (!taskId.success) fail(path, "That to do could not be found.");
+  const dueAt = form.get("clear") === "1" ? null : chosenDue(form);
+  if (dueAt === undefined) fail(path, "Pick a valid deadline.");
+  const ctx = await getActiveOrganisation();
+  const organisation = chosenOrganisation(form, ctx);
+  if (!organisation) fail(path, "That to do could not be found.");
+  if (!hasPermission(organisation.role as OrganisationRole, "work.complete"))
+    fail(path, "You can't change that deadline.");
+  const service = createServiceClient();
+  const {data: task} = await service
+    .from("work_tasks")
+    .select("id,source_type")
+    .eq("id", taskId.data)
+    .eq("organisation_id", organisation.id)
+    .maybeSingle();
+  if (!task || task.source_type !== "manual") fail(path, "That to do could not be found.");
+  const {error} = await service
+    .from("work_tasks")
+    .update({due_at: dueAt, updated_at: new Date().toISOString()})
+    .eq("id", taskId.data)
+    .eq("organisation_id", organisation.id);
+  if (error) fail(path, "That deadline couldn't be saved.");
+  revalidatePath("/app");
+  revalidatePath("/app/todo");
   redirect(path);
 }
 

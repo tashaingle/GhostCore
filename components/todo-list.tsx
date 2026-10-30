@@ -1,7 +1,7 @@
-import {addTodo, deleteTodo, setTodoPeople, setTodoStatus} from "@/app/todo-actions";
+import {addTodo, deleteTodo, setTodoDue, setTodoPeople, setTodoStatus} from "@/app/todo-actions";
 import {ConfirmDeleteButton} from "@/components/confirm-delete-button";
 import {TodoWho} from "@/components/todo-who";
-import {TODO_CHOICES, todoChoice} from "@/lib/home/todo";
+import {TODO_CHOICES, dayFromDueAt, dueLabel, todayKey, todoChoice, type DueTone} from "@/lib/home/todo";
 import type {Period} from "@/lib/home/performance";
 
 type Person = {userId: string; label: string};
@@ -15,6 +15,14 @@ export type TodoItem = {
   organisationName?: string;
   assigneeIds: string[];
   assigneeLabel: string;
+  dueAt: string | null;
+};
+
+const DUE_TONES: Record<DueTone, string> = {
+  overdue: "bg-red-50 text-red-700 ring-red-200",
+  soon: "bg-amber-50 text-amber-700 ring-amber-200",
+  later: "bg-zinc-100 text-zinc-600 ring-zinc-200",
+  done: "bg-zinc-50 text-zinc-400 ring-zinc-200",
 };
 
 export function TodoList({
@@ -32,10 +40,13 @@ export function TodoList({
   currentUserId: string;
   compact?: boolean;
 }) {
+  const today = todayKey();
   const sorted = [...items].sort((a, b) => {
     const rank = {in_progress: 0, open: 1, completed: 2};
     return (
-      rank[todoChoice(a.status)] - rank[todoChoice(b.status)] || a.title.localeCompare(b.title)
+      rank[todoChoice(a.status)] - rank[todoChoice(b.status)] ||
+      (a.dueAt ?? "9999").localeCompare(b.dueAt ?? "9999") ||
+      a.title.localeCompare(b.title)
     );
   });
   return (
@@ -67,6 +78,7 @@ export function TodoList({
         <ul>
           {sorted.slice(0, compact ? 6 : undefined).map((task) => {
             const current = todoChoice(task.status);
+            const due = task.dueAt ? dueLabel(task.dueAt, task.status, today) : null;
             return (
               <li
                 key={task.id}
@@ -78,10 +90,49 @@ export function TodoList({
                   >
                     {task.title}
                   </p>
-                  <p className="text-xs text-zinc-500">
-                    {[task.assigneeLabel, task.organisationName].filter(Boolean).join(" · ")}
+                  <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-zinc-500">
+                    {due ? (
+                      <span
+                        className={`rounded-md px-1.5 py-0.5 text-[11px] font-semibold ring-1 ring-inset ${DUE_TONES[due.tone]}`}
+                      >
+                        {due.text}
+                      </span>
+                    ) : null}
+                    <span>
+                      {[task.assigneeLabel, task.organisationName].filter(Boolean).join(" · ")}
+                    </span>
                   </p>
-                  <details className={compact ? "hidden" : "mt-1"}>
+                  <details className={compact ? "hidden" : "mt-1 inline-block"}>
+                    <summary className="cursor-pointer text-xs font-medium text-zinc-500">
+                      Deadline
+                    </summary>
+                    <form action={setTodoDue} className="mt-2 flex flex-wrap items-center gap-2">
+                      <input type="hidden" name="scope" value={scope} />
+                      <input type="hidden" name="period" value={period} />
+                      <input type="hidden" name="organisationId" value={task.organisationId} />
+                      <input type="hidden" name="id" value={task.id} />
+                      <input
+                        type="date"
+                        name="due"
+                        aria-label={`Deadline for ${task.title}`}
+                        defaultValue={dayFromDueAt(task.dueAt)}
+                        className="field w-auto py-1 text-xs"
+                        required
+                      />
+                      <button className="button-ghost px-2 py-1 text-xs">Save</button>
+                      {task.dueAt ? (
+                        <button
+                          name="clear"
+                          value="1"
+                          formNoValidate
+                          className="button-ghost px-2 py-1 text-xs text-zinc-500"
+                        >
+                          Remove
+                        </button>
+                      ) : null}
+                    </form>
+                  </details>
+                  <details className={compact ? "hidden" : "mt-1 ml-3 inline-block"}>
                     <summary className="cursor-pointer text-xs font-medium text-zinc-500">
                       Who
                     </summary>
@@ -166,6 +217,17 @@ export function TodoList({
             maxLength={200}
             placeholder="+ Add a to do"
             required
+          />
+          <label className="sr-only" htmlFor={`todo-due-${scope}`}>
+            Deadline (optional)
+          </label>
+          <input
+            id={`todo-due-${scope}`}
+            type="date"
+            name="due"
+            min={today}
+            title="Deadline (optional)"
+            className="field sm:w-44"
           />
           <button className="button shrink-0">Add</button>
         </div>

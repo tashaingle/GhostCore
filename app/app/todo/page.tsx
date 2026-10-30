@@ -16,7 +16,7 @@ export default async function TodoPage() {
   const {data: tasks} = ids.length
     ? await ctx.supabase
         .from("work_tasks")
-        .select("id,title,status,assigned_user_id,organisation_id,created_at")
+        .select("id,title,status,assigned_user_id,organisation_id,created_at,due_at")
         .in("organisation_id", ids)
         .eq("source_type", "manual")
         .in("status", [...SHOWN])
@@ -78,6 +78,7 @@ export default async function TodoPage() {
             status: task.status,
             organisationId: task.organisation_id,
             organisationName: names.get(task.organisation_id),
+            dueAt: task.due_at,
             assigneeIds: chosen,
             assigneeLabel:
               chosen.map((id) => lookup?.name(id) ?? "Team member").join(", ") || "No one yet",

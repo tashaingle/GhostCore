@@ -11,7 +11,7 @@ export async function StaffHome({period}: {period: Period}) {
   const [{data: tasks}, people] = await Promise.all([
     ctx.supabase
       .from("work_tasks")
-      .select("id,title,status,assigned_user_id,organisation_id,created_at")
+      .select("id,title,status,assigned_user_id,organisation_id,created_at,due_at")
       .eq("organisation_id", ctx.organisation.id)
       .eq("source_type", "manual")
       .in("status", [...SHOWN])
@@ -48,6 +48,7 @@ export async function StaffHome({period}: {period: Period}) {
           title: task.title,
           status: task.status,
           organisationId: task.organisation_id,
+          dueAt: task.due_at,
           assigneeIds: ids,
           assigneeLabel: ids.map((id) => people.name(id)).join(", ") || "No one yet",
         };

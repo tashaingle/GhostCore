@@ -55,7 +55,7 @@ export async function deleteOrganisation(form: FormData) {
   after(() => syncOrganisationCount(creator).catch((e) => console.error("Billing count", e)));
 
   // Move to another organisation the user belongs to, or to onboarding if none remain.
-  const next = ctx.organisations.find((o) => o.id !== id),
+  const next = ctx.allOrganisations.find((o) => o.id !== id),
     store = await cookies();
   if (next) {
     store.set(ACTIVE_ORGANISATION_COOKIE, next.id, {

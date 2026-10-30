@@ -20,11 +20,11 @@ export default async function Settings({
     .select("organisation_id,role")
     .in(
       "organisation_id",
-      ctx.organisations.map((o) => o.id),
+      ctx.allOrganisations.map((o) => o.id),
     )
     .eq("status", "active");
   const accountPlan = planAccountDeletion(
-    ctx.organisations.map((o) => {
+    ctx.allOrganisations.map((o) => {
       const here = (members ?? []).filter((m) => m.organisation_id === o.id);
       return {
         organisationId: o.id,

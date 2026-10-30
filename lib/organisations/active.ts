@@ -3,8 +3,7 @@ import {cache} from "react";
 import {cookies} from "next/headers";
 import {redirect} from "next/navigation";
 import {requireUser} from "@/lib/auth/user";
-import {isParkedOrganisation} from "./focus";
-import {selectActiveMembership} from "./selection";
+import {groupWorkspaces, selectActiveMembership} from "./selection";
 export const ACTIVE_ORGANISATION_COOKIE = "ghost_active_organisation";
 export function getActiveOrganisation(
   optional?: false,
@@ -22,7 +21,7 @@ async function loadActiveOrganisation(optional = false) {
   const {data: memberships, error} = await supabase
     .from("organisation_members")
     .select(
-      "id,organisation_id,role,status,created_at,organisations(id,name,slug,logo_url,website,industry,timezone,default_currency)",
+      "id,organisation_id,role,status,created_at,organisations(id,name,slug,logo_url,website,industry,timezone,default_currency,workspace_id)",
     )
     .eq("user_id", user.id)
     .eq("status", "active")
@@ -38,8 +37,6 @@ async function loadActiveOrganisation(optional = false) {
     if (optional) return null;
     redirect("/app/onboarding");
   }
-  const listed = valid.filter((item) => !isParkedOrganisation(item.organisation.name));
-  const working = listed.length ? listed : valid;
   const cookieStore = await cookies(),
     cookieId = cookieStore.get(ACTIVE_ORGANISATION_COOKIE)?.value;
   const {data: profile} = await supabase
@@ -48,7 +45,7 @@ async function loadActiveOrganisation(optional = false) {
     .eq("id", user.id)
     .maybeSingle();
   const selected = selectActiveMembership(
-    working.map((item) => ({
+    valid.map((item) => ({
       organisation_id: item.organisation.id,
       organisation: item.organisation,
       membership: item.membership,
@@ -56,6 +53,18 @@ async function loadActiveOrganisation(optional = false) {
     cookieId,
     profile?.active_organisation_id,
   )!;
+  // Only the active business's workspace is shown; switching workspace switches business.
+  const workspaceId = selected.organisation.workspace_id;
+  const working = valid.filter((item) => item.organisation.workspace_id === workspaceId);
+  const {data: workspaceRows} = await supabase
+    .from("workspaces")
+    .select("id,name,created_by")
+    .in("id", [...new Set(valid.map((item) => item.organisation.workspace_id))]);
+  const workspaces = groupWorkspaces(
+    valid.map((item) => ({id: item.organisation.id, workspaceId: item.organisation.workspace_id})),
+    workspaceRows ?? [],
+    user.id,
+  );
   if (cookieId !== selected.organisation.id) {
     try {
       cookieStore.set(ACTIVE_ORGANISATION_COOKIE, selected.organisation.id, {
@@ -77,6 +86,20 @@ async function loadActiveOrganisation(optional = false) {
     user,
     membership: selected.membership,
     organisation: selected.organisation,
+    workspace: workspaces.find((item) => item.id === workspaceId) ?? {
+      id: workspaceId,
+      name: "Workspace",
+      mine: false,
+      organisationIds: working.map((item) => item.organisation.id),
+    },
+    workspaces,
+    /** Every business the user belongs to, across all workspaces. */
+    allOrganisations: valid.map((item) => ({
+      id: item.organisation.id,
+      name: item.organisation.name,
+      role: item.membership.role,
+      workspaceId: item.organisation.workspace_id,
+    })),
     organisations: working.map((item) => ({
       id: item.organisation.id,
       name: item.organisation.name,

@@ -11,12 +11,18 @@ function WorkspaceForm({
   returnPath,
   title,
   note,
+  workspaceId,
+  askWorkspaceName = false,
 }: {
   params: Record<string, string | string[] | undefined>;
   returnPath: string;
   title: string;
   /** e.g. what this organisation adds to the monthly bill. */
   note?: string;
+  /** Adds the business to this workspace. */
+  workspaceId?: string;
+  /** Creates a new workspace, with this business as its first. */
+  askWorkspaceName?: boolean;
 }) {
   return (
     <section className="mx-auto max-w-lg space-y-5">
@@ -31,8 +37,25 @@ function WorkspaceForm({
       <Notice searchParams={params} />
       <form action={createWorkspace} className="card space-y-4">
         <input type="hidden" name="returnPath" value={returnPath} />
+        {workspaceId ? <input type="hidden" name="workspaceId" value={workspaceId} /> : null}
+        {askWorkspaceName ? (
+          <label className="label">
+            Workspace name
+            <input
+              className="field"
+              name="newWorkspaceName"
+              required
+              minLength={2}
+              maxLength={60}
+              placeholder="Personal"
+            />
+            <span className="text-xs font-normal text-zinc-500">
+              A group of businesses, like your agency&apos;s clients or your own brands.
+            </span>
+          </label>
+        ) : null}
         <label className="label">
-          Organisation name
+          {askWorkspaceName ? "First business in it" : "Organisation name"}
           <input
             className="field"
             name="name"
@@ -77,7 +100,7 @@ function WorkspaceForm({
           />
         </label>
         <SubmitButton className="button w-full" pendingLabel="Creating…">
-          Create organisation
+          {askWorkspaceName ? "Create workspace" : "Create organisation"}
         </SubmitButton>
       </form>
     </section>

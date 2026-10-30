@@ -100,6 +100,13 @@ export async function createWorkspace(form: FormData) {
         "That website doesn't look right. Try something like yourbusiness.co.uk, or leave it blank.",
       ).default(""),
       industry: z.string().trim().max(100),
+      workspaceId: z.union([z.uuid(), z.literal("")]).optional(),
+      newWorkspaceName: z
+        .string()
+        .trim()
+        .max(60)
+        .refine((value) => !value || value.length >= 2, "Workspace names must be 2 to 60 characters.")
+        .optional(),
     })
     .safeParse(Object.fromEntries(form));
   const path = String(form.get("returnPath") || "/app/organisations/new");
@@ -120,12 +127,29 @@ export async function createWorkspace(form: FormData) {
     await setActive(recent.id);
     redirect("/welcome");
   }
+  // A new workspace starts with this business in it.
+  let workspaceId = parsed.data.workspaceId || undefined;
+  if (parsed.data.newWorkspaceName) {
+    const {data: workspace, error: workspaceError} = await supabase
+      .from("workspaces")
+      .insert({name: parsed.data.newWorkspaceName, created_by: user.id})
+      .select("id")
+      .single();
+    if (workspaceError || !workspace)
+      redirect(message(path, "error", "That workspace couldn't be created. Please try again."));
+    workspaceId = workspace.id;
+  }
   const {data: id, error} = await supabase.rpc("create_organisation_with_owner", {
     organisation_name: parsed.data.name,
     organisation_slug: uniqueSlug(parsed.data.name),
+    target_workspace_id: workspaceId,
   });
-  if (error || !id)
-    redirect(message(path, "error", "Your workspace couldn't be created. Please try again."));
+  if (error || !id) {
+    // Don't leave an empty workspace behind.
+    if (parsed.data.newWorkspaceName && workspaceId)
+      await supabase.from("workspaces").delete().eq("id", workspaceId);
+    redirect(message(path, "error", "That business couldn't be created. Please try again."));
+  }
   await supabase
     .from("organisations")
     .update({

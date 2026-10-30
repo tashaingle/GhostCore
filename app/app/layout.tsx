@@ -3,6 +3,7 @@ import {CreditCard, LogOut, Menu, Plus, Settings} from "lucide-react";
 import {getActiveOrganisation} from "@/lib/organisations/active";
 import {signOut} from "@/app/actions";
 import {OrganisationSwitcher} from "@/components/organisation-switcher";
+import {WorkspaceSwitcher} from "@/components/workspace-switcher";
 import {SidebarNav} from "@/components/sidebar-nav";
 import {BrandMark} from "@/components/brand-mark";
 import {roleLabel} from "@/lib/ui/labels";
@@ -41,6 +42,7 @@ export default async function AppLayout({children}: {children: React.ReactNode})
 
         {ctx ? (
           <div className="mt-6 space-y-2">
+            <WorkspaceSwitcher activeId={ctx.workspace.id} workspaces={ctx.workspaces} />
             <div className="flex items-center gap-2.5 rounded-2xl bg-white/[0.07] p-2.5 ring-1 ring-white/10 backdrop-blur">
               {ctx.organisation.logo_url ? (
                 <span
@@ -72,7 +74,7 @@ export default async function AppLayout({children}: {children: React.ReactNode})
               href="/app/organisations/new"
             >
               <Plus aria-hidden className="h-3.5 w-3.5" />
-              New organisation
+              New business in {ctx.workspace.name}
             </Link>
           </div>
         ) : (
@@ -124,6 +126,9 @@ export default async function AppLayout({children}: {children: React.ReactNode})
                 <span className="sr-only">Open navigation</span>
               </summary>
               <div className="absolute inset-x-0 top-full max-h-[calc(100vh-4rem)] overflow-y-auto border-t border-white/10 bg-ink px-4 pb-6 pt-4 text-white shadow-2xl">
+                <div className="mb-2">
+                  <WorkspaceSwitcher activeId={ctx.workspace.id} workspaces={ctx.workspaces} />
+                </div>
                 <div className="mb-4 flex items-center gap-3 rounded-2xl bg-white/[0.06] p-3 ring-1 ring-white/10">
                   {ctx.organisation.logo_url ? (
                     <span

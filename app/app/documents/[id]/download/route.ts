@@ -10,7 +10,7 @@ export async function GET(_request: Request, {params}: {params: Promise<{id: str
   const service = createServiceClient();
   const {data: document} = await service.from("organisation_documents")
     .select("organisation_id,storage_path").eq("id", id).maybeSingle();
-  if (!document || !ctx.organisations.some((item) => item.id === document.organisation_id))
+  if (!document || !ctx.allOrganisations.some((item) => item.id === document.organisation_id))
     redirect("/app/documents?error=That%20document%20could%20not%20be%20found.");
   const {data, error} = await service.storage.from(BUCKET).createSignedUrl(document.storage_path, 60);
   if (error || !data?.signedUrl) redirect("/app/documents?error=That%20document%20could%20not%20be%20downloaded.");

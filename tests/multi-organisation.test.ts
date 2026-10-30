@@ -1,7 +1,6 @@
 import {describe, expect, it} from "vitest";
 import {hasPermission, canManageRole, ORGANISATION_ROLES} from "@/lib/auth/permissions";
-import {isParkedOrganisation} from "@/lib/organisations/focus";
-import {selectActiveMembership, invitationDisplayStatus} from "@/lib/organisations/selection";
+import {groupWorkspaces, selectActiveMembership, invitationDisplayStatus} from "@/lib/organisations/selection";
 describe("multi-organisation workspaces", () => {
   const memberships = [
     {organisation_id: "one", organisation: {id: "one", name: "One"}},
@@ -35,14 +34,26 @@ describe("multi-organisation workspaces", () => {
     expect(invitationDisplayStatus("pending", "2026-07-27T00:00:00Z", now)).toBe("expired");
     expect(invitationDisplayStatus("accepted", "2026-07-27T00:00:00Z", now)).toBe("accepted");
   });
-  it("parks Tash, Rabbit Care and Unhinged Clothing without hiding the live projects", () => {
-    expect(isParkedOrganisation("Tash")).toBe(true);
-    expect(isParkedOrganisation("Rabbit Care")).toBe(true);
-    expect(isParkedOrganisation("Unhinged Clothing")).toBe(true);
-    expect(isParkedOrganisation("XUFU")).toBe(false);
-    expect(isParkedOrganisation("Carprise")).toBe(false);
-    expect(isParkedOrganisation("Prestige Cars")).toBe(false);
-    expect(isParkedOrganisation("Tzkia")).toBe(false);
+  it("groups businesses by workspace, keeping work and personal apart", () => {
+    const grouped = groupWorkspaces(
+      [
+        {id: "tzkia", workspaceId: "work"},
+        {id: "unhinged", workspaceId: "personal"},
+        {id: "carprise", workspaceId: "work"},
+        {id: "shared", workspaceId: "theirs"},
+      ],
+      [
+        {id: "work", name: "Work", created_by: "me"},
+        {id: "personal", name: "Personal", created_by: "me"},
+        {id: "theirs", name: "Kris", created_by: "kris"},
+      ],
+      "me",
+    );
+    expect(grouped).toEqual([
+      {id: "work", name: "Work", mine: true, organisationIds: ["tzkia", "carprise"]},
+      {id: "personal", name: "Personal", mine: true, organisationIds: ["unhinged"]},
+      {id: "theirs", name: "Kris", mine: false, organisationIds: ["shared"]},
+    ]);
   });
   it("keeps tenant selection isolated to the supplied membership set", () =>
     expect(selectActiveMembership(memberships, "foreign", null)?.organisation.id).not.toBe(

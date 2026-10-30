@@ -149,11 +149,11 @@ export default async function Billing({
           ) : null}
         </article>
 
-        {ctx.organisations.length > 1 ? (
+        {ctx.allOrganisations.length > 1 ? (
           <article className="card">
             <h2 className="font-semibold text-zinc-950">Switch organisation</h2>
             <ul className="mt-3 divide-y divide-zinc-100">
-              {ctx.organisations.map((o) => (
+              {ctx.allOrganisations.map((o) => (
                 <li key={o.id} className="flex items-center justify-between gap-3 py-2.5">
                   <span className="text-sm text-zinc-800">
                     {o.name}

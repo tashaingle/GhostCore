@@ -14,6 +14,7 @@ export type Database = {
           industry: string | null;
           timezone: string;
           default_currency: string;
+          workspace_id: string;
           created_at: string;
           updated_at: string;
         };
@@ -22,6 +23,7 @@ export type Database = {
           name: string;
           slug: string;
           created_by: string;
+          workspace_id: string;
           logo_url?: string | null;
           website?: string | null;
           industry?: string | null;
@@ -38,6 +40,28 @@ export type Database = {
           industry?: string | null;
           timezone?: string;
           default_currency?: string;
+          workspace_id?: string;
+          updated_at?: string;
+        };
+        Relationships: EmptyRelationships;
+      };
+      workspaces: {
+        Row: {
+          id: string;
+          name: string;
+          created_by: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          created_by: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          name?: string;
           updated_at?: string;
         };
         Relationships: EmptyRelationships;
@@ -2543,7 +2567,7 @@ export type Database = {
     Views: Record<string, never>;
     Functions: {
       create_organisation_with_owner: {
-        Args: {organisation_name: string; organisation_slug: string};
+        Args: {organisation_name: string; organisation_slug: string; target_workspace_id?: string};
         Returns: string;
       };
       accept_organisation_invitation: {Args: {invitation_token_hash: string}; Returns: string};

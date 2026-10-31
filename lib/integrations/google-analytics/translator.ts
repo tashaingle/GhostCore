@@ -237,3 +237,34 @@ export function translateGA4Snapshot(
   }
   return events;
 }
+
+/**
+ * Visits on one day. Google revises the last couple of days as late data arrives, so the count is
+ * part of the id: a changed count records a new reading, and the same count is skipped.
+ */
+export function translateGA4Day(
+  input: {propertyId: string; day: string; sessions: number; activeUsers: number},
+  context: TranslationContext,
+): NormalisedEventInput | null {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(input.day)) return null;
+  const visits = Math.max(0, Math.round(input.sessions)),
+    people = Math.max(0, Math.round(input.activeUsers));
+  return {
+    organisationId: context.organisationId,
+    integrationId: context.integrationId,
+    source: "google_analytics",
+    category: "website",
+    eventType: "analytics.visits.daily_recorded",
+    title: `Website visits: ${visits.toLocaleString("en-GB")}`,
+    description: null,
+    severity: "info",
+    occurredAt: `${input.day}T12:00:00.000Z`,
+    externalId: `ga4:${input.propertyId}:visits_daily:${input.day}:${visits}`,
+    metadata: {
+      propertyId: input.propertyId,
+      reportingDate: input.day,
+      sessions: visits,
+      activeUsers: people,
+    },
+  };
+}

@@ -43,6 +43,8 @@ export const LOW_SIGNAL_EVENT_TYPES = new Set([
   "shopify.discount_created",
   "shopify.discount_disabled",
   "shopify.discount_expired",
+  // A reading per day per website; they feed Stats rather than the activity list.
+  "analytics.visits.daily_recorded",
 ]);
 
 export function isLowSignalEventType(eventType: string) {

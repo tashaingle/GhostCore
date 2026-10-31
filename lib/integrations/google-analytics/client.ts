@@ -158,6 +158,31 @@ export class GoogleAnalyticsClient {
       keyEvents: Number(row.metricValues?.[8]?.value) || 0,
     }));
   }
+  /** Visits and visitors for each day in the range. Google sends dates as YYYYMMDD. */
+  async dailyVisits(propertyId: string, startDate: string, endDate: string) {
+    const report = await this.post<Report>(
+      `https://analyticsdata.googleapis.com/v1beta/properties/${encodeURIComponent(propertyId)}:runReport`,
+      {
+        dateRanges: [{startDate, endDate}],
+        dimensions: [{name: "date"}],
+        metrics: [{name: "sessions"}, {name: "activeUsers"}],
+        orderBys: [{dimension: {dimensionName: "date"}}],
+        limit: 1000,
+        keepEmptyRows: false,
+      },
+    );
+    return (report.rows ?? []).flatMap((row) => {
+      const raw = row.dimensionValues?.[0]?.value ?? "";
+      if (!/^\d{8}$/.test(raw)) return [];
+      return [
+        {
+          day: `${raw.slice(0, 4)}-${raw.slice(4, 6)}-${raw.slice(6, 8)}`,
+          sessions: Number(row.metricValues?.[0]?.value) || 0,
+          activeUsers: Number(row.metricValues?.[1]?.value) || 0,
+        },
+      ];
+    });
+  }
   async reports(
     propertyId: string,
     dates: {currentStart: string; currentEnd: string; previousStart: string; previousEnd: string},

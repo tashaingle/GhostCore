@@ -14,6 +14,7 @@ export const STATS_EVENT_TYPES = [
   ...new Set([
     ...PERFORMANCE_EVENT_TYPES,
     "analytics.performance_summary",
+    "analytics.visits.daily_recorded",
     "google_search_console.performance_summary",
     "meta_social.facebook.performance.daily_recorded",
     "google_merchant_center.products.daily_summary",
@@ -49,6 +50,8 @@ const num = (value: unknown) =>
   typeof value === "number" && Number.isFinite(value) ? value : null;
 const meta = (e: IntelligenceEvent, key: string) => e.metadata[key];
 const at = (e: IntelligenceEvent) => Date.parse(e.occurredAt);
+/** When Metric Mage stored it: a later revision of the same day wins. */
+const recorded = (e: IntelligenceEvent) => Date.parse(e.recordedAt ?? e.occurredAt);
 const dayKey = (t: number) => new Date(t).toISOString().slice(0, 10);
 const percent = (before: number, now: number) =>
   before > 0 ? Math.round(((now - before) / before) * 1000) / 10 : null;
@@ -56,7 +59,6 @@ const percent = (before: number, now: number) =>
 /** Daily reports Google revises keep only their newest revision per account and day. */
 function newestRevision(events: IntelligenceEvent[]) {
   const newest = new Map<string, IntelligenceEvent>();
-  const recorded = (e: IntelligenceEvent) => Date.parse(e.recordedAt ?? e.occurredAt);
   for (const e of events) {
     const id = `${String(meta(e, "sourceAccountId") ?? "")}|${String(meta(e, "reportingDate") ?? e.occurredAt)}`,
       found = newest.get(id);
@@ -78,7 +80,8 @@ function dailyTotals(
   for (const e of events) {
     const id = `${dayKey(at(e))}|${property(e)}`,
       found = newest.get(id);
-    if (!found || at(e) > at(found)) newest.set(id, e);
+    if (!found || at(e) > at(found) || (at(e) === at(found) && recorded(e) > recorded(found)))
+      newest.set(id, e);
   }
   const days = new Map<string, {t: number; v: number}>();
   for (const e of newest.values()) {
@@ -119,7 +122,9 @@ export function statsSections(input: {
     ofType = (type: string) => input.events.filter((e) => e.eventType === type),
     sections: StatSection[] = [];
 
-  // Website: Analytics visits (each reading covers the 7 days before it) and Search Console.
+  // Website: Analytics visits per day, and Search Console (each reading covers the 7 days before it).
+  // Properties synced before daily visits existed fall back to their weekly readings.
+  const daily = ofType("analytics.visits.daily_recorded");
   const visits = ofType("analytics.performance_summary").filter(
     (e) => (meta(e, "metric") ?? "sessions") === "sessions",
   );
@@ -128,12 +133,19 @@ export function statsSections(input: {
     String(meta(e, "propertyId") ?? meta(e, "propertyUrl") ?? "");
   const lastWeek = "In the 7 days to the latest reading";
   const website = [
-    chart(
-      {key: "visits", label: "Website visits", source: "Google Analytics", note: lastWeek},
-      dailyTotals(visits, property, (e) => num(meta(e, "currentValue"))),
-      "last",
-      build,
-    ),
+    daily.length
+      ? chart(
+          {key: "visits", label: "Website visits", source: "Google Analytics"},
+          dailyTotals(daily, property, (e) => num(meta(e, "sessions"))),
+          "sum",
+          build,
+        )
+      : chart(
+          {key: "visits", label: "Website visits", source: "Google Analytics", note: lastWeek},
+          dailyTotals(visits, property, (e) => num(meta(e, "currentValue"))),
+          "last",
+          build,
+        ),
     chart(
       {
         key: "searchClicks",

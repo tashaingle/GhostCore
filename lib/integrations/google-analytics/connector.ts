@@ -9,15 +9,24 @@ import type {
 } from "../connector";
 import {GoogleAnalyticsClient} from "./client";
 import {GoogleAnalyticsError} from "./errors";
-import {completeSevenDayRanges} from "./dates";
+import {completeSevenDayRanges, dateInTimeZone} from "./dates";
 import type {GA4Snapshot} from "./schemas";
-import {translateGA4Snapshot} from "./translator";
+import {translateGA4Day, translateGA4Snapshot} from "./translator";
 export type GoogleAnalyticsSettings = {
   propertyId?: string;
   propertyName?: string;
   accountId?: string;
   accountName?: string;
   timeZone?: string;
+  /** Set once the first sync has fetched a year of daily visits. */
+  dailyVisitsFrom?: string;
+};
+/** A year and a bit on the first sync, so the Stats year view has history; a month after that. */
+export const DAILY_VISIT_DAYS = {initial: 400, regular: 30} as const;
+const shiftDay = (day: string, days: number) => {
+  const value = new Date(`${day}T12:00:00Z`);
+  value.setUTCDate(value.getUTCDate() + days);
+  return value.toISOString().slice(0, 10);
 };
 export class GoogleAnalyticsConnector implements IntegrationConnector<GA4Snapshot> {
   provider = "google_analytics";
@@ -76,6 +85,29 @@ export class GoogleAnalyticsConnector implements IntegrationConnector<GA4Snapsho
       receivedAt: context.receivedAt ?? this.now().toISOString(),
     });
     const events = translated ? (Array.isArray(translated) ? translated : [translated]) : [];
-    return {received: 1, events, credentials: this.client.credentialUpdate()};
+    // Visits per day, up to yesterday in the property's time zone. A failure here only skips them.
+    const yesterday = shiftDay(dateInTimeZone(this.now(), timeZone), -1),
+      initial = !this.settings.dailyVisitsFrom,
+      from = shiftDay(
+        yesterday,
+        -(initial ? DAILY_VISIT_DAYS.initial : DAILY_VISIT_DAYS.regular) + 1,
+      );
+    let days: Awaited<ReturnType<GoogleAnalyticsClient["dailyVisits"]>> | null = null;
+    try {
+      days = await this.client.dailyVisits(propertyId, from, yesterday);
+    } catch (error) {
+      if (error instanceof GoogleAnalyticsError && error.kind === "unauthorized") throw error;
+    }
+    const ctx = {...context, receivedAt: context.receivedAt ?? this.now().toISOString()};
+    for (const day of days ?? []) {
+      const event = translateGA4Day({propertyId, ...day}, ctx);
+      if (event) events.push(event);
+    }
+    return {
+      received: 1 + (days?.length ?? 0),
+      events,
+      credentials: this.client.credentialUpdate(),
+      ...(days && initial ? {settings: {...this.settings, dailyVisitsFrom: from}} : {}),
+    };
   }
 }

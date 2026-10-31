@@ -8,7 +8,10 @@ export const APP_STORE_LIMITS = {
   reviewsPerApp: 50,
   reviewPages: 2,
   initialReviewDays: 30,
-  requests: 40,
+  requests: 80,
+  // Sales reports: a month on the first sync, then a week, so late reports are picked up.
+  initialDownloadDays: 30,
+  downloadDays: 7,
   // Apple rejects tokens that live longer than 20 minutes.
   tokenSeconds: 15 * 60,
   timeoutMs: 15_000,

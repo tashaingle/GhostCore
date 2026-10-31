@@ -18,6 +18,7 @@ export const STATS_EVENT_TYPES = [
     "meta_social.facebook.performance.daily_recorded",
     "google_merchant_center.products.daily_summary",
     "google_merchant_center.performance.daily_recorded",
+    "app_store.downloads.daily_recorded",
   ]),
 ];
 
@@ -37,7 +38,7 @@ export type StatChart = {
 };
 
 export type StatSection = {
-  key: "website" | "social" | "sales" | "merchant" | "email";
+  key: "website" | "social" | "sales" | "merchant" | "apps" | "email";
   title: string;
   charts: StatChart[];
   /** Where website visits came from, most first. */
@@ -277,6 +278,25 @@ export function statsSections(input: {
     ),
   ].filter((c): c is StatChart => c !== null);
   if (merchant.length) sections.push({key: "merchant", title: "Merchant Center", charts: merchant});
+  // Apps: App Store downloads, one reading per app per day.
+  const installs = ofType("app_store.downloads.daily_recorded");
+  const appId = (e: IntelligenceEvent) => String(meta(e, "appId") ?? "");
+  const appCharts = [
+    chart(
+      {key: "appDownloads", label: "App downloads", source: "App Store"},
+      dailyTotals(installs, appId, (e) => num(meta(e, "downloads"))),
+      "sum",
+      build,
+    ),
+    chart(
+      {key: "appRedownloads", label: "Redownloads", source: "App Store"},
+      dailyTotals(installs, appId, (e) => num(meta(e, "redownloads"))),
+      "sum",
+      build,
+    ),
+  ].filter((c): c is StatChart => c !== null);
+  if (appCharts.length) sections.push({key: "apps", title: "Apps", charts: appCharts});
+
   const email = fromHome(["emailSubscribers"]);
   if (email.length) sections.push({key: "email", title: "Email", charts: email});
   return sections;

@@ -76,7 +76,8 @@ export default async function StatsPage({
             {project.name}
           </h1>
           <p className="mt-1 text-sm text-zinc-500">
-            Website, social media, sales and Shopping, {labels.current} against {labels.previous}.
+            Website, social media, sales, Shopping and apps, {labels.current} against{" "}
+            {labels.previous}.
           </p>
         </div>
         <nav aria-label="Period" className="inline-flex gap-1 rounded-xl bg-zinc-100 p-1">
@@ -128,8 +129,8 @@ export default async function StatsPage({
           <ChartNoAxesCombined aria-hidden className="h-8 w-8 text-zinc-300" />
           <p className="font-medium text-zinc-900">No stats for {project.name} yet</p>
           <p className="max-w-md text-sm text-zinc-500">
-            Connect Google Analytics, Search Console, Facebook, Stripe, Merchant Center or Mailchimp
-            and the graphs will fill in as the data arrives.
+            Connect Google Analytics, Search Console, Facebook, Stripe, Merchant Center, the App
+            Store or Mailchimp and the graphs will fill in as the data arrives.
           </p>
           <Link href="/app/integrations" className="button mt-1">
             Connect a tool

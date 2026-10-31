@@ -6,7 +6,7 @@ import type {
 } from "../connector";
 import {AppStoreClient, AppStoreError} from "./client";
 import {APP_STORE_LIMITS} from "./config";
-import {translateAppStoreReview} from "./translator";
+import {translateAppStoreDownloads, translateAppStoreReview} from "./translator";
 import {REPLY_CHECK_DAYS, translateReviewReply} from "../review-replies";
 import type {AppStoreReview, AppStoreSettings} from "./types";
 
@@ -19,6 +19,8 @@ export class AppStoreConnector implements IntegrationConnector {
     private client: AppStoreClient,
     private settings: AppStoreSettings,
     private now: () => Date = () => new Date(),
+    /** A second key for sales reports, when the main key's role can't read them. */
+    private reportsClient: AppStoreClient = client,
   ) {}
   connect = async () => ({ok: true});
   // The key lives in App Store Connect. Disconnecting only forgets it here; people revoke it there.
@@ -118,6 +120,14 @@ export class AppStoreConnector implements IntegrationConnector {
           throw error;
       }
     }
+    const downloads = this.settings.vendorNumber
+      ? await this.downloads(this.settings.vendorNumber, selected, ctx, now)
+      : null;
+    if (downloads) {
+      received += downloads.received;
+      filtered += downloads.filtered;
+      events.push(...downloads.events);
+    }
     if (failures && !events.length)
       throw failure instanceof Error
         ? failure
@@ -131,7 +141,53 @@ export class AppStoreConnector implements IntegrationConnector {
         lastReviewSeconds,
         lastSyncAt: now.toISOString(),
         partialFailures: failures,
+        ...(downloads
+          ? {
+              downloadsError: downloads.error,
+              ...(downloads.error ? {} : {downloadsSyncedAt: now.toISOString()}),
+            }
+          : {}),
       },
     };
+  }
+  /**
+   * Daily downloads for the chosen apps: a month back on the first sync, then the last week, so
+   * reports Apple publishes late are still picked up. A problem here never stops reviews syncing.
+   */
+  private async downloads(
+    vendorNumber: string,
+    apps: {appId: string; name: string}[],
+    ctx: TranslationContext,
+    now: Date,
+  ) {
+    const days = this.settings.downloadsSyncedAt
+        ? APP_STORE_LIMITS.downloadDays
+        : APP_STORE_LIMITS.initialDownloadDays,
+      byId = new Map(apps.map((app) => [app.appId, app])),
+      events = [];
+    let received = 0,
+      filtered = 0,
+      error: string | null = null;
+    for (let back = 1; back <= days; back++) {
+      const day = new Date(
+        Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - back),
+      )
+        .toISOString()
+        .slice(0, 10);
+      try {
+        for (const row of await this.reportsClient.downloads(vendorNumber, day)) {
+          received++;
+          const app = byId.get(row.appId),
+            event = app ? translateAppStoreDownloads(row, app, ctx) : null;
+          if (event) events.push(event);
+          else filtered++;
+        }
+      } catch (problem) {
+        error =
+          problem instanceof Error ? problem.message : "Downloads couldn't be read from Apple.";
+        break;
+      }
+    }
+    return {events, received, filtered, error};
   }
 }

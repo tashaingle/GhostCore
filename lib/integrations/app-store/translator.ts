@@ -1,6 +1,6 @@
 import type {TranslationContext} from "../connector";
 import type {NormalisedEventInput} from "@/types/events";
-import type {AppStoreReview} from "./types";
+import type {AppStoreReview, DownloadDay} from "./types";
 
 const clean = (value: string, max: number) =>
   value
@@ -40,6 +40,43 @@ export function translateAppStoreReview(
       replied: Boolean(review.replied),
       ...(review.territory ? {territory: review.territory} : {}),
       privacy: "excerpt_only",
+    },
+  };
+}
+
+const count = (n: number, one: string, many: string) =>
+  `${n.toLocaleString("en-GB")} ${n === 1 ? one : many}`;
+
+/** One app's downloads for one day. Days with nothing at all are skipped. */
+export function translateAppStoreDownloads(
+  input: DownloadDay,
+  app: {appId: string; name: string},
+  context: TranslationContext,
+): NormalisedEventInput | null {
+  const name = clean(app.name || app.appId, 80);
+  if (!name || !/^\d{4}-\d{2}-\d{2}$/.test(input.day)) return null;
+  if (!input.downloads && !input.redownloads && !input.updates) return null;
+  return {
+    organisationId: context.organisationId,
+    integrationId: context.integrationId,
+    source: "app_store",
+    category: "marketing",
+    eventType: "app_store.downloads.daily_recorded",
+    title: `App Store · ${name} · ${count(input.downloads, "download", "downloads")}`.slice(0, 200),
+    description: input.redownloads
+      ? `Plus ${count(input.redownloads, "redownload", "redownloads")} by people who had it before.`
+      : null,
+    severity: "info",
+    occurredAt: `${input.day}T12:00:00.000Z`,
+    externalId: `app_store:downloads:${app.appId}:${input.day}`,
+    rawPayload: {reportingDate: input.day},
+    metadata: {
+      appId: app.appId,
+      sourceEntityName: name,
+      reportingDate: input.day,
+      downloads: input.downloads,
+      redownloads: input.redownloads,
+      updates: input.updates,
     },
   };
 }

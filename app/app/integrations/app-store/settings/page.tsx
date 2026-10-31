@@ -1,7 +1,7 @@
 import Link from "next/link";
 import {getActiveOrganisation} from "@/lib/organisations/active";
 import {requireOrganisationAdmin} from "@/lib/auth/organisation-admin";
-import {saveAppStoreApps} from "@/app/app-store-actions";
+import {saveAppStoreApps, saveAppStoreDownloads} from "@/app/app-store-actions";
 import {PageHeader} from "@/components/page-header";
 import {Notice} from "@/components/notice";
 import {SubmitButton} from "@/components/submit-button";
@@ -30,7 +30,7 @@ export default async function AppStoreSettings({
       </Link>
       <PageHeader
         title="App Store apps"
-        description={`Choose the apps ${ctx.organisation.name} tracks. Metric Mage reads new App Store reviews.`}
+        description={`Choose the apps ${ctx.organisation.name} tracks. Metric Mage reads new App Store reviews, and daily downloads once they are turned on below.`}
       />
       <Notice searchParams={params} />
       {!items?.length ? (
@@ -88,6 +88,71 @@ export default async function AppStoreSettings({
           );
         })
       )}
+      {items?.map((item) => {
+        const settings = item.settings as Record<string, unknown>,
+          vendorNumber = typeof settings.vendorNumber === "string" ? settings.vendorNumber : "",
+          reportsKeyId = typeof settings.reportsKeyId === "string" ? settings.reportsKeyId : "",
+          problem = typeof settings.downloadsError === "string" ? settings.downloadsError : "";
+        return (
+          <form
+            action={saveAppStoreDownloads}
+            className="card space-y-4"
+            key={`downloads-${item.id}`}
+          >
+            <input type="hidden" name="integrationId" value={item.id} />
+            <div>
+              <h2 className="text-lg font-semibold text-zinc-950">Downloads</h2>
+              <p className="mt-1 text-sm text-zinc-500">
+                Daily downloads for the apps above, from Apple&apos;s sales reports. Apple only
+                shares these with keys that have the Sales (with access to reports), Finance or
+                Admin role. If the key above is App Manager, add a second key here.
+              </p>
+            </div>
+            {problem && <p className="error">{problem}</p>}
+            <label className="block space-y-1">
+              <span className="text-sm font-medium text-zinc-950">Vendor number</span>
+              <input
+                className="field w-full font-mono"
+                name="vendorNumber"
+                defaultValue={vendorNumber}
+                inputMode="numeric"
+                placeholder="From Payments and Financial Reports"
+              />
+              <span className="block text-xs text-zinc-500">
+                Leave empty to turn downloads off.
+              </span>
+            </label>
+            <label className="block space-y-1">
+              <span className="text-sm font-medium text-zinc-950">
+                Reports key ID <span className="font-normal text-zinc-500">(optional)</span>
+              </span>
+              <input
+                className="field w-full font-mono"
+                name="reportsKeyId"
+                placeholder={
+                  reportsKeyId ? `Using ${reportsKeyId}` : "A key with the Sales or Finance role"
+                }
+              />
+            </label>
+            <label className="block space-y-1">
+              <span className="text-sm font-medium text-zinc-950">
+                Reports key private key{" "}
+                <span className="font-normal text-zinc-500">(.p8 file contents, optional)</span>
+              </span>
+              <textarea
+                className="field w-full font-mono text-xs"
+                name="reportsPrivateKey"
+                rows={5}
+                placeholder="-----BEGIN PRIVATE KEY-----"
+              />
+              <span className="block text-xs text-zinc-500">
+                It must belong to the same App Store Connect team as the key above.
+              </span>
+            </label>
+            <SubmitButton pendingLabel="Checking with Apple…">Save downloads</SubmitButton>
+          </form>
+        );
+      })}
     </section>
   );
 }

@@ -226,10 +226,16 @@ export function loadConnector(
   }
   if (provider.connector === "app_store") {
     // The access token column holds the encrypted App Store Connect key, not an OAuth token.
+    // The refresh token column holds an optional second key, with a role that can read sales reports.
     if (!credentials.accessToken) throw new Error("App Store credentials are missing.");
+    const client = new AppStoreClient(storedAppStoreKey(credentials.accessToken));
     return new AppStoreConnector(
-      new AppStoreClient(storedAppStoreKey(credentials.accessToken)),
+      client,
       (credentials.settings ?? {}) as AppStoreSettings,
+      undefined,
+      credentials.refreshToken
+        ? new AppStoreClient(storedAppStoreKey(credentials.refreshToken))
+        : client,
     );
   }
   if (provider.connector === "google_business_profile") {

@@ -11,6 +11,13 @@ export type AppStoreSettings = {
   configurationStatus?: "property_required" | "ready";
   apps?: AppStoreApp[];
   lastReviewSeconds?: Record<string, number>;
+  /** From Payments and Financial Reports. Turns on daily downloads. */
+  vendorNumber?: string;
+  /** Set when downloads use a second key with the Sales or Finance role. */
+  reportsKeyId?: string;
+  downloadsSyncedAt?: string;
+  /** Why downloads couldn't be read on the last sync, in plain English. */
+  downloadsError?: string | null;
   lastSyncAt?: string;
   partialFailures?: number;
 };
@@ -31,4 +38,14 @@ export type AppStoreReview = {
   territory?: string;
   /** The developer has answered it. */
   replied?: boolean;
+};
+
+/** One app's downloads on one day, from Apple's daily sales summary. */
+export type DownloadDay = {
+  appId: string;
+  day: string;
+  /** First-time downloads, free or paid. */
+  downloads: number;
+  redownloads: number;
+  updates: number;
 };
